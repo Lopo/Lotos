@@ -1,0 +1,5 @@
+~OLPouzitie  :~RS help [<prikaz>]
+
+Bez parametru zobrazi hlavny help. Ako parameter sa moze zadat nazov prikazu
+ku ktoremu chces zobrazit podrobny help, pripadne niektory zo specialnych
+parametrov.

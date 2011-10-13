@@ -1,0 +1,12 @@
+~OLPouzitie :~RS set show
+
+Zobrazi zoznam atributov ktore mozes zmenit.
+Ostatne set_* helpy (pouzi .h <set_sub> na pozretie)
+
+set_gender      set_age         set_email       set_www
+set_hide        set_wrap        set_pager       set_colour
+set_room        set_autofwd     set_password    set_rdesc
+set_command     set_recap       set_icq         set_alert
+set_audio       set_ppa         set_voice       set_xterm
+
+~OLPozri:~RS ignore

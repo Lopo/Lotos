@@ -1,0 +1,7 @@
+~OLPouzitie :~RS people [key]
+
+Vypise zoznam nahlasenyhc userov s kratkym info o kazdom. Zobrazi aj linky
+na ktorych sa momentalne niekto pokusa prihlasit. Pouzitim parametra `key'
+zobrazi zoznam oznacenia stupnov prihlasovania.
+
+~OLPozri:~RS who, look

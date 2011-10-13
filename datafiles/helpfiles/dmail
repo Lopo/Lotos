@@ -1,0 +1,11 @@
+~OLPouzitie :~RS dmail <#>
+~OL         :~RS dmail to <#>
+~OL         :~RS dmail from <#> to <#>
+~OL         :~RS dmail all
+
+Sluzi na mazanie sprav z tvojho mailboxu. Mozes zmazat jednu urcitu spravu
+zadanim jej cisla alebo od prvej spravy po zadanu spravu. Pripadne mozes zmazat
+spravy od urcitej po inu, alebo vsetky spravy komplet. Ak zadas vacsie cislo
+nez je pocet sprav, budu zmazane vsetky spravy.
+
+~OLPozri:~RS smail, from

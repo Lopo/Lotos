@@ -1,0 +1,10 @@
+~OLPouzitie :~RS verify <verifikacny kod>
+
+Umoznuje verifikovat tvoju email adresu. Ako parameter sa zadava kod, ktory je
+v sprave dorucenej na tebou zadanu email adresu. Po uspesnej verifikacii je
+mozne automaticky posielat na tu email adresu vsetky spravy, ktore budu dorucene
+sem do tvojho mailboxu. Toto automaticke posielanie sa zapina pomocou
+prikazu ~FG.set~RS. Po zmene email adresy je znovu nutne verifikovat zadany
+email pomocou tejto procedury.
+
+~OLPozri:RS set

@@ -1,0 +1,8 @@
+~OLPouzitie :~RS samesite user/site [all]
+
+Zobrazi zoznam userov, ktori su nahlaseny z rovnakej adresy ako zadany user.
+Parameter `all' (pri `site') zobrazi len momentalne nahlasenych userov.
+Po pouziti prikazu sa samostatne zadava meno usera alebo adresa. Adresa nemusi
+byt uplna.
+
+~OLPozri:~RS site

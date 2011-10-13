@@ -1,0 +1,6 @@
+~OLPouzitie :~RS ctopic [all]
+
+Zmaze topic v miestnosti v ktorej sa momenatlne nachadzas. Ak zadas
+parameter `all', zmaze vo vsetkych miestnostiach na talkri.
+
+~OLPozri:~RS topic, look

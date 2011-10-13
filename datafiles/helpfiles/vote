@@ -1,0 +1,8 @@
+~OLPouzitie :~RS vote [<volba>] [<hlas>]
+
+Bez parametra zobrazi zoznam volieb prave prebiehajucich na talkri. S jednym
+parametrom zobrazi kratky popis volieb na danu temu s moznostami na
+hlasovanie a priebeznymi vysledkami. Ak sa zadaju oba parametre, odovzdas
+tym svoj hlas v konkretnych volbach na urcenu moznost.
+
+~OLPozri :~RS

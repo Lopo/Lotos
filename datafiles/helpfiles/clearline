@@ -1,0 +1,8 @@
+~OLPouzitie :~RS clearline <#>
+
+Sluzi na vycistenie linky zabranej nejakym userom ktory sa nachadza v stadiu
+prihlasovania (zobrazuje sa pri prikaze ~FG.people~RS). Je vhodne na uvolnenie
+linky ak sa user loguje prilis dlho a zabera tym zbytocne miesto a kapacitu
+pripojenia.
+
+~OLPozri:~RS kill

@@ -1,0 +1,8 @@
+~OLPouzitie :~RS mode
+
+Prepina medzi kecacim (SPEECH) a prikazovym (COMMAND) modom. V kecacom mode
+je vsetko co napises a nezacina bodkou reprezentovane ako rec. V prikazovom
+mode je vsetko co napises brane ako prikaz. V tomto mode musis na rozpravanie
+pouzivat prikaz ~FG.say~RS
+
+~OLPozri:~RS 

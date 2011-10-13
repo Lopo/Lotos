@@ -1,0 +1,7 @@
+~OLPouzitie :~RS gcom <user> [<prikaz>]
+
+Umoznuje pridat userovi nejaky prikaz ktory je pre neho nedostupny (ma nan maly
+level). Bez zadania prikazu zobrazi zoznam prikazov ktore mam momentalne
+pridane. Po opatovnom pouziti mu ten prikaz odoberie.
+
+~OLPozri:~RS xcom, force

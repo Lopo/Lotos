@@ -1,0 +1,9 @@
+~OLPouzitie :~RS minlogin NONE/<level>
+
+Nastavi minimalny level, ktory musi mat user na prihlasenie. Vztahuje sa na
+hlavny port, a ak sa nastavi vyssi level ako je defaultny na WIZ porte, bude
+obmedzeny aj ten. Ak sa nastavi `NONE', bude sa moct nahlasit kazdy, aje ked
+este nema vytvorene konto. Ak sa nastavi `NEW', nebudu sa moct nahlasit len
+useri ktori este nemaju na talkri konto.
+
+~OLPozri:~RS ban

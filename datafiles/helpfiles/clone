@@ -1,0 +1,8 @@
+~OLPouzitie :~RS clone [<room>]
+
+Vytvori tvoj klon v zadanej miestnosti alebo ak nezadas miestnost tak v tej,
+v ktorej sa prave nachadzas. Tento klon ti zobrazuje vsetko, co pocuje.
+Samozrejme podla toho co mu nastavis prikazom ~FG.chear~RS. Pouzitim prikazu
+~FG.switch~RS si mozes so zadanym klonom vymenit miestno.
+
+~OLPozri:~RS switch, allclones, chear, csay, destroy

@@ -1,0 +1,8 @@
+~OLPouzitie :~RS myroom [-d]
+
+Presunie ta do tvojej sukromnej miestnosti. Ak neexistuje, tak ju automaticky
+vytvori. Mozes si nastavit svoj vlastny popis, topic a samozrejme mas
+k dispozicii aj svoju vlastnu nastenku. Parameter `-d' tvoju miestnost zmaze.
+To vsetko je ale pristupne len ked su sukromne miestnosti povolene.
+
+~OLPozri:~RS mypaint, mybgone, visit

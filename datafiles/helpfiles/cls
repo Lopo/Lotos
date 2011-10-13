@@ -1,0 +1,7 @@
+~OLPouzitie :~RS cls
+
+Tento prikaz vymaze obrazovku sposobom zavyslym na nastavenom color-mode.
+Bud vypise vela prazdnych riadkov - vyskroluje, alebo pouzije specialnu
+sekvenciu prikazov.
+
+~OLPozri:~RS set

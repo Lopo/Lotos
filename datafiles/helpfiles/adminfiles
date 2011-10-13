@@ -1,0 +1,6 @@
+~OLPouzitie  :~RS adminfiles [<nazov>]
+
+Umoznuje zobrazit subory urcene pre adminov. Ak sa nezada parameter zobrazi
+zoznam dostupnych suborov. 
+
+~OLPozri :~RS files, wrules

@@ -1,0 +1,6 @@
+~OLPouzitie :~RS monitor
+
+Zapne/vypne zobrazovanie mena usera pri prikazoch, ktore standardne nezobrazuju
+meno toho, kto ten prikaz pouzil. Napr. pri prikazoch ~FG.greet~RS, ~FG.echo~RS a pod.
+
+~OLPozri:~RS

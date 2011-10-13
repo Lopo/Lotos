@@ -1,0 +1,7 @@
+~OLPouzitie :~RS expire <user>
+
+Zapne/vypne casove obmedzenie platnosti jednotlivych kont. Ak je zapnute, user
+po urcitom case nepritomnosti bude zmazany. Ak sa nezada user, platnost sa bude
+vztahovat na vsetky konta.
+
+~OLPozri:~RS deluser

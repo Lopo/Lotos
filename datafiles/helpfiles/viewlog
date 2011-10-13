@@ -1,0 +1,13 @@
+~OLPouzitie :~RS viewlog <log>|<level> [<riadkov od konca>]
+
+Zobrazi vybrany logovaci subor. Ak sa zada za typom aj cislo, zobrazi len riadky
+od konca v zadanom pocte.
+Mozne parametre:
+sys - systemovy log
+net - netlink log - len ak su zakompilovane
+req - request log - zoznam ziadosti o konto
+deb - debug log - odladovaci log pri upravach talkra
+err - error log - zaznam chyb
+level - zobrazi zoznam userov so zadanym levelom
+
+~OLPozri:~RS logging

@@ -1,0 +1,8 @@
+~OLPouzitie :~RS kalendar [<mesiac> [<rok>]]
+
+Zobrazi kalendar so zvyraznenym aktualnym datumom (ak sa zpbrazuje aktualny
+mesiac). Bez parametra zobrazi aktualny mesiac a rok. Ak sa zada mesiac,
+zobrazi zadany mesiac aktualneho roku. Inac zobrazi zadany mesiac a zadany rok.
+Mesiac je cislo od 1 do 12, rok je cislo od 1 do 99 alebo od 1800 do 3000.
+
+~OLPozri:~RS time

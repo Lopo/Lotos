@@ -1,0 +1,7 @@
+~OLPouzitie :~RS mykey [<user>]
+
+Umoznuje dat zadanemu userovi kluc od tovjej sukromnej miestnosti. Takze potom
+ten user moze prist do tvojej sukromnej miestnosti aj ked si pouzil
+prikaz ~FG.mylock~RS. Opakovanym pouzitim mu ten kluc zoberies.
+
+~OLPozri:~RS mylock, myroom, mybgone

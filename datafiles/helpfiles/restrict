@@ -1,0 +1,9 @@
+~OLPouzitie :~RS restrict <user> [<retazec>]
+                          <user> +/- <parameter>
+
+Prikaz sluzi na nastavenie roznych obmedzeni pre usera. Napr zakaz pohybu,
+prezerania review bufferu, ...  Bud sa zadaju vsetky parametre naraz v
+jednom retazci, alebo sa nastavuju po jednej hodnote. Ak sa zada len user,
+zobrazi sa aktualny stav jeho moznosti.
+
+~OLPouzitie :~RS xcom, gcom

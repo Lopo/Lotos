@@ -1,0 +1,7 @@
+~OLPouzitie :~RS who [notify]
+
+Zobrazi uplny zoznam userov ktorych mozes na talkri vidiet. Pri kazdom su
+rozne dolezite informacie (rooma, desc, level, ...). Zadanim parametra notify
+zobrazi zoznam nahlasenych z `notify listu'.
+
+~OLPozri :~RS look, people

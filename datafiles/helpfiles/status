@@ -1,0 +1,5 @@
+~OLPouzitie :~RS status [<user>]
+
+Zobrazi detailne info o zadanom userovi. Ak sa nezada user, zobrazi info o tebe.
+
+~OLPozri:~RS examine

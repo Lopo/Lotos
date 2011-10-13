@@ -1,0 +1,8 @@
+~OLPouzitie :~RS swban
+
+Prepina stav prace systemu s nadavkami. Ak je vypnuty, system napise co mu user
+zada. Ak je stav `MIN', Neodmietne celu vetu, ale len nadavku vybodkuje a necha
+z nej len prave a posledne pismeno. Ak je stav `MAX', system nenapise nic z toho
+co user napisal, ak to obsahuje nejake slovo zo zoznamu nadavok.
+
+~OLPozri:RS

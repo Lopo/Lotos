@@ -1,0 +1,9 @@
+~OLPouzitie :~RS ignore [<atribut> [<hodnota>]]
+
+Umoznuje nastavit igmnorovanie roznych veci.
+Bez zadania atributu sa zobrazia vsetky dostupne atributy s kratkym popisom.
+Vacsina atributov nepotrebuje zadanu hodnotu, pretoze su to len prepinace.
+Na zobrazenie aktualnych nastaveni pouzi atribut `show'. Pre detailnejsie
+info o kazdom atribude pouzi tvar ~FG.help ign_show~RS.
+
+~OLPozri:~RS set

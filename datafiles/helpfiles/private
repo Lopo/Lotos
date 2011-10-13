@@ -1,0 +1,7 @@
+~OLPouzitie :~RS private [<rooma>]
+
+Nastavi zadanu miestnost (ak nie je fixnuta) ako privatnu. Ak nezadas miestnost
+alebo nemas na to potrebny level, nastavis len miestnost v ktorej sa prave
+nachadzas.
+
+~OLPozri:~RS public, fix, unfix

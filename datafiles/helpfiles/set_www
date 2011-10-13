@@ -1,0 +1,6 @@
+~OLPouzitie :~RS set www [<URL adresa>]
+
+Sluzi na nastavenie adresy tvojej domovskej web stranky (ak mas).
+Zobrazuje sa v statuse. Ak nezadas adresu, aktualne nastavenie sa zrusi.
+
+~OLPozri:~RS set email

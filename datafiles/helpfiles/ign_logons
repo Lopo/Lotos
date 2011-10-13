@@ -1,0 +1,7 @@
+~OLPouzitie :~RS ignore logons
+
+Prepina ignorovanie oznamov o prihlaseni a odhlaseni userov. Aj ked toto
+ignorovanie zapnute, system bude zobrazovat (ak je to zapnute) oznameniao
+prihlaseni a odhlaseni userov z `notify listu'.
+
+~OLPozri:~RS set alert

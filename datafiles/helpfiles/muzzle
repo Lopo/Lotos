@@ -1,0 +1,7 @@
+~OLPouzitie :~RS muzzle <user> [-cancel]
+
+Znemozni userovi hovorit, kricat, emotovat a posielat maily. Odmuzzlovat ho
+moze len user s rovnakym alebo vyssim levelom ako mal ten kto ho zamuzzloval.
+Zrusenie zakazu sa dosiahne pridanim parametra '-cancel'.
+
+~OLPozri:~RS jail

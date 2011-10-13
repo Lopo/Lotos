@@ -1,0 +1,6 @@
+~OLPouzitie :~RS invite <user> [-cancel]
+
+Umoznuje pozvat usera do miestnosti v ktorej si, ak tato je prave nastavena
+na privatnu. Zrusenie pozvania sa robi pridanim parametra '-cancel'.
+
+~OLPozri:~RS letmein

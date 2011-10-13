@@ -1,0 +1,6 @@
+~OLPouzitie :~RS fix [<rooma>]
+
+`Fixne' aktualny pristup do miestnosti, takze sa nemoze zmenit prikazmi ~FG.private~RS
+a ~FG.public~RS. Ak nezadas miestnost, fixne miestnost v ktorej sa prave nachadzas.
+
+~OLPozri:~RS unfix, public, private

@@ -1,0 +1,7 @@
+~OLPouzitie :~RS alarm <cas>/stop
+
+Nastavi budik na zadany pocet minut, pripadne ho zastavi. Po uplynuti
+zadaneho casu sa bude v pravidelnych intervaloch zobrazovat upozornenie spolu
+so zvukovym signalom.
+
+~OLPozri :~RS time

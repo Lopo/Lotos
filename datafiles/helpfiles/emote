@@ -1,0 +1,10 @@
+~OLPouzitie :~RS emote <text>
+
+Sluzi na vyjadrenie roznych pocitov a stanovisk. Napr. Godovi blbne pocitac,
+tak napise `.emote mam zblbnuty pocitac' a ostatnym to napise `God ma zblbnuty
+pocitac'. Prikaz ma aj skratku. Takze namiesto `.emote' mozes pouzit znak `;',
+`; ma zblbnuty pocitac'. Alebo `;ovi blbne pocitac' vypise
+`Godovi blbne pocitac'. Texty sa zobrazuju len v miestnosti v ktorej sa
+momentalne nachadzas.
+
+~OLPozri:~RS semote, pemote, nemote

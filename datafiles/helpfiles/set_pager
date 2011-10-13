@@ -1,0 +1,9 @@
+~OLPouzitie :~RS set pager <pocet>
+
+Nastavuje strankovanie. Je to pocet riadkov, ktore naraz zobrazi. Ak pocet
+riadkov na zobrazenie prekroci nastavenu hodnotu, system automaticky zalomi
+zobrazovanie po zadanom pocte riadkov, pricom mozes v tom momente dalsie
+zobrazovanie zrusit alebo mozes potvrdit zobrazenie dalsieho useku.
+Akceptuje hodnoty od 15 do 99. Defaultne je nastavena hodnota 23.
+
+~OLPozri:~RS

@@ -1,0 +1,9 @@
+~OLPouzitie :~RS wipe <#>
+~OL         :~RS wipe to <#>
+~OL         :~RS wipe from <#> to <#>
+~OL         :~RS wipe all
+
+Sluzi na mazanie sprav z nastenky v miestnosti v ktorej sa prave nachadzas.
+Ak zadas vacsie cislo ako je aktualny pocet sprav, zmazu sa vsetky spravy.
+
+~OLPozri:~RS write, myroom

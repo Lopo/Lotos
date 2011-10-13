@@ -1,0 +1,9 @@
+~OLPouzitie :~RS xcom <user> [<prikaz>]
+
+Umoznuje odobrat userovi nejaky prikaz, na ktory ma inac normalne narok.
+Napriklad ak zneuziva nejaky prikaz, pomocou tohoto sa mu da v tom zabranit.
+Bez zadania prikazu zobrazi zoznam prikazov ktore ma momentalne odobrane.
+Naspat sa mu odobrany prikaz vrati rovnako ako sa mu zobral - opatovnym
+pouzitim tohoto prikazu.
+
+~OLPozri:~RS gcom, force

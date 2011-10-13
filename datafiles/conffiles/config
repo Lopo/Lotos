@@ -1,0 +1,77 @@
+# Main config file for talker OS Star 1.0.0b
+
+INIT:
+verification       osstar100b
+mainport           7000
+wizport            7001
+linkport           7002
+max_users          100
+max_clones         5
+heartbeat          2
+login_idle_time    180
+user_idle_time     600
+time_out_afks      YES
+ban_swearing       MIN
+auto_connect       NO
+password_echo      NO
+ignore_sigterm     NO
+system_logging     ON
+colour_def         ON
+prompt_def         OFF
+charecho_def       OFF
+minlogin_level     NONE
+mesg_life          30
+mesg_check_time    01:00
+min_private        2
+#ignore_mp_level    PENTIUM_III
+rem_user_maxlevel  PENTIUM_MMX
+rem_user_deflevel  PP06
+wizport_level      CELERON
+gatecrash_level    CELERON
+time_out_maxlevel  CELERON
+crash_action       REBOOT
+auto_purge         NO
+allow_recaps       YES
+auto_promote       YES
+personal_rooms     YES
+startup_room_parse NO
+random_motds       YES
+auto_save          -1
+pueblo_enh         ZAP
+
+
+ROOMS:
+# format
+# map  label  name         links              netlink connections
+general cpu procesor       nul,ram,dev,lin    PUB
+jail    win windows        noleave            PUB
+general rc  console        noleave            RTC
+general nul null           dev,cpu,lin
+general lin linux          cpu,nul,dev,ram
+general dev devices        cpu,nul,ram,hda    PUB
+general ram pamat          cpu,nul,lin
+general hda disk           dev,ram
+gateway gw  gateways       dev,mro,ina        PUB
+gateway mro mars           gw                 PUB
+gateway ina in_a           gw                 PUB
+
+TRANSPORTS:
+#format
+# map  label  name         links                    place route
+general  tra   elina        cpu,lin,dev,hda,ram,cpu    10    20
+general  trb   lino         lin,nul,dev,hda            5     10
+
+TOPICS:
+# format
+# room name     topic
+procesor        Witay na Star talkri !!!
+console         Hmmmmm, topic ....
+
+# Link to the 2nd talker. You may need to put the machine name rather than
+# localhost here when you're running the 2nd talker on the same machine, it
+# depends on how the /etc/hosts file is set up and also the resolver.
+# none of these are real talkers or sites!
+
+SITES:
+# format
+# link name    address               password

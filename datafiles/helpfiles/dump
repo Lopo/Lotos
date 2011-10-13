@@ -1,0 +1,11 @@
+~OLPouzitie :~RS dump -u/-r <rank>/-c/-m/-s
+
+Ulozi urcite aktualne informacie o talkri do suboru.
+Parametre ukladania:
+`-u' - mena vsetkych userov
+`-r' - len userov s danym levelom
+`-c' - poslednych 16 pouzitych prikazov
+`-m' - pamat pouzita talkrom
+`-s' - systemove informacie
+
+~OLPozri:~RS system

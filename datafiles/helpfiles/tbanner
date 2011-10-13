@@ -1,0 +1,6 @@
+~OLPouzitie   :~RS tbanner /<user> [-<font>] <text>
+
+Vypise zadany text velkym zadanym pismom jednemu zadanemu pouzivatelovi.
+Zoznam fontov dostanes pouzitim parametra /l.
+
+~OLPozri:~RS banner, sbanner, greet

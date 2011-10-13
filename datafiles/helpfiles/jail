@@ -1,0 +1,9 @@
+~OLPouzitie :~RS jail <user> [-cancel]
+
+Uvazni zadaneho usera. Bude umiestneny do vazenia a jeho level bude VAZEN.
+Toto nastavenie sa automaticky obnovi aj pri jeho opatovnom prihlaseni
+na talker, takze mu odhlasenie nepomoze. Z vazenia ho moze prepustit len user
+s rovnakym alebo vyssim levelom ako ten ktory ho do vazenia dal. Z vazenia
+sa user prepusti pridanim parametra `-cancel'.
+
+~OLPozri:~RS muzzle

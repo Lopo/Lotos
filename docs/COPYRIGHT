@@ -1,0 +1,224 @@
++------------------------------------------------------------------------------+
+     COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT
+                  Copyright informacie pre OS Star 1.0.0b
++------------------------------------------------------------------------------+
+Tento dokument obsahuje copyright informacie pre OS Star 1.0.0b a dalsie systemy
+pouzite pri jeho tvorbe.
+
+Copyright pre OS Star
+~~~~~~~~~~~~~~~~~~~~~
+OS Star je distribuovany ako freeware. Copyright sa vztahuje na vsetky subory
+okrem nasledovnych: ASCII obrazky v datafiles/pictfiles, fonty
+v datafiles/fonts a originalnu dokumentaciu k Amnuts, NUTS a dalsim pouzitym
+systemom.
+Nie je povolene dalej distribuovat alebo akokolvek pouzivat OS Star za ucelom
+akehokolvek zisku z toho plynuceho bez mojho vyslovneho suhlasu.
+Je dovolene modifikovat OS Star a dalej ho distribuovat. Musi byt ale v prikaze
+`.version' a vo version informacii pri prihlasovani jasne uvedene ze je to
+vytvorene z OS Star a nie je to 100%-ny cisty OS Star. Dalej musia byt zachovane
+credits o Amnuts, NUTS a OS Star zobrazovane v `.help credits'. K tomu musia byt
+zachovane hlavicky na vrchu kazdeho zdrojoveho suboru obsahujuce informacie
+o OS Star.
+OS Star je distribuovany tak ako je a nie je poskytovana ziadna zaruka na skody
+sposobene jeho pouzivanim.
+Tento copyright sa vztahuje len na tuto verziu.
+Ak mate problemy s touto copyright licenciou, tak nepouzivajte OS Star.
+Pripadne kontaktujte cez osstar@star.sjf.stuba.sk.
+
+Pavol Hluchy
+marec, 2000
+
+
+Copyright for Amnuts code
+~~~~~~~~~~~~~~~~~~~~~~~~~
+The Amnuts code and files contain within the distribution are supplied as 
+freeware and not public domain.  I retain the copyright for all files included 
+with exception of: the ASCII picture files and any unmodified documentation 
+written by Neil Robertson.  I will take legal action against anyone/company who
+is found selling the code for their own commercial advantage, though if anyone 
+wishes to run a pay-to-use talker using the Amnuts code then they are welcome.
+If you wish to distribute the original Amnuts code to anyone else this must be 
+done with my express permission.
+You are free to modify the Amnuts code anyway you wish to suit your own needs 
+and distribute that.  You must not alter the .version, or the version
+prompt when logging in so much that it does not refer to the code being based
+on Amnuts or that the code isn't 100% original.  You must also leave the
+credits from Neil and myself in the code (viewed by '.help credits'), and
+also the header information at the top of the source code.
+Although every care has been taken to produce a bug-free talker system, this
+distribution is supplied as-is and I cannot be held responsible for damages
+incurred through any use of the Amnuts code or any other associated files.
+This copyright pertains to ANY version of Amnuts, documents, or web site.
+If you have any problems with this copyright notice then you should not use the
+code at all.
+
+Andrew Collington
+September, 1999
+
+
+Copyright for NUTS code
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If you alter the code could you please leave the credits in the code (.help
+credits) and also don't change the version so much that it doesn't say NUTS
+anymore when a user does the .version command. I find it annoying that after 
+I've spent months of time working on this software someone comes along, changes
+a few commands then pretends its all their own work. If you have a problem 
+with any references to my name or the NUTS name being in your talker then 
+don't use my software, its that simple, go write your own from scratch. 
+This software is freeware, it is *NOT* public domain, I retain copyright, and 
+since there is code in here that I have used in a commercial system I have 
+written I will take legal action on anyone and their institution/employer who 
+I find using it to their own commercial advantage by way of selling the code
+of either this or a modified version. I have no problems with anyone running a 
+pay-to-use talker using NUTS however.
+You are perfectly free to modify the code to suit your needs and distribute 
+modified versions *BUT* if you do could you please leave my name, the NUTS
+name and the code header in the code and also note the fact that the code
+isn't 100% original.
+
+Neil Robertson
+September 1996
+
+
+Copyright pre Crypt v5
+~~~~~~~~~~~~~~~~~~~~~~
+Working from Neil's license it follows that the Crypt talker coder is freeware
+and my be freely modified and distributed AS LONG AS:
+
+1)  All of Neil's requests above are obeyed, with the additions that the 
+.version command (including the one at login prompt) mentions that the talker 
+is based on CryptCode as well as Nuts.  
+
+2) My credits (.help credits) are retained as are Neil's credits (.help neil).
+
+3) This code is never to be sold or passed off as anyone else's work.
+
+Also, if the code IS modified and redistributed it would be nice if you include
+a file summarising the changes made.
+
+This package also includes code written from scratch by me (ncat, userinfo) 
+and this is again freeware which may be freely modified and redistributed as 
+long as my credits remain in the code. 
+
+Portions of the freeware package Figlet v2.1.1 by Glenn Chappell and Ian Chai 
+have been used. 
+
+The GNU implementation of the Unix system call crypt() by Michael Glad  is 
+included here to provide support for MS-Windows and FreeBSD compilations.
+
+It would also be nice if you included a small note on either the MOTD1 or MOTD2 file
+saying that the talker is based on Crypt code.  (Unlike Simon Marsh I won't insist
+on this ;)
+
+
+Copyright pre Dragon V2
+~~~~~~~~~~~~~~~~~~~~~~~
+By using this code you agree to all the following terms and conditions. These
+terms and conditions supercede any others that may have been imposed by
+previous versions of the code that were released unless otherwise stated.
+
+i) This code is in *NO* way supported by anybody who has ever coded
+it. You use it entirely at your own risk, and in doing so agree to indemnify
+ALL the people who have contributed coding time against any proceedings that
+may result due to the use or misuse of this code. We are *NOT* responsible!
+
+ii) The code is provided on an 'as is' basis. It is not guaranteed to work, or
+not to. This could mean it will completely screw up the machine you run it on.
+Don't come crying to anyone, we're NOT responsible.
+
+iii) Feel free to redistribute the code. BUT please include all the files, and
+make clear any changes you have made to them. By preference point people to
+where you got this from, so they can have an unadulterated copy, (that, or YOU
+are responsible for any questions they may ask).
+
+iv) You MUST give credit to the following people in your message of the day,
+(and must always include something like a message of the day for this purpose).
+
+       Wayne Owens - aka Pendragon the originator of the code
+
+v) In a 'help credits' or similar you must also mention the following people:
+
+       Wayne Owens (Pendragon) - the originator of the code
+       Colin May        (Rael) - Code Tester.
+       Trefor Southwell (tref) - The person who came up with the idea for
+				 a NEW talker Base code.
+       
+(basically you just need to give credit where credit is due)
+You may of course credit the entire lot in your message of the day as well,
+but you'll end with a rather large one *8-P.
+
+
+Copyright pre Gaen K16
+~~~~~~~~~~~~~~~~~~~~~~
+   THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
+   IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+   IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   POSSIBILITY OF SUCH DAMAGE.
+
+* If you have no familiarity with NUTS-like talkers, please read first the
+documentation files from "DOCS/" directory of NUTS 3.3.3 package (not included
+in this distribution).
+
+
+Copyright pre Moenuts 1.59
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using this software is subject to the following agreements and 
+restrictions.  Please read and make sure you understand them before using
+this software.  Alot of time and effort by Moesoft developments with the
+help of others went into making this Talker Server happen, and we'd like
+to be able to keep up the development of this.
+
+
+1... This licence agreement may be updated without notice.  The latest
+     We reserve the right to update this agreement without notification in
+     any way we see fit.
+
+2... No user shall remove code from the product in question for the
+     purpose of using it in another product/code without the
+     written concent of Moesoft Developments.  Keep in mind, we do
+     release usefull code snippets on our FTP site, and you never know,
+     the code you're looking for must might be there anyways:).
+
+3... All copyright notices MUST remain intact.  No one person shall modify
+     the .version or .help credits in any way.  These must remain as they
+     are.  No one person shall remove any of the names on the 'Special
+     Thanks To' role call in the credits.  These people have been kind
+     enough to donate their time and/or services and/or knowledge to help
+     make this project better, and must not be removed from the list.
+
+4... No one person using the Moenuts Chat Server may update it and call it
+     their own.  We don't have a problem with you saying something like:
+     Talker Name v2.2.2 running Moenuts v1.59 or whatever.  As long as the
+     Moenuts and the original NUTS version identifiers are left intact.
+     It's very disturbing to see talker owners that run codes calling it
+     their own code when all they did was modified a couple prompts and/or
+     added a couple commands and say they wrote it.  There has been alot
+     of work put into Moenuts from the original NUTS 3.3.3 release, not
+     just a couple of commands or prompt changes.
+
+5... No one person shall use any of Moesoft's Products for the purpose
+     of making a profit off of it.  We don't make any money from it, so
+     neither should you.  You may, however use the software to run a
+     Pay-Per-Use system as long as it's not for commercial purposes.
+     Commercial use is subject to a special agreement.  Please contact
+     support@moesoft.8m.com for more information.
+
+6... Moesoft products are distributed under their own agreements and are
+     NOT released under the GNU licence agreement, nor are PUBLIC DOMAIN!
+     Our products are either released under a Freeware agreement or a
+     Shareware agreement (Specified in the documentation of each product).
+
+7... Legal action can and may be persued against anyone ignoreing or
+     disobeying the terms of this and other agreements set fourth by
+     Moesoft Developments.
+
+8... Current Copies Of This Agreement May Be Found On Our Website At:
+     http://www.moesoft.8m.com.

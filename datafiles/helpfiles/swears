@@ -1,0 +1,11 @@
+~OLPouzitie :~RS swears <parameter> [<slovo>]
+
+Sluzi na manipulaciu so zoznamom nadavok. Umoznuje ich pridavanie, mazanie, ...
+Parametre:
+list - zobrazi aktualny zoznam nadavok
+add - prida nadavku
+rem - zmaze vsetky nadavky
+erase - odoberie nadavku
+reload - obnovi zoznam zo suboru
+
+~OLPozri :~RS ban

@@ -1,0 +1,9 @@
+~OLPouzitie :~RS set room
+
+Prepina prihlasovaciu miestnost. Bud ta bude automaticky davat po prihlaseni
+do defaultnej miestnosti (procesor), alebo ta presunie do miestnosti z ktorej
+si sa naposledy odlogoval. Ak mas nastavene do odhlasovacej miestnosti, a pri
+prihlaseni nemas do nej prave pristup, presunie ta automaticky do defaultnej
+miestnosti.
+
+~OLPozri:~RS

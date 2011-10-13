@@ -1,0 +1,8 @@
+~OLPouzitie :~RS call [<user>]|[-cancel]
+
+Sluzi na zrychlenie komunikacie so zadanym userom. Potom uz nemusis zakazdym
+vypisovat ~FG.tell user blabla~RS ale staci len ~FG, blabla~RS.
+Zrusenie nastavenia dosiahnes pouzitim parametra `-cancel'. Bez parametra
+zobrazi aktualne nastavenie.
+
+~OLPozri:~RS tell, to, reply

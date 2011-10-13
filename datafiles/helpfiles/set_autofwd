@@ -1,0 +1,6 @@
+~OLPouzitie :~RS set autofwd
+
+Zapina funkciu autoforward. Jedna sa o automaticke posielanie sprav z tvojho
+mailboxu na email. Podmienkou je nastaveny a verifikovany email.
+
+~OLPozri:~RS set email, verify

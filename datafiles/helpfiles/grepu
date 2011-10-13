@@ -1,0 +1,9 @@
+~OLPouzitie :~RS grepu <retazec>
+
+Sluzi na hladanie userov ktorych meno obsahuje zadany retazec. Retazec moze
+obsahovat aj znaky ako nahradu:
+`?' - jedno pismeno
+`*' - viac pismen
+Nemozes ale zadat **, ?*, *?
+Napriklad: `.grepu an??' najde: Andy, Andi, Anne and so on.
+         : `.grepu an*' najde: Andy, Anne, Another, Anthony and so on.

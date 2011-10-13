@@ -1,0 +1,7 @@
+~OLPouzitie :~RS tpromote <user> [<level>]
+
+Docasne povysi usera. Povysenie je len pokial sa neodhlasi. Takze promotovat
+mozes len usera ktory je prave prihlaseny. Ak zadas aj level, user bude docasne
+povyseny na zadany level.
+
+~OLPozri:~RS promote, demote

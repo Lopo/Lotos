@@ -1,0 +1,10 @@
+Usage:  ~FG.8ball <yes or no question>
+
+The Magic Eightball is a "fortune teller" that responds to 'yes'
+or 'no' questions.  Unnamed sources have said that it is amazingly
+accurate in most situations.  Weird eh?
+
+   .-----------------------------------------------------.
+   | Magic Eightball for TalkerOS            version 1.0 |
+   | Written as a 'plug-in' by "William".    April, 1998 |
+   `-----------------------------------------------------'

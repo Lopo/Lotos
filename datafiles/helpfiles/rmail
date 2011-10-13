@@ -1,0 +1,7 @@
+~OLPouzitie :~RS rmail [new/<cislo>]
+
+Sluzi na citanie sprav v tvojom mailboxe. Ak zadas parameter `new', zobrazia sa
+len spravy ktore este nie su precitane. Pri zadanom cisle zobrazi len spravu
+so zadanym cislom.
+
+~OLPozri:~RS smail, dmail, from

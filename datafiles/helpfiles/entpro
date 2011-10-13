@@ -1,0 +1,10 @@
+~OLPouzitie :~RS entpro
+
+Umoznuje ti napisat si dlhsi popis tvojej osoby. Bude zobrazovany pri prikaze
+~FG.examine~RS. V texte mozes pouzit specialne sekvencie, ktore budu
+pri zobrazeni popisu nahradene prislusnymi textami. Su to:
+
+{level} - nazov levelu usera \ ktoremu sa to zobrazuje
+{name} - meno usera          /
+
+~OLPozri:~RS examine, desc

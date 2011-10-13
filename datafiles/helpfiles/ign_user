@@ -1,0 +1,6 @@
+~OLPouzitie :~RS ignore user [<meno>]
+
+Umoznuje nastavit ignorovanie vsetky telly, pemoty a pod. od urciteho usera.
+Ak nezadas meno, vypise zoznam userov, ktorych momentalne ignorujes.
+
+~OLPozri:~RS

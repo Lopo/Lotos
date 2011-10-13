@@ -1,0 +1,6 @@
+~OLPouzitie   :~RS banner [-<font>] <text>
+
+Vypise zadany text velkym zadanym pismom v aktualnej miestnosti.
+Zoznam fontov dostanes pouzitim parametra /l.
+
+~OLPozri:~RS sbanner, tbanner, greet

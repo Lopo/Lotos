@@ -1,0 +1,6 @@
+~OLPouzitie :~RS setcmdlev <prikaz> <level>/norm
+
+Nastavuje minimalny level na pouzitie zadaneho prikazu do nasledujuceho restartu
+systemu. Ak sa zada ako level `norm', bude nastaveny defaultny level.
+
+~OLPozri:~RS gcom, xcom

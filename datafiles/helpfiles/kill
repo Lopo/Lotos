@@ -1,0 +1,8 @@
+~OLPouzitie :~RS kill <user> [<typ>|<text>|!|-l]
+
+Vykopne zadaneho usera z talkra. Za meno usera sa moze dat cislo `kill hlasky'
+alebo vlastny text. Ak sa miesto mena zada parameter, vypise zoznam
+jednostlivych dostupnych `kill hlasok'. Parameter `!' nahodne vyberie niektoru
+hlasku zo zoznamu.
+
+~OLPozri:~RS quit, deluser

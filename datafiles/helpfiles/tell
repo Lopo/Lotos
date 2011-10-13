@@ -1,0 +1,6 @@
+~OLUsage   :~RS tell <user> <text>
+
+Umoznuje povedat nieco userovi bez toho, aby to videl niekto iny. User moze byt
+v hociktorej miestnosti.
+
+~OLPozri:~RS say, to, reply, shoutto, mutter

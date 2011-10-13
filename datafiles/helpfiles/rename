@@ -1,0 +1,6 @@
+~OLPouzitie :~RS rename <stare meno> <nove meno>
+
+Umoznuje premenovat existujuceho usera. Pri premenovani sa mu nestratia ziadne
+nastavenia.
+
+~OLPozri:~RS deluser, create

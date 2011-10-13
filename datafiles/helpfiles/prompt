@@ -1,0 +1,20 @@
+~OLPouzitie :~RS prompt [<mod>|<obsah>]
+
+Umoznuje nastavit si svoj vlastny prompt. Mozes pouzit bud niektory
+z preddefinovanych vlzhladov alebo si vytvorit svoj vlastny. Vo vlastnom
+mozes pouzit nasledujuce parametre:
+
+$N (name) - tvoje meno
+$R (room) - miestnost v ktorej sa momentalne nachadzas
+$T (time) - aktualny systemovy cas
+$L (last tell) - osoba ktora ti naposledy tellovala
+$F (follow) - meno osoby ktoru sledujes
+
+Priklad - prompt s miestnostou, casom a poslednym tellom:
+.prompt $R-$T^,^~OL$L^~FT^>
+bude vyzerat takto:
+procesor-12:26,~OLxxx~FT>
+
+Bez zadania parametra ho vypne alebo zapne defaulnty prompt.
+
+~OLPouzitie:

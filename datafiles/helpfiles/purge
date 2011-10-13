@@ -1,0 +1,13 @@
+~OLPouzitie :~RS purge -d
+~OL         :~RS purge -s <site>
+~OL         :~RS purge -t <days>
+
+Sluzi na mazanie kont podla roznych kriterii.
+Parametre:
+`-d' - s defaultnym casovym nastavenim
+`-s' - len useri zo zadanej adresy
+`-t' - len useri ktori sa nenahlasili dlhsie ako zadany pocet dni
+~FG~OLPozor ! pri pouziti moze talker lagovat !!!~RS
+Inac defaultne sa tento prikaz vykonava automaticky pri kazdom starte systemu.
+
+~OLPozri:~RS expire

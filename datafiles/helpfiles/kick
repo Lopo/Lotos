@@ -1,0 +1,7 @@
+~OLPouzitie:~RS kick <user>
+
+Sluzi na vykopnutie usera s miestnosti. Obidvaja musite byt v tej istej
+miestnosti. User bude vykopnuty do prvej miestnosti uvedenej pri '.look', do
+ktorej ma pristup. Inac bude vykopnuty do defaultnej miestnosti.
+
+~OLPozri:~RS move

@@ -1,0 +1,10 @@
+~OLPouzitie :~RS smail <user> [<text>]
+~OL         :~RS smail <user>@<service> [<text>]
+
+Umoznuje poslat mail userovi na talkri alebo ak su pripojene dalsie talkre
+tak aj userovi na pripojenom talkri.
+Ak nezadas text, mozes ho potom zadavat v riadkovom editore.
+Ak si pouzil pred tymto prikazom prikaz ~FG.copyto~RS, budu kopie mail poslane
+vsetkym userom zo zadaneho zoznamu. 
+
+~OLPozri:~RS tell, rmail

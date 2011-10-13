@@ -1,0 +1,6 @@
+~OLPozitie :~RS inphr [<sprava>]
+
+Nastavuje spravu zobrazovanu za tvojim menom v miestnosti do ktorej prave
+vstupujes. Ak nezadas spravu, zobrazi aktualnu spravu.
+
+~OLPozri:~RS outphr, desc

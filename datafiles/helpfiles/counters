@@ -1,0 +1,12 @@
+~OLPouzitie:~RS counters
+
+Zobrazi stav pocitadiel. Pri kazdom pocitadle zobrazi aj jednotlive jeho
+zlozky. Pozor ! Pri pocitadle typu 'm' (maximum) nemusi polozka 'spolu'
+suhlasit so suctom zloziek !
+Typy pocitadiel:
+a - aktualny pocet nahlasenych userov
+b - pocet loginov od posledneho startu systemu
+m - maximalny pocet naraz nahlasenych userov
+t - celkovy pocet loginov za celu existenciu systemu
+
+~OLPozri:~RS

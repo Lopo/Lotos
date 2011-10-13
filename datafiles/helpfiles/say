@@ -1,0 +1,6 @@
+~OLPouzitie :~RS say <text>
+
+Tento prikaz je potrebny len v prikazovom (COMMAND) mode, pretoze vsetko co
+nie je v kecacom (SPEECH) mode interpretovane ako prikaz je povazovane za rec.
+
+~OLPozri :~RS mode, shout, tell, sayto, mutter

@@ -1,0 +1,6 @@
+~OLPouzitie :~RS tellall <text>
+
+Tellne zadany text vsetkym userom ktori su prave nahlaseny s vynimkou tych
+ktori ta ignoruju alebo ignoruju tell-y.
+
+~OLPozri :~RS tell, shout, banner

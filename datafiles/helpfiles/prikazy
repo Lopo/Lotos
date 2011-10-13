@@ -1,0 +1,6 @@
+~OLPouzitie :~RS prikazy
+
+Zobrazi zoznam prikazov dostupnych tvojmu levelu. Su radene bud podla levelu
+alebo podla typu. Sposob radenia sa nastavuje prikazom '.set command'.
+
+~OLPozri :~RS set, help, ranks

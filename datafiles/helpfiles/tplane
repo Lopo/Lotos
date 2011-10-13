@@ -1,0 +1,9 @@
+~OLPouzitie :~RS tplane [all/<transport>]
+
+Zobrazi cestovny poriadok transportu/ov. Bez parametra zobrazi cest.
+poriadok pre transport v ktorom sa nachadzas. S parametrom all zobrazi pre
+vsetky transporty na talkri. Inac zobrazi len pre <transport>.
+Ak transport momentalne stoji na niektorej zastavke, je tato zastavka
+zvyraznena.
+
+~OLPozri :~RS

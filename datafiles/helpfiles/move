@@ -1,0 +1,6 @@
+~OLPouzitie :~RS move <user> [<rooma>]
+
+Presunie usera do zadanej miestnosti. Bez zadania miestnosti ho presunie
+do miestnosti v ktorej sa prave nachadzas.
+
+~OLPozri:~RS join, kidnap, go

@@ -1,0 +1,7 @@
+~OLPouzitie   :~RS accreq <email> [<info>]
+
+Tento prikaz je pre novych userov pre poziadanie o plnohodnotne konto. Ako
+parameter sa zadava email adresa, pripadne sa moze pridat nejake info.
+Po tomto prikaze je nutne pouzit prikaz '.verify'.
+
+~OLPozri :~RS verify, set_email

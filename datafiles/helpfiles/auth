@@ -1,0 +1,11 @@
+~OLPouzitie :~RS auth <user> [<cas>] [all]
+
+Sluzi na zistenie ident-u zadaneho usera. Je to meno, pod ktorym sa user
+prihlasuje na svoje lokalne konto na serveri. Funguje len na systemoch typu
+UNIX. Pripadne aj na Win, ak napr. user prave aj 'IRC-ckuje'. Vyuzitie je
+vyhodne napr. v spojeni s pouzitim prikazu '.finger'. Ak je user pripojeny
+z pomaleho serveru, je mozne zadat cas v sekundach, kolko sa bude cakat
+na odpoved. Standardne je to 1 sekunda. Ak sa prida parameter all, vypise
+cely riadok ktory sa obdrzi, inac len meno konta.
+
+~OLPozri :~RS finger

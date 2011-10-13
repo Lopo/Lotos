@@ -1,0 +1,8 @@
+~OLPouzitie :~RS notify [<user>]|[who]
+
+Sluzi na vytvorenie `priatelov', na ktorych prihlasenie/odhlasenie ta bude
+talker automaticky upozornovat (ak to mas zapnute v ~FG.set~RS). Zadanim mena
+pridas/uberies usera zo zoznamu. Zoznam aktualne prihlasenych userov zo zoznamu
+si zobrazis zadanim parametra who alebo pouzitim ~FG.who notify~RS.
+
+~OLPozri:~RS ignore(user)

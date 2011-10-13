@@ -1,0 +1,9 @@
+~OLPouzitie:~RS follow <user>|[-cancel]
+
+Sluzi na 'prenasledovanie' zadaneho uzivatela - pojdes vsade za nim kam sa
+pohne - pouzije prikaz '.go'. Samozrejme ak mas moznost ist tak ako on a mas
+do tej miestnosti aj pristup. Prenasledovanie sa zrusi pouzitim parametra
+'-cancel' alebo ak prenasledovany vstupi do miestnosti kde ty nemas pristup,
+pripadne prejde do miestnosti ktora nie je k aktualnej pripojena.
+
+~OLPozri: ~RS go, move

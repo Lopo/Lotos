@@ -1,0 +1,7 @@
+~OLPouzitie :~RS copyto <user> [<user> ... <user>]
+
+Umoznuje poslat kopie nasledujuceho mailu dalsim zadanym userom. Po poslani mail
+bude zoznam userov zmazany, takze pred dalsim mailom musis zoznam znovu nastavit
+pouzitim tohoto prikazu.
+
+~OLPozri:~RS smail, tell, nocopies

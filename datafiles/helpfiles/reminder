@@ -1,0 +1,10 @@
+~OLPouzitie :~RS (na prezretie)
+                 reminder all/today/<d> [<m> [<y>]]
+~OL         :~RS (na manipulaciu)
+                 reminder set/del <num>
+
+Umoznuje nastavit poznamky. Ak mas nastavenu nejaku poznamku na ten den ked
+sa prihlasujes, zobrazi sa ti oznam spolu s cislom pripomiekny. Ak je vyssi
+datum ako ma poznamka nastaveny, bude poznamka automaticky zmazana.
+
+~OLPozri:~RS

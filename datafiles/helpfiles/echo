@@ -1,0 +1,5 @@
+~OLUsage   :~RS echo <text>
+
+Umozni napisat text do miestnosti bez toho ze by ostatny videli kto to napisal.
+
+~OLPozri:~RS tell, say

@@ -1,0 +1,6 @@
+~OLPouzitie :~RS create <meno> <heslo>
+
+Vytovri noveho usera so zadanym menom a heslom. Vhodne napr ak su zakazane
+prihlasenia novych userov.
+
+~OLPozri:~RS

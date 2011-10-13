@@ -1,0 +1,7 @@
+~OLPouzitie :~RS unfix [<rooma>]
+
+`Unfixne' zadanu miestnost. Po tom sa da menit pristupnost miestnosti prikazmi
+~FG.public~RS a ~FG.private~RS. Ak nezadas miestnost, odfixuje miestnost
+v ktorej sa prave nachadzas.
+
+~OLPozri:~RS fix, public, private

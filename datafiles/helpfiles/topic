@@ -1,0 +1,6 @@
+~OLPouzitie :~RS topic [<text>]
+
+Nastavuje topic miestnosti v ktorej sa prave nachadzas. Bez parametra zobrazi
+aktualny topic.
+
+~OLPozri:~RS look

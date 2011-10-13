@@ -1,0 +1,6 @@
+~OLPouzitie  :~RS quit [<text>]
+
+Odhlasi ta z talkra. Pripadne mozes za prikaz napisat nejaky text, napr. dovod
+odchodu. Bude zobrazeny spolu s oznamenim o tvojom odhlaseni.
+
+~OLPozri :~RS suicide

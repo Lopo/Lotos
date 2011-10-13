@@ -1,0 +1,7 @@
+~OLPouzitie :~RS bfrom [<miestnost>]
+
+Zobrazi zoznam sprav v zadanej miestnosti spolu s menami ich autorov.
+Ak nezadas miestnost, bude zobrazeny zoznam miestnosti v ktorej sa momentalne
+nachadzas.
+
+~OLPozri:~RS read, write, search

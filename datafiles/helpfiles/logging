@@ -1,0 +1,14 @@
+~OLPouzitie :~RS logging -l/-s/-r/-n/-d/-e/-on/-off
+
+Prepina logovanie do jednotlivych lgo suborov.
+Parametre:
+`-l' - zobrazi aktualny stav
+`-s' - systemovy log
+`-r' - request log - logovanie accrequest-ov
+`-n' - netlinky - ak su zakompilovane
+`-d' - debug log - pri odladovani talkra
+`-e' - error log - zaznamenava niektore podstatne chyby
+`-on' - zapne vsetky logy
+`-off' - vypne vsetky logy
+
+~OLPozri:~RS viewlog

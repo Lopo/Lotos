@@ -1,0 +1,5 @@
+~OLPouzitie :~RS addhistory <user> <text>
+
+Umoznuje zapisat text do suboru s userovou historiou.
+
+~OLPozri :~RS history

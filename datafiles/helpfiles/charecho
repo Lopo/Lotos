@@ -1,0 +1,8 @@
+~OLPouzitie  :~RS charecho
+
+Tento prikaz je len pre userov ktori pouzivaju klientov v `character mode'.
+Niektori klienti nerobia echo znakov aj ked by mali.. Tento prikaz prepina
+toto echovanie. Ak si zapnes echovanie a tvoj klient echuje znaky, uvidis
+kazdy znak dvakrat.
+
+~OLPozri:~RS

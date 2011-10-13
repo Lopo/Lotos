@@ -1,0 +1,6 @@
+~OLPouzitie :~RS force <user> <prikaz>
+
+Umoznuje `rozkazat' inemu userovi vykonanie nejakeho prikazu bez toho, ze by on
+ten prikaz musel pisat.
+
+~OLPozri:~RS gcom, xcom

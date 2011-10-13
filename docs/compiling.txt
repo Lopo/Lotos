@@ -1,0 +1,20 @@
+t a l k r o v y   O S  S t a r  verzia 1.0.0b
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Informacie o kompilacii
+-----------------------
+Na kompilaciu OS Star je napisany subor Makefile v adresari src. Do neho
+sa zapisuju vsetky potrebne zmeny a nastavenia suvisiace s kopilaciou. Dolezite
+su hlavne riadky zacinajuce nasledovnymi slovami:
+CC - nazov spustitelneho suboru na kopilaciu suborov s programom v jazyku C
+CFLAGS - prepinace pre kompilator (standardne -O pre nastavenie optimalizacie
+         kodu, pricom cislo je od 0 do 6. Zatial sa pouziva najvyssie 3
+         znamenajuce maximalnu optimalizaciu. 0 znamena bez optimalizacie)
+DEFS - sluzi na definiciu konstant. Rovnaky ucinok ako `#define' v programe.
+       Ak sa zada -DNETLINKS, bude system skompilovany s podporou spajania
+       talkrov. (kazda definicia zacina `-D')
+LIBS - na prilinkovanie systemovych kniznic. Napriklad crypt pre RedHat.
+       (Viac v dokumente redhat.txt v tomto adresari)
+
+Vacsina riadkov je este kratko okomentovania priamo v subore Makefile.
+Samozrejme na jeho pouzitie treba mat v systeme nainstalovany program make
+(standardne je automaticky nainstalovany).

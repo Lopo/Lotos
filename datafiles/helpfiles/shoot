@@ -1,0 +1,7 @@
+~OLPouzitie :~RS shoot <user>
+
+Sluzi na pokus o `odstrelenie' usera v strielacej hre. Tento prikaz sa moze
+pouzivat len v miestnosti na to vyhradenej - `null'.
+
+~OLPozri:~RS reload
+

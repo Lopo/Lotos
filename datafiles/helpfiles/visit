@@ -1,0 +1,8 @@
+~OLPouzitie :~RS visit <user>
+
+Umoznuje ti prejst do sukromnej miestnosti zadaneho usera. Do tychto miestnosti
+sa totizto nedostanes pouzitim prikazu `FG.go~RS. User musi mat miestnost
+vytvorenu a nesmie ju mat zamknutu. Ak ju ma zamknutu, musis mat od nej kluc.
+Samozrejme musia byt sukromne miestnosti povolene.
+
+~OLPozri:~RS myroom, mybgone

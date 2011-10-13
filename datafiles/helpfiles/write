@@ -1,0 +1,6 @@
+~OLPouzitie :~RS write [<text>]
+
+Zapise zadany text na nastenku v miestnosti v ktorej sa momentalne nachadzas.
+Ak nezadas ziadny text, mozes ho potom zadat v riadkovom editore.
+
+~OLPozri:~RS read, search, wipe

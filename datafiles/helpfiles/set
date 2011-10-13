@@ -1,0 +1,9 @@
+~OLPouzitie :~RS set [<atribut> [<hodnota>]]
+
+Umoznuje nastavit rozne atributy zobrazovane napr. pri prikaze ~FG.status~RS.
+Bez zadania atributu sa zobrazia vsetky dostupne atributy s kratkym popisom.
+Vacsina atributov nepotrebuje zadanu hodnotu, pretoze su to len prepinace.
+Na zobrazenie aktualnych nastaveni pouzi atribut `show'. Pre detailnejsie
+info o kazdom atribude pouzi tvar ~FG.help set_show~RS.
+
+~OLPozri:~RS ignore

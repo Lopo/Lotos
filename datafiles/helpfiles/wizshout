@@ -1,0 +1,6 @@
+~OLPouzitie:~RS wizshout [<level>] <text>
+
+Zakrici text cez cely talker, ale budu to pocut len uzivatelia s minimalne
+zadanym levelom. Ak nezadas level, je defaultne nastaveny level WIZ - CELERON.
+
+~OLPozri:~RS shout, wizemote

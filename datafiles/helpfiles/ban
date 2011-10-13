@@ -1,0 +1,10 @@
+~OLPouzitie :~RS ban site/user/new <site/user name/site> [-cancel]
+
+Znemozni pristup userom do talkra.
+site - zo zadanej adresy
+user - zadanemu userovi
+new - len novym userom
+
+Zrusenie urciteho zakazu sa dosiahne pridanim parametra '-cancel'.
+
+~OLPozri :~RS minlogin

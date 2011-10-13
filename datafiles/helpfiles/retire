@@ -1,0 +1,6 @@
+~OLPouzitie :~RS retire <user> [-cancel]
+
+Umoznuje odobrat usera zo zoznamu adminov. Odobratie sa zrusi pridanim
+parametra `-cancel'.
+
+~OLPozri:~RS demote

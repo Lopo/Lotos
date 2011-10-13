@@ -1,0 +1,8 @@
+~OLPouzitie :~RS files [<nazov>]
+
+Umoznuje zobrazit rozne subory. Subory obsahuju rozsirene informacie o roznych
+veciach. Napr. o makrach. Je to vlastne rozsirena napoveda k dolezitym veciam,
+ktore napr. ani nie su dostupne pomocou prikazu ~FG.help~RS.
+Zoznam dostupnych suborov dostanes pouzitim prikazu bez parametra.
+
+~OLPozri:~RS help

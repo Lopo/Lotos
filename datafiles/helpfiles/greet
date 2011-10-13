@@ -1,0 +1,6 @@
+~OLPouzitie :~RS greet <text>
+
+Napise zadany text velkym pismom a farebne do miestnosti v ktorej sa prave
+nachadzas. Text moze obsahovat len pismena a moze byt dlhy maximalne 10 znakov.
+
+~OLPozri:RS banner, shout, semote

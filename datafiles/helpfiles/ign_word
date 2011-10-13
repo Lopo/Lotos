@@ -1,0 +1,7 @@
+~OLPouzitie :~RS ignore word [<slovo>]
+
+Nastavuje slovo ktore ak sa objavi na talkri, nebude zobrazena cela veta
+ktora ho obsahuje. ~FR~OLPozor, obcas to moze byt nebezpecne !!!~RS
+Zrusenie ignoracie dosiahnes, ak zadas `-cancel' ako slovo na ignorovanie.
+
+~OLPozri:~RS

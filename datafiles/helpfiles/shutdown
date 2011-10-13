@@ -1,0 +1,6 @@
+~OLPouzitie :~RS shutdown [<secs>]|[-cancel]
+
+Vapne talker za zadany pocet sekund. Ak sa nezada cas, vypne ho hned.
+Zrusenie casovaneho vypnutia sa dosiahne pouzitim parametra `cancel'.
+
+~OLPozri:~RS restart, reboot

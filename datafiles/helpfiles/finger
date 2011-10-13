@@ -1,0 +1,11 @@
+~OLPouzitie :~RS finger <user>
+
+Prikaz je totozny s rovnomennym Linux prikazom.
+Sluzi na zobrazenie systemovych informacii o zadanom userovi na jeho
+domovskom systeme. User sa zadava v tvare 'user@adresa', pricom ako 'user'
+sa nezadava nick tu v talkri ale meno ziskane napr. prikazom '.auth'. Ako
+adresa sa zadava adresa odkial je user prihlaseny. Je ju mozne tiskat napr.
+prikazom '.people'.
+
+~OLPozri :~RS auth, people
+ 

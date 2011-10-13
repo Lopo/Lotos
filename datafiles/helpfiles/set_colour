@@ -1,0 +1,14 @@
+~OLPouzitie :~RS set colour [<cislo>]
+
+Umoznuje nastavit mod zobrazovanie farieb.
+Dostupne mody:
+0 - vsetky farby vypnute
+1 - vsetky farby zapnute
+2 - vypnute blikanie
+3 - vypnute pozadia
+4 - uplne vypnutie pipanie (pozri `ignore beeps')
+5 - vypnute pozadia a pipanie (3+4)
+Ak niekto potrebuje nejaky iny specialny mod, nech sa ozve.
+Ak sa zada ako mod `test', zobrazi test vacsiny pouzitych kodov.
+
+~OLPozri:~RS

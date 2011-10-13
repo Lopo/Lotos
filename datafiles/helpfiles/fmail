@@ -1,0 +1,6 @@
+~OLPouzitie :~RS fmail all/<cislo>
+
+Umoznuej rucne poslat vsetky lebo zadanu spravu z mailboxu na email. Musis mat
+zadanu a verifikovanu email adresu.
+
+~OLPozri:~RS smail, set(email), verify

@@ -1,0 +1,8 @@
+~OLPouzitie :~RS read [<rooma>] [<cislo spravy>]
+
+Zobrazi nastenku v zadanej miestnosti, samozrejme ak mas do tej miestnosti
+pristup. Ak nezadas miestnost, zobrazi nastenku v mistnosti, v ktorej
+sa momentalne nachadzas. Ak zadas cislo spravy, zobrazi len spravu so zadanym
+cislom.
+
+~OLPozri:~RS write, wipe, search

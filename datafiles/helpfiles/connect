@@ -1,0 +1,6 @@
+~OLPouzitie :~RS connect <rooma>
+
+Skusi pripojit do tejto miestnosti iny nakonfigurovany talker. Talkre
+na pripojenie sa konfiguruju v `config fajle'.
+
+~OLPozri:~RS disconnect, rnet

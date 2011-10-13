@@ -1,0 +1,156 @@
+Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
+systemu, v sekcii ROOMS su mena miestnosti, ich prepojenia a netlinky,
+v TRANSPORTS sa definuju transporty - ich mena, drahy a casy ciest a zastavok,
+v TOPICS sekcii su temy jednotlivych miestnosti a v SITES sa definuju netlinkove
+pripojenia dalsich talkrov.
+Do suboru mozu byt pridavane aj komentare, ale musia zacinat znakom `#'
+na zaciatku riadka.
+
+sekcia INIT
+-----------
+verification - retazec vyzadovany od talkrov pri pokuse o pripojenie. Takze
+   sa nemoze pripojit akykolvek talker tvariaci sa ako nejaky uplne iny.
+   Bude odpojeny ak nema zodpovedajuci zaznam v sekcii SITES alebo bude
+   nekorektna verifikacia.
+mainport - hlavny port kde sa useri pripajaju
+wizport  - wizport kde sa pripajaju wizardi a admini. Nevztahuje sa nan
+   parameter max_users.
+linkport - port kde sa pripajaju dalsie talkre
+max_users - maximalny pocet userov ktori sa mozu pripojit na mainport
+max_clones - maximalny pocet klonov ktore moze mat naraz vytvorene jeden user
+heartbeat - casovy interval v sekundach pre volanie event funkcii
+login_idle_time - casovy interval v sekundach kolko moze user pri prihlasovani
+   byt necinny
+user_idle_time - cas v sekundach kolko moze byt user necinny po nahlaseni.
+   1 minutu pred vyprsanim casu bude upozorneny.
+ban_swearing - stav prace systemu s nadavkami. OFF nadavky ignoruje, MIN nadavku
+   vybodkuje, MAX zakaze celu vetu.
+auto_connect - ak YES, talker sa pokusi automaticky pripojit na nakonfigurovane
+   talkre pri starte.
+system_logging - ak ON, talker bude zapisovat do log suborov
+password_echo - ak YES, talker bude zobrazovat heslo pri prihlasovani
+ignore_sigterm - ak YES, signal SIGTERM bude ignorovany
+minlogin_level - minimalny level s ktorym sa moze user prihlasit. Ak je NONE,
+   moze sa prihlasit kazdy; ak NEW, moze sa kazdy kto uz ma konto; ak 286,
+   len useri s levelom 286 a vysssim atd. Prepisuje wizport_level ak treba.
+mesg_life - zivotnost sprav na nastenkach v dnoch
+mesg_check_time - cas kedy sa kazdy den testuju nastenky na zivotnost sprav
+min_private - minimalny pocet userov v miestnosti aby mohla byt nastavena
+   na private
+ignore_mp_level - level usera na ktoreho uz neplati predchadzajuci parameter
+rem_user_maxlevel - maximalny level, ktory moze mat user prideny z pripojeneho
+   talkra
+rem_user_deflevel - defaultny level, ktory dostane user prideny z pripojeneho
+   talkra ak tu nema konto
+wizport_level - minimalny level s ktorym sa user moze pripojit cez wizport
+gatecrash_level - minimalny level s ktorym moze user vojst do privatnej
+   miestnosti bez pozvania. Neplati na fixnute miestnosti.
+crash_action - definuje, co urobi talker pri chybe segmentacie. Ak NONE, talker
+   neurobi nic a `zosype sa'; ak IGNORE, skoci spat na zaciatok hlavneho cyklu
+   v main() a ak REBOOT, tak sa talker restartne.
+prompt_def - ak ON, budu mat novi useri defaultne zapnuty prompt
+colour_def - definuje mod, ktory budu mat novi useri defaultne nastaveny. Treba
+   vziat do uvahy, ze vsetci useri nemaju rovnake terminaly. Najistejsia
+   je volba 0 - vypnute.
+charecho_def - ON/OFF definuje ci bude mat user zapnute echovanie znakov
+   na znakovom terminali.
+time_out_afks - YES/NO nastavuje, ci bude user odpojeny pri pridlhej necinnosti
+time_out_maxlevel - maximalny level, s ktorym bude user pri necinnosti odpojeny
+auto_purge - YES/NO urcuje, ci budu testovane userfajly testovane na vyprsanie
+  casovej platnosti pri kazdom starte talkra a pri nastavenom `purge' datume.
+  Pri vypnuti budu testovane len pri pouziti prikazu `.purge'.
+allow_recaps - YES/NO urcuje, ci si user bude moct nastavit velkost pismen
+   v mene (napr. na UsEr).
+auto_promote - YES/NO urcuje, ci budu useri automaticky povyseny po splneni
+   nastavenych podmienok. Ak sa nepovoli, musia wizardi a admini kazdeho
+   takehoto usera povysit rucne.
+personal_rooms - YES/NO ci useri mozu pouzivat prikazy na manipulaciu so
+   sukromnymi miestnostami.
+startup_room_parse - YES/NO ak YES, tak pri kazdom starte talkra sa vsetky
+    ulozene sukromne miestnosti natiahnu do pamate; ak NO, tak sa kazda
+    takato miestnost natiahne len ked user do nej vstupuje.
+random_motds - YES/NO ak YES, natahuje nahodny MOTD z adresarov, inac pouziva
+   len MOTD s nazvom suboru motd1
+resolve_ip - OFF/AUTO/MANUAL ak OFF, IP nebude zistovana; ak AUTO, bude pouzita
+   funkcia gethostbyaddr() a ked MANUAL, bude pouzita funkcia ktoru napisal
+   treff.
+flood_protect - ON/OFF ak ON, tak kazdy kto sa pokusi o flood bude automaticky
+   zabanovany. Inac sa moze prihlasit kazdy aj nad limit nastaveny
+   s v hodnote LOGIN_FLOOD_CNT.
+
+sekcia ROOMS
+------------
+Tu sa nastavuju miestnosti a ich vzajomne prepojenia.
+Format pre jeden riadok:
+<meno mapy> <mnemonic> <meno> <linky> [<pristup> [<netlinks parametre>]]
+
+napr:
+general cpu procesor   of,gd,lg,to    PUB  CONNECT testsite
+
+Mapa je ulozena v adresari datafiles/maps s nazvom suboru <mano mapy>.map.
+`Mnemonic' je skratka pre miestnost pouzita pre definovanie prepojeni medzi
+miestnostami. <linky> obsahuje zoznam miestnosti zadanych pomocou
+mnemonic-parametrov oddeleneych ciarkami. Do tychto miestnosti su potom priame
+vychody. Ak nema mat miestnost vychod, zada sa ako linka slovo 'noleave'.
+Pre pristup sa pouzivaju hodnoty PRIV, PUB, BOTH, RTC, pripadne sa nezadava.
+Ak sa zada PRIV, miestnost je fixnuta ako privatna; ak sa zada PUB, je miestnost
+fisnuta ako verejna; ak BOTH tak je nastavena ako nefixnuta verejna a ak RTC,
+je nastavena ako rootovska konzola do ktorej ma pristup len level ROOT.
+Parameter BOTH sa zadava len ak za nim nasleduju netlinks parametre. Inac
+sa moze pristup vynechat. Ako netlinks sa zadavaju 2 parametre
+(ak su zakompilovane). ACCEPT oznacuje miestnost do ktorej sa pripoji talker
+ziadajuci o spojenie. Vtedy sa najde prva nepripojena miestnost s tymto
+parametrom. CONNECT <meno> oznacuje miestnost nadefinovanu ako pripajaci bod
+pre pripojenie talkra ktoreho meno sa zada ako jeden s parametrov (zadany talker
+sa pripaja na poziadanie z tohoto talkra).
+
+sekcia TRANSPORTS
+-----------------
+Obsahuje nastavenia pre specialne miestnosti oznacene ako transporty.
+Format pre jeden riadok:
+<meno mapy> <mnemonic> <meno> <linky> <place> <route>
+
+Je takmer rovnaky ako pre obycajne miestnosti. Rozdiel je len v polozkach
+<place> a <route>. <place> obsahuje cas v sekundach oznacujuci kolko bude
+transport `stat' na kazdej zastavke. <route> zase kolko bude trvat `cesta'
+medzi jednotlivymi zastavkami.
+
+sekcia TOPICS
+-------------
+Nastavuje defaultne topic pre miestnosti nastavovane pri starte systemu.
+Toto je nepovinna sekcia a nie je nutne ju pouzivat.
+Format pre jeden riadok:
+
+<meno> <topic>
+
+napr:
+wizroom  Toto je miestnost len pre wizardov !
+
+Topic moze obsahovat aj kody farieb.
+
+sekcia SITES
+------------
+Obsahuje definicie talkrov na pripojenie.
+Format riadka:
+
+<meno>  <site name>  <port>  <verifikacia>  [<link typ>]
+
+napr.
+xyz_talker  chatsite.chat.sk  1234  xyz123  IN
+
+<meno> moze byt nazov z pismen alebo aj cisiel.
+
+ako verifikacia sa zadava retazec nastaveny talkrom ktory chceme pripojit. Je
+to retazec nadefinovany na tom talkri v configu, v polozke verification.
+Typ linku moze by IN, OUT alebo ALL (ALL je implicitne). Urcuje, ci mozu cez ten
+link ist len prichadzajuci useri, alebo len miestni pripadne vsetci.
+Tato sekcia je vlastne zoznam sajt, ktore sa mozu k tomuto talkru pripojit
+a samozrejme aj na ktore sa mozepripojit tento talker.
+Ak sa pokusi pripojit nejaky talker ktory nie je v tomto zozname,
+bude automaticky odmietnuty - odpojeny. Ale aj ked sa bude pokusat pripojit
+talker z platnej adresy, musi zadat platny verifikacny kod. Ak sa pripoja dva
+talkre z jednej adresy a maju rozdielne verifikacne kody, talker prejde zoznam
+az najde platny site-verifikaciu a nastavi korektne service name. Ak maju
+rovnake verifikacie, mozu sa zamenit. Pre vystupne spojenie cita talker
+CONNECT <service> cast v sekcii s miestnostami a vytvara spojenie na port
+na sajte a overi verifikaciu.

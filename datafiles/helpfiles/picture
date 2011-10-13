@@ -1,0 +1,7 @@
+~OLPouzitie :~RS picture <obrazok>
+
+Zobrazi zadany obrazok vsetkym v miestnosti v ktorej sa momentalne nachadzas.
+Ak nezadas obrazok, zobrazi ti zoznam dostupnych obrazkov. Cervenou farbou
+su napisane obrazky dlhsie ako jedna strana.
+
+~OLPozri:~RS dajobr

@@ -1,0 +1,6 @@
+~OLPouzitie :~RS switch [<rooma>]
+
+Umozni ti vymenit si miesto s tvojim klonom v zadanej miestnosti.
+Ak mas len jednoeho klona, nemusis miestnost zadavat.
+
+~OLPozri:~RS clone, myclones, allclones, chear, csay, destroy

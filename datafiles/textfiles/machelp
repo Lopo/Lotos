@@ -1,0 +1,84 @@
++----- ~OL~FTMacro Usage
+
+Pouzi: .macro                                  (vypise makra)
+       .macro <menomakra>=<prikaz>    (vytvorenie / zmena makra)
+       .macro <menomakra>=                     (zmazanie makra)
+
+Od verzie 2.0 je k dispozicii uplne novy system vytvarania, mazania a
+pouzivania makier. Tento novy system poskytuje lepsiu flexibilitu pri praci
+s makrami. Kedze tento system ma velmi siroke moznosti vyuzitia, odporucame
+precitat tento navod, ktory vysvetli moznosti makrami na nazornych prikladoch.
+
+CO JE TO MAKRO?
+Makro je skratka. Ak casto pouzivas nejaky prikaz(y) alebo casto pises
+nejaky rovnaky text, makro Ti umoznuje nahradit tento prikaz (prikazy)
+skratkou.
+
+AKO SI MOZEM VYTVORIT MAKRO?
+Jednoducho. Zvolis si meno makra, a akciu ktora sa ma pouzitim makra
+vykonat. Ked potom napises meno makra, automaticky sa vykona definovana
+akcia. Priklad:
+
+   (VYTVORENIE MAKRA)              .macro .cool=.shout Makra su SUPER!
+   (SPUSTENIE MAKRA)               .cool
+
+Samozrejme, meno makra NEMUSI zacinat bodkou. Moze to byt hocijake slovo:
+
+   .macro pomoztemi=.emote potrebuje okamzitu pomoc!!!
+
+ZMENA A MAZANIE MAKIER
+Ak chces zmenit akciu v makre, jednoducho ho nadefinuj znovu, stare
+sa tym automaticky zrusi.
+
+Makro vymazes nasledovne: .macro <menomakra>=
+Teda napriklad: .macro .cool=
+
+PARAMETRE V MAKRACH
+Do makier mozes pridavat aj PARAMETRE. Symbol $1 nahradza prve slovo za
+makrom, $2 druhe slovo, atd. Symbol $* nahradza zostavajuci cely text
+za makrom. Symbol $+ nahradza CELY text za nazvom makra, teda vratane vsetkych
+parametrov.
+Napriklad, chces si spravit makro na vetu: 
+
+   Ahoj <meno uzivatela>, ako sa mas? Nevies kde je <meno> ? Chcem mu
+   povedat, ze <text>
+
+Taketo makro vytvoris nasledovne: 
+
+   .macro .pozdrav=.tell $1 Ahoj $1, ako sa mas? Nevies kde je $2 ? Chcem mu
+   povedat, ze $*
+
+Potom napises: .pozdrav Janko Jozko mam pre neho disketu.
+A vykona sa: .tell Janko Ahoj Janko, ako sa mas? Nevies kde je Jozko ?
+              Chcem mu povedat, ze mam pre neho disketu.
+
+Ak si vytvoris makro s nazvom nejakeho prikazu, vykonanie makra ma vyssiu
+prioritu, t.j. vykona sa miesto prikazu. Tak si mozes spravit napr. prikaz
+.hug, ktory automaticky prida k hugu Tvoj text, bez toho aby si ho musel
+zakazdym pisat:
+
+   .macro .hug=.hug $1 Z celeho srdca Ta pozdravujem! :-)))
+
+Staci uz len napisat: .hug Marienka, a Marienka dostane hug aj s textom.
+
+Dalsi priklad: 
+
+   .macro .byebye=.semote sa luci, a odkazuje vam: $*
+
+Pouzitie: .byebye zajtra som tu opat!!!
+Vypise sa: <meno> sa luci, a odkazuje vam: zajtra som tu opat!!!
+
+Makro, ktore zafarbi kazdy Tvoj .tell na zeleno:
+   .macro .greentell=.tell $1 $*
+
+S makrami sa daju robit aj ine finty, napr. nasledujuce makro zabezpeci, ze
+miesto bodky na zaciatku prikazu mozes pouzivat lomitko (ako na IRC):
+
+.macro /=.$*
+
+Samozrejme, ze povodny vyznam skratky "/" (prikaz .to) sa tym docasne zrusi
+(az pokial makro "/" nevymazes).
+
+Makra sa ukladaju pri kazdom odhlaseni, takze ich staci vytvorit len raz.
+
+Pouzitim prikazu .macros (bez parametrov) ziskas vypis Tvojich makier.

@@ -1,0 +1,6 @@
+~OLPouzitie :~RS examine <user> [-noprofile]
+
+Zobrazi kratke informacie u userovi spolu s jeho profilom (ak nezadas parameter
+`-noprofile').
+
+~OLPozri:~RS status, entpro

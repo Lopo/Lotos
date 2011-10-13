@@ -1,0 +1,6 @@
+~OLPouzitie :~RS map [<mapa>]
+
+Zobrazi mapu prisluchajucu k aktualnej miestnosti. Pripadne si mozes pozret mapu
+zadanu ako parameter (ak mas na to level).
+
+~OLPozri:~RS

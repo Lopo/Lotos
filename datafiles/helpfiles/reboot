@@ -1,0 +1,6 @@
+~OLPouzitie :~RS reboot [<sekundy>]|[-cancel]
+
+Restartne talker za zadany pocet sekund. Ak sa nezada cas, restartne ho hned.
+Zrusenie casovaneho restartu sa dosiahne pouzitim parametra `-cancel'.
+
+~OLPozri:~RS restart, shutdown

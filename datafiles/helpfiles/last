@@ -1,0 +1,6 @@
+~OLPouzitie :~RS last [<user>]
+
+Napise ti kedy sa zadanyuser naposledy prihlasil. Ak nikoho nezadas, napise
+zoznam aktualne prihlasenych userov s casom ich prihlasenia.
+
+~OLPozri:~RS who

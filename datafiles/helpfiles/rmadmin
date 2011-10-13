@@ -1,0 +1,10 @@
+~OLPouzitie :~RS rmadmin -l/-m/-u <user>/-d <user>
+
+Sluzi na manipulaciu so sukromnymi miestnostami.
+Vyznam parametrov:
+`-l' - zoznam vsetkych sukromnych miestnosti momentalne aktivnych
+`-m' - vyuzitie pamate sukromnymy miestnostami
+`-u' - odstrani miestnost z pamate - nezmaze
+`-d' - odstrani z pamate a zmaze
+
+~OLPozri:~RS myroom

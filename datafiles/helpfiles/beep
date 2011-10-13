@@ -1,0 +1,6 @@
+~OLPouzitie :~RS beep <user> [<text>]
+
+Sluzi na poslanie zvukom zvyraznenej spravy zadanemu userovi. Ak nezadas text,
+bude mu poslana standardna sprava. Je to vlastne tell doplneny o pipnutie.
+
+~OLPozri:~RS tell, sayto, shoutto

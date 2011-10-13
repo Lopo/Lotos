@@ -1,0 +1,20 @@
+Vitajte v OS Star verzie 1.0.0b. Toto je prva volne siritelna verzia OS Star.
+
+Vsetky textove dokumenty tykajuce sa OS Star su umiestnene v adresari docs.
+Su tam nasledujuce:
+COPYRIGHT - informacie o autorstve, autorskej licencii a dalsom sireni OS Star
+manual.txt - hlavna napoveda k OS Star
+userdata.txt - usporiadanie suborov s nastaveniami userov
+compiling.txt - informacie s radami ku kompilacii
+config.txt - obsah a nastavovanie konfiguracneho suboru
+redhat.txt - dolezite upozornenia pre pouzivatelov systemu RedHat
+bugs.txt - zoznam znamych chyb
+
+
+Vdaka za pouzivanie OS Star !
+
+                                                                   Pavol Hluchy
+                                                                     marec 2000
++------------------------------------------------------------------------------+
+email: osstar@star.sjf.stuba.sk            web: http://star.sjf.stuba.sk/osstar
++------------------------------------------------------------------------------+

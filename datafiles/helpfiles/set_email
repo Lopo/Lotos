@@ -1,0 +1,9 @@
+~OLPouzitie :~RS set email [<adresa>]
+
+Umoznuje nastavit tvoju email adresu. Je to podmienka na prve povysenie a na
+zapnutie autoforwardingu. Ak ju nexces aby ju videli iny useri v tvojom statuse,
+pouzi potom ~FG.set hide~RS. Ak nezadas adresu, bude tvoje aktualne nastavenie
+zrusene. Po pouziti tohoto prikazu musis pouzit prikaz ~FG.verify~RS na overenie
+zadanej adresy.
+
+~OLPozri:~RS set hide, status, set www

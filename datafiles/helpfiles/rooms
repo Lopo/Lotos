@@ -1,0 +1,7 @@
+~OLPouzitie :~RS rooms [level]
+
+Vypise zoznam miestnosti a ich topicov. ak je pouzity parameter `level',
+zobrazi zoznam miestnosti s do ktorych je povoleny vstup len userom od urciteho
+levelu.
+
+~OLPozri:~RS

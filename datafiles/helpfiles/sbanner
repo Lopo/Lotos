@@ -1,0 +1,6 @@
+~OLPouzitie   :~RS sbanner [-<font>] <text>
+
+Vypise zadany text zadanym pismom vsetkym prihlasenym.
+Zoznam fontov dostanes pouzitim parametra /l.
+
+~OLPozri:~RS banner, tbanner, greet
