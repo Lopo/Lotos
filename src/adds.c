@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-          Funkcie pre Lotos v1.2.0 nezaradene do specifickej skupiny
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * adds.c
+ * 
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __ADDS_C__
 #define __ADDS_C__ 1
@@ -20,6 +24,7 @@
 #include <stdarg.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 
 #include "define.h"
 #include "prototypes.h"
@@ -38,7 +43,6 @@
 void test(UR_OBJECT user, char *inpstr)
 {
 	set_crash();
-	crash_dump();
 }
 #endif
 
@@ -89,16 +93,16 @@ int osstar_load(void)
 	int tmp=-1;
 
 	set_crash();
-if (init_ossmain()) tmp=0;  /* Initialize main system */
-if (tmp==-1) {
-	printf("Lotos:  Main system did not initialize in osstar_load()!!\n           BOOT ABORTED.\n\n");
-	exit(0);
-	}
-load_plugins();
-printf("Verifikujem pluginy ");
-oss_versionVerify();
-printf("System plugin registry initialized.\n");
-return 1;
+	if (init_ossmain()) tmp=0;  /* Initialize main system */
+	if (tmp==-1) {
+		printf("Lotos:  Main system did not initialize in osstar_load()!!\n           BOOT ABORTED.\n\n");
+		exit(0);
+		}
+	load_plugins();
+	printf("Verifikujem pluginy ");
+	oss_versionVerify();
+	printf("System plugin registry initialized.\n");
+	return 1;
 }
 
 int init_ossmain(void)
@@ -132,7 +136,7 @@ void oss_versionVerify(void)
 	for (plugin=plugin_first; plugin!=NULL; plugin=p) {
 		p=plugin->next;
 		if (atoi(RUN_VER) < atoi(plugin->req_ver)) {
-			printf("\nOSS: Plugin '%s' pozaduje vyssiu verziu Lotos-u.\n",plugin->name);
+			printf("\nOSS: Plugin '%s' pozaduje vyssiu verziu Lotos.\n",plugin->name);
 			write_syslog(SYSLOG, 0, "Lotos: Plugin '%s' pozaduje Lotos verzie %s.\n",plugin->name,plugin->req_ver);
 			for (com=cmds_first; com!=NULL; com=com->next) if (com->plugin==plugin) destroy_pl_cmd(com);
 			destroy_plugin(plugin);
@@ -190,7 +194,7 @@ void write_room_except2(RM_OBJECT rm, char *str, UR_OBJECT user, UR_OBJECT user2
 	UR_OBJECT u;
 
 	set_crash();
-for(u=user_first;u!=NULL;u=u->next) {
+for (u=user_first;u!=NULL;u=u->next) {
   if (u->login 
       || u->room==NULL 
       || (u->room!=rm && rm!=NULL) 
@@ -284,14 +288,14 @@ int port_connect(char *host, int port)
 
 	set_crash();
 	he=gethostbyname(host);
-	if(he==NULL) return -1;
+	if (he==NULL) return -1;
 
 	bzero((char *)&sin,sizeof(sin));
 	bcopy(he->h_addr,(char *)&sin.sin_addr,he->h_length);
 	sin.sin_family=he->h_addrtype;
 	sin.sin_port=htons(port);
 	portsocket=socket(AF_INET, SOCK_STREAM, 0);
-	if(portsocket==-1) return -1;
+	if (portsocket==-1) return -1;
 	if(connect(portsocket,(struct sockaddr *)&sin,sizeof(sin))==-1) return -1;
 	return portsocket;   
 }
@@ -302,9 +306,9 @@ char *getanswer(FILE *popfp, char *buff, int eol)
 	char *in=buff;
 
 	set_crash();
-	for(;;) {
+	for (;;) {
 		ch=getc(popfp);
-		if((eol==1) || (ch == '\n')) {
+		if ((eol==1) || (ch == '\n')) {
 			*in='\0';
 			eol=0;
 			return buff;
@@ -328,25 +332,25 @@ void load_swear_file(UR_OBJECT user)
 	for (i=0; i<MAX_SWEARS; i++)
 		swear_words[i][0]='\0';
 	i=0;
-	if(user==NULL) printf("Loading swear words file ... ");
+	if (user==NULL) printf("Loading swear words file ... ");
 	else write_user(user,">>>Loading swear words file ... ");
-	if(!(fp=fopen(SWEARFILE, "r"))) {
+	if (!(fp=fopen(SWEARFILE, "r"))) {
 		strcpy(swear_words[0],"*");
-		if(user==NULL) printf(" not found.\n");
+		if (user==NULL) printf(" not found.\n");
 		else write_user(user," not found.\n");
 		return;
 		}
 	fgets(line,WORD_LEN+2,fp);
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		line[strlen(line)-1]='\0';
 		strcpy(swear_words[i],line);
 		i++;
-		if(i>=MAX_SWEARS) break;
+		if (i>=MAX_SWEARS) break;
 		fgets(line,WORD_LEN+2,fp);
 		}
 	fclose(fp);
 	strcpy(swear_words[i],"*");
-	if(user==NULL) printf(" done (%d words).\n",i);
+	if (user==NULL) printf(" done (%d words).\n",i);
 	else vwrite_user(user," done ( ~FT%d~RS words ).\n",i);
 }
 
@@ -561,5 +565,5 @@ void crash_dump(void)
 }
 #endif
 
-
 #endif /* adds.c */
+

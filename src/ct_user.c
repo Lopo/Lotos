@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                Funkcie Lotos v1.2.0 pre userovu osobnu potrebu
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_user.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_USER_C__
 #define __CT_USER_C__ 1
@@ -24,7 +28,7 @@
 #include "obj_syspp.h"
 #include "ct_user.h"
 #include "comvals.h"
-#include "ignval.h"
+#include "val_ign.h"
 
 
 /*** Set user description ***/
@@ -211,8 +215,8 @@ void status(UR_OBJECT user)
 /*** Enter user profile ***/
 void enter_profile(UR_OBJECT user, int done_editing)
 {
-FILE *fp;
-char *c,filename[500];
+	FILE *fp;
+	char *c,filename[500];
 
 	set_crash();
 if (!done_editing) {
@@ -330,8 +334,7 @@ void examine(UR_OBJECT user)
 	else vwrite_user(user,"Idle for    : %d minute%s\n",idle,PLTEXT_S(idle));
 	vwrite_user(user,"Total login : %d day%s, %d hour%s, %d minute%s\n",days,PLTEXT_S(days),hours,PLTEXT_S(hours),mins,PLTEXT_S(mins));
 	if (u->socket>=1) {
-		if (user->level>=WIZ)
-			vwrite_user(user,"Site        : %-40.40s  Port : %d\n",u->site,u->site_port);
+		if (user->level>=WIZ) vwrite_user(user,"Site        : %-40.40s  Port : %d\n",u->site,u->site_port);
 #ifdef NETLINKS
 		else vwrite_user(user,"Home service: %s\n",u->netlink->service);
 #endif
@@ -373,8 +376,8 @@ void examine(UR_OBJECT user)
      in advance. ***/
 void change_pass(UR_OBJECT user)
 {
-UR_OBJECT u;
-char *name;
+	UR_OBJECT u;
+	char *name;
 
 	set_crash();
 if (word_count<3) {
@@ -630,7 +633,7 @@ void suicide(UR_OBJECT user)
 /** Force a user to become visible **/
 void make_vis(UR_OBJECT user)
 {
-UR_OBJECT user2;
+	UR_OBJECT user2;
 
 	set_crash();
 if (word_count<2) {
@@ -662,7 +665,7 @@ vwrite_room_except(user2->room,user2,"You see %s~RS mysteriously emerge from the
 /** Force a user to become invisible **/
 void make_invis(UR_OBJECT user)
 {
-UR_OBJECT user2;
+	UR_OBJECT user2;
 
 	set_crash();
 if (word_count<2) {
@@ -694,9 +697,9 @@ vwrite_room_except(user2->room,user2,"You see %s~RS mysteriously disappear into 
 /* Shows when a user was last logged on */
 void show_last_login(UR_OBJECT user)
 {
-UR_OBJECT u;
-int timelen,days,hours,mins,i;
-char line[ARR_SIZE],tmp[ARR_SIZE];
+	UR_OBJECT u;
+	int timelen,days,hours,mins,i;
+	char line[ARR_SIZE],tmp[ARR_SIZE];
 
 	set_crash();
 if (word_count>2) {
@@ -769,8 +772,8 @@ return;
    banned and they want to log on - you know they aint a trouble maker, etc */
 void create_account(UR_OBJECT user)
 {
-UR_OBJECT u;
-int i;
+	UR_OBJECT u;
+	int i;
 
 	set_crash();
 if (word_count<3) {
@@ -894,7 +897,6 @@ void set_ualarm(UR_OBJECT user)
 
 void set_follow(UR_OBJECT user)
 {
-
 	set_crash();
 	if (word_count<2) {
 		write_usage(user, "follow [<user>]|[-cancel]");
@@ -931,3 +933,4 @@ void set_follow(UR_OBJECT user)
 }
 
 #endif /* ct_user.c */
+

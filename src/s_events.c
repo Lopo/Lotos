@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/******************************************************************************
-                   Funkcie pre Lotos v1.2.0 - event funkcie
-			Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * s_events.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __S_EVENTS_C__
 #define __S_EVENTS_C__ 1
@@ -42,31 +46,31 @@ void do_events(int sig)
 /*** Set global vars. hours,minutes,seconds,date,day,month,year ***/
 void set_date_time(void)
 {
-struct tm *tm_struct; /* structure is defined in time.h */
-time_t tm_num;
+	struct tm *tm_struct; /* structure is defined in time.h */
+	time_t tm_num;
 
 	set_crash();
 /* Set up the structure */
-time(&tm_num);
-tm_struct=localtime(&tm_num);
+	time(&tm_num);
+	tm_struct=localtime(&tm_num);
 
 /* Get the values */
-tday=tm_struct->tm_yday;
-tyear=1900+tm_struct->tm_year; /* Will this work past the year 2000? Hmm... */
-tmonth=tm_struct->tm_mon;
-tmday=tm_struct->tm_mday;
-twday=tm_struct->tm_wday;
-thour=tm_struct->tm_hour;
-tmin=tm_struct->tm_min;
-tsec=tm_struct->tm_sec; 
+	tday=tm_struct->tm_yday;
+	tyear=1900+tm_struct->tm_year; /* Will this work past the year 2000? Hmm... */
+	tmonth=tm_struct->tm_mon;
+	tmday=tm_struct->tm_mday;
+	twday=tm_struct->tm_wday;
+	thour=tm_struct->tm_hour;
+	tmin=tm_struct->tm_min;
+	tsec=tm_struct->tm_sec; 
 }
 
 
 /*** See if timed reboot or shutdown is underway ***/
 void check_reboot_shutdown(void)
 {
-int secs;
-char *w[]={ "~FRVypnutie","~FYRestart" };
+	int secs;
+	char *w[]={ "~FRVypnutie","~FYRestart" };
 
 	set_crash();
 if (amsys->rs_user==NULL) return;
@@ -94,13 +98,12 @@ if (amsys->rs_countdown<60 && (secs>=10 || amsys->rs_countdown<=10)) {
      Also ups users total login time. ***/
 void check_idle_and_timeout(void)
 {
-	UR_OBJECT user,next;
+	UR_OBJECT user=user_first,next;
 	int tm;
 
 	set_crash();
 /* Use while loop here instead of for loop for when user structure gets
    destructed, we may lose ->next link and crash the program */
-	user=user_first;
 	while (user) {
 		next=user->next;
 		if (user->type==CLONE_TYPE) {  user=next;  continue;  }
@@ -146,18 +149,17 @@ void check_idle_and_timeout(void)
 void reset_alarm(void)
 {
 	set_crash();
-  SIGNAL(SIGALRM,do_events);
-  alarm(amsys->heartbeat);
+	SIGNAL(SIGALRM,do_events);
+	alarm(amsys->heartbeat);
 }
 
 
 void check_alarm(void)
 {
-	UR_OBJECT user,next;
+	UR_OBJECT user=user_first, next;
 
 	set_crash();
-	user=user_first;
-	while(user) {
+	while (user) {
 		next=user->next;
 		if (user->alarm) {
 			if (user->atime) user->atime-=amsys->heartbeat;

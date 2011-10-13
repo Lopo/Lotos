@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-              Zakladne frazy, hlasky a retazce pre Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * prompts.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 /***************************************************************************
    Please be CAREFUL when editing some of the prompts, especially the Style
    prompts because they MUST be in a specific order otherwise they will not
@@ -213,3 +217,4 @@ char *user_bch_setup   ="~CRTak volba neexistuje ...\n";
 char *muzzled_cannot   ="~FRMas zalepenu tlamu, nemozes %s !\n";
 
 #endif /* prompts.c */
+

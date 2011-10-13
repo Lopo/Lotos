@@ -1,9 +1,13 @@
-/* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-            Funkcie Lotos v1.2.0 na pracu s pocitadlami a zoznamami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/* vi: set ts=4 sw=4: */
+/*
+ * poc_zoz.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __POC_ZOZ_C__
 #define __POC_ZOZ_C__ 1
@@ -219,10 +223,9 @@ void list_txt_files(UR_OBJECT user)
 	FILE *ifp, *ofp;
 	struct dirent *dp;
 	char filename[500];
-	int cnt, tcnt;
+	int cnt=0, tcnt=0;
 
 	set_crash();
-	cnt=tcnt=0;
 	if (!user) printf("Vytvaram zoznam textovych suborov ... ");
 	else write_user(user, "Vytvaram zoznam textovych suborov ");
 
@@ -551,3 +554,4 @@ void list_kill_msgs(UR_OBJECT user)
 }
 
 #endif /* poc_zoz.c */
+

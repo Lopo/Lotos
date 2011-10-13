@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-               Funkcie Lotos v1.2.0 pre pracu s email spravami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * email.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __EMAIL_C__
 #define __EMAIL_C__ 1
@@ -25,12 +29,10 @@
 /*** check to see if a given email has the correct format ***/
 int validate_email(char *email)
 {
-	int dots;
-	char *p;
+	int dots=0;
+	char *p=email;
 
 	set_crash();
-	dots=0;
-	p=email;
 	if (!*p) return 0;
 	while (*p!='@' && *p) {
 		if (!isalnum(*p) && *p!='.' && *p!='_' && *p!='-')
@@ -83,7 +85,7 @@ void set_forward_email(UR_OBJECT user)
 		write_syslog(ERRLOG, 1, "Unable to open forward mail file in set_forward_email()\n");
 		return;
 		}
-	sprintf(user->verify_code,"osstar%d",rand()%999);
+	sprintf(user->verify_code,"lotos%d",rand()%999);
 	/* email header */
 	fprintf(fp,"From: %s\n",reg_sysinfo[TALKERNAME]);
 	fprintf(fp,"To: %s <%s>\n",user->name,user->email);
@@ -107,10 +109,10 @@ void set_forward_email(UR_OBJECT user)
 /*** send smail to the email ccount ***/
 void forward_email(char *name, char *from, char *message)
 {
-FILE *fp;
-UR_OBJECT u;
-char filename[500];
-int on=0;
+	FILE *fp;
+	UR_OBJECT u;
+	char filename[500];
+	int on=0;
 
 	set_crash();
 if (!amsys->forwarding) return;
@@ -177,16 +179,18 @@ return;
 int send_forward_email(char *send_to, char *mail_file)
 {
 	set_crash();
-  switch(double_fork()) {
-    case -1 : unlink(mail_file); return -1; /* double_fork() failed */
-    case  0 : sprintf(text,"mail %s < %s",send_to,mail_file);
-              system(text);
-	      unlink(mail_file);
-	      _exit(1);
-	      break; /* should never get here */
-    default: break;
-    }
-return 1;
+	switch (double_fork()) {
+		case -1 : unlink(mail_file); return -1; /* double_fork() failed */
+		case  0 :
+				  sprintf(text,"sendmail %s < %s",send_to,mail_file);
+				  system(text);
+				  unlink(mail_file);
+				  _exit(1);
+				  break; /* should never get here */
+		default: break;
+		}
+	return 1;
 }
 
 #endif /* email.c */
+

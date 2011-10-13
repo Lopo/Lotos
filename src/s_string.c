@@ -1,18 +1,22 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                 Funkcie pre Lotos v1.2.0 na pracu s retazcami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * s_string.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __S_STRING_C__
 #define __S_STRING_C__ 1
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
 #include <ctype.h>
 
 #include "define.h"
@@ -28,7 +32,7 @@ int get_charclient_line(UR_OBJECT user, char *inpstr, int len)
 	int l;
 
 	set_crash();
-	for(l=0;l<len;++l) {
+	for (l=0;l<len;++l) {
   /* see if delete entered */
 		if (inpstr[l]==8 || inpstr[l]==127) {
 			if (user->buffpos) {
@@ -63,7 +67,11 @@ void terminate(char *str)
 	int i;
 
 	set_crash();
-	for (i=0;i<ARR_SIZE;++i) if (*(str+i)<32) {  *(str+i)=0;  return;  } 
+	for (i=0;i<ARR_SIZE;++i)
+		if (*(str+i)<32) {
+			*(str+i)=0;
+			return;
+			} 
 	str[i-1]=0;
 }
 
@@ -73,10 +81,9 @@ void terminate(char *str)
      difficult to do with sscanf() hence I use this function instead. ***/
 int wordfind(char *inpstr)
 {
-	int wn,wpos;
+	int wn=0,wpos=0;
 
 	set_crash();
-	wn=0; wpos=0;
 	do {
 		while(*inpstr<33) if (!*inpstr++) return wn;
 		while(*inpstr>32 && wpos<WORD_LEN-1) {
@@ -97,7 +104,7 @@ void clear_words()
 	int w;
 
 	set_crash();
-	for(w=0;w<MAX_WORDS;++w) word[w][0]='\0';
+	for (w=0;w<MAX_WORDS;++w) word[w][0]='\0';
 	word_count=0;
 }
 
@@ -172,6 +179,7 @@ void echo_on(UR_OBJECT user)
 char *remove_first(char *inpstr)
 {
 	char *pos=inpstr;
+
 	set_crash();
 	while(*pos<33 && *pos) ++pos;
 	while(*pos>32) ++pos;
@@ -220,15 +228,12 @@ int contains_swearing(char *str)
    */
 char *censor_swear_words(char *has_swears)
 {
-	int i;
+	int i=0;
 	char *clean;
 
 	set_crash();
-	clean='\0';
-
-	i=0;
 	while (swear_words[i][0]!='*') {
-		while(has_swears!=NULL) {
+		while (has_swears!=NULL) {
 			clean=has_swears;
 			has_swears=replace_swear(clean, swear_words[i]);
 			}
@@ -243,7 +248,10 @@ char *censor_swear_words(char *has_swears)
 void strtoupper(char *str)
 {
 	set_crash();
-	while(*str) {  *str=toupper(*str);  str++; }
+	while (*str) {
+		*str=toupper(*str);
+		str++;
+		}
 }
 
 
@@ -251,7 +259,10 @@ void strtoupper(char *str)
 void strtolower(char *str)
 {
 	set_crash();
-	while(*str) {  *str=tolower(*str);  str++; }
+	while (*str) {
+		*str=tolower(*str);
+		str++;
+		}
 }
 
 
@@ -259,7 +270,8 @@ void strtolower(char *str)
 int is_number(char *str)
 {
 	set_crash();
-	while (*str) if (!isdigit(*str++)) return 0;
+	while (*str)
+		if (!isdigit(*str++)) return 0;
 	return 1;
 }
 
@@ -356,8 +368,8 @@ char *ordinal_text(int num)
 /*** Date string for board messages, mail, .who and .allclones, etc ***/
 char *long_date(int which)
 {
-static char dstr[80];
-int ap,hour;
+	static char dstr[80];
+	int ap,hour;
 
 	set_crash();
 if (thour>=12) {
@@ -431,9 +443,9 @@ void smiley_type(char *str, char *type)
 */
 char *center_string(int cstrlen, int mark, char *marker, char *str, ...)
 {
-va_list args;
-char text2[ARR_SIZE*2];
-int len=0,spc=0,odd=0,cnt=0;
+	va_list args;
+	char text2[ARR_SIZE*2];
+	int len=0,spc=0,odd=0,cnt=0;
 
 	set_crash();
 /* first build up the string */
@@ -516,7 +528,8 @@ int is_inumber(char *str)
 {
 	set_crash();
 	if (str[0]=='-') str++;
-	while(*str) if (!isdigit(*str++)) return 0;
+	while (*str)
+		if (!isdigit(*str++)) return 0;
 	return 1;
 }
 
@@ -538,7 +551,8 @@ void reset_murlist(UR_OBJECT user)
 	int i;
 
 	set_crash();
-	for (i=0; i<MAX_MUSERS; i++) user->murlist[i][0]='\0';
+	for (i=0; i<MAX_MUSERS; i++)
+		user->murlist[i][0]='\0';
 }
 
 
@@ -947,6 +961,7 @@ int contains_extension(char *str, int type)
 {
 	char *s;
 	int ok;
+
 	set_crash();
 	if ((s=(char *)malloc(strlen(str)+1))==NULL) {
 		write_syslog(ERRLOG, 1, "Failed to allocate memory in contains_extention().\n");
@@ -976,6 +991,7 @@ int contains_extension(char *str, int type)
 void resetbuff(char *buff) 
 {
 	int i;
+
 	set_crash();
 	for (i=strlen(buff)-1; i>=0; buff[i--]='\0')
 	;
@@ -987,7 +1003,7 @@ char stricmp(char *str1, char *str2)
 {
 	set_crash();
 	for ( ; toupper(*str1)==toupper(*str2); str1++,str2++)
-		if(*str1=='\0') return 0;
+		if (*str1=='\0') return 0;
 	return (toupper(*str1)-toupper(*str2));
 }
 

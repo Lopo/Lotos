@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                    Funkcie Lotos v1.2.0 suvisiace s klonmi
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_clone.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_CLONE_C__
 #define __CT_CLONE_C__ 1
@@ -67,7 +71,7 @@ for(u=user_first;u!=NULL;u=u->next) {
 /* Create clone */
 if ((u=create_user())==NULL) {		
   vwrite_user(user,"%s: Unable to create copy.\n",syserror);
-  write_syslog(ERRLOG,1,"Unable to create user copy in clone().\n");
+  write_syslog(SYSLOG,0,"ERROR: Unable to create user copy in clone().\n");
   return;
   }
 u->type=CLONE_TYPE;
@@ -92,9 +96,9 @@ vwrite_room_except(rm, user, "~FB~OLA clone of %s appears in a swirling magical 
 /*** Destroy user clone ***/
 void destroy_clone(UR_OBJECT user)
 {
-UR_OBJECT u,u2;
-RM_OBJECT rm;
-char *name;
+	UR_OBJECT u,u2;
+	RM_OBJECT rm;
+	char *name;
 
 	set_crash();
 /* Check room and user */
@@ -136,15 +140,14 @@ else vwrite_user(user,"%s~RS does not have a clone the %s.\n",u2->recap,rm->name
 void myclones(UR_OBJECT user)
 {
 	UR_OBJECT u;
-	int cnt;
+	int cnt=0;
 
 	set_crash();
 	if (user->restrict[RESTRICT_CLON]==restrict_string[RESTRICT_CLON]) {
 		write_user(user,">>>You have no right to use this command! Sorry...\n");
 		return;
 		}
-	cnt=0;
-	for(u=user_first;u!=NULL;u=u->next) {
+	for (u=user_first;u!=NULL;u=u->next) {
 		if (u->type!=CLONE_TYPE || u->owner!=user) continue;
 		if (++cnt==1) write_user(user,"\n~BB*** Rooms you have clones in ***\n\n");
 		vwrite_user(user,"  %s\n",u->room->name);
@@ -158,14 +161,13 @@ void myclones(UR_OBJECT user)
 void allclones(UR_OBJECT user)
 {
 	UR_OBJECT u;
-	int cnt;
+	int cnt=0;
 
 	set_crash();
 	if (user->restrict[RESTRICT_CLON]==restrict_string[RESTRICT_CLON]) {
 		write_user(user,">>>You have no right to use this command! Sorry...\n");
 		return;
 		}
-	cnt=0;
 	for(u=user_first;u!=NULL;u=u->next) {
 		if (u->type!=CLONE_TYPE) continue;
 		if (++cnt==1) vwrite_user(user,"\n~BB*** Current clones %s ***\n\n",long_date(1));
@@ -180,16 +182,14 @@ void allclones(UR_OBJECT user)
 	objects are in. ***/
 void clone_switch(UR_OBJECT user)
 {
-UR_OBJECT u,tu;
-RM_OBJECT rm;
-int cnt=0;
+	UR_OBJECT u,tu=NULL;
+	RM_OBJECT rm=NULL;
+	int cnt=0;
 
 	set_crash();
 /* if no room was given then check to see how many clones user has.  If 1, then
    move the user to that clone, else give an error
 */
-tu=NULL;
-rm=NULL;
 if (word_count<2) {
   for(u=user_first;u!=NULL;u=u->next) {
     if (u->type==CLONE_TYPE && u->owner==user) {
@@ -267,8 +267,8 @@ void clone_say(UR_OBJECT user, char *inpstr)
 	or nothing. ***/
 void clone_hear(UR_OBJECT user)
 {
-RM_OBJECT rm;
-UR_OBJECT u;
+	RM_OBJECT rm;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<3  
@@ -307,8 +307,8 @@ write_user(user,"Clone will now hear nothing.\n");
 /*** Make a clone emote ***/
 void clone_emote(UR_OBJECT user,char *inpstr)
 {
-RM_OBJECT rm;
-UR_OBJECT u;
+	RM_OBJECT rm;
+	UR_OBJECT u;
 
 	set_crash();
 if (user->muzzled>1) {
@@ -331,3 +331,4 @@ write_user(user,"You do not have a clone in that room.\n");
 }
 
 #endif /* ct_clone.c */
+

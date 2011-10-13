@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                Funkcie pre Lotos v1.2.0 na pracu s nastenkami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * boards.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __BOARDS_C__
 #define __BOARDS_C__ 1
@@ -31,14 +35,12 @@
 /*** Read the message board ***/
 void read_board(UR_OBJECT user)
 {
-	RM_OBJECT rm;
+	RM_OBJECT rm=NULL;
 	char fname[500],*name,rmname[USER_NAME_LEN];
 	int ret;
 
 	set_crash();
-	rm=NULL;
-	if (word_count<2)
-		rm=user->room;
+	if (word_count<2) rm=user->room;
 	else {
 		if (word_count>=3) {
 			if ((rm=get_room(word[1]))==NULL) {
@@ -163,10 +165,9 @@ void wipe_board(UR_OBJECT user)
 {
 	int cnt;
 	char fname[500],*name,rmname[USER_NAME_LEN];
-	RM_OBJECT rm;
+	RM_OBJECT rm=user->room;
 
 	set_crash();
-	rm=user->room;
 	if (word_count<2 && ((user->level>=WIZ && !is_personal_room(rm))
 	    || (is_personal_room(rm) && (is_my_room(user,rm) || user->level>=GOD)))) {
 		write_usage(user,"wipe all");
@@ -242,15 +243,14 @@ void wipe_board(UR_OBJECT user)
 void check_messages(UR_OBJECT user, int chforce)
 {
 	RM_OBJECT rm;
-	FILE *infp,*outfp;
+	FILE *infp=NULL,*outfp=NULL;
 	char id[182],fname[500],line[82],rmname[USER_NAME_LEN];
 	int valid,pt,write_rest;
 	int board_cnt,old_cnt,bad_cnt,tmp;
 	static int done=0;
 
 	set_crash();
-	infp=outfp=NULL;
-	switch(chforce) {
+	switch (chforce) {
 		case 0:
 			if (amsys->mesg_check_hour==thour && amsys->mesg_check_min==tmin) {
 				if (done) return;
@@ -297,7 +297,7 @@ void check_messages(UR_OBJECT user, int chforce)
 		if (chforce<2) {
 			if (!(outfp=fopen("tempfile","w"))) {
 				if (chforce)
-					fprintf(stderr,"Lotos: Couldn't open tempfile.\n");
+					write_syslog(ERRLOG, 1, "Lotos: Couldn't open tempfile.\n");
 				write_syslog(ERRLOG,1,"Couldn't open tempfile in check_messages().\n");
 				fclose(infp);
 				return;
@@ -367,9 +367,9 @@ void check_messages(UR_OBJECT user, int chforce)
 /** Write a suggestion to the board, or read if if you can **/
 void suggestions(UR_OBJECT user, int done_editing)
 {
-FILE *fp;
-char *c;
-int cnt=0;
+	FILE *fp;
+	char *c;
+	int cnt=0;
 
 	set_crash();
 if (com_num==RSUG) {
@@ -413,7 +413,7 @@ amsys->suggestion_count++;
 /** delete suggestions from the board **/
 void delete_suggestions(UR_OBJECT user)
 {
-int cnt;
+	int cnt;
 
 	set_crash();
 if (word_count<2) {
@@ -462,8 +462,7 @@ void board_from(UR_OBJECT user)
 	RM_OBJECT rm;
 
 	set_crash();
-	if (word_count<2)
-		rm=user->room;
+	if (word_count<2) rm=user->room;
 	else {
 		if ((rm=get_room(word[1]))==NULL) {
 			write_user(user,nosuchroom);
@@ -511,9 +510,9 @@ void board_from(UR_OBJECT user)
 /*** Show list of people suggestions are from without seeing the whole lot ***/
 void suggestions_from(UR_OBJECT user)
 {
-FILE *fp;
-int cnt;
-char id[ARR_SIZE],line[ARR_SIZE], *str;
+	FILE *fp;
+	int cnt;
+	char id[ARR_SIZE],line[ARR_SIZE], *str;
 
 	set_crash();
 if (!amsys->suggestion_count) {
@@ -546,9 +545,9 @@ vwrite_user(user,"\nTotal of ~OL%d~RS suggestions.\n\n",amsys->suggestion_count)
 /* Allows a user to read a specific message number */
 void read_board_specific(UR_OBJECT user, RM_OBJECT rm, int msg_number)
 {
-FILE *fp;
-int valid,cnt,pt;
-char id[ARR_SIZE],line[ARR_SIZE],fname[500],*name,rmname[USER_NAME_LEN];
+	FILE *fp;
+	int valid,cnt,pt;
+	char id[ARR_SIZE],line[ARR_SIZE],fname[500],*name,rmname[USER_NAME_LEN];
 
 	set_crash();
 if (!rm->mesg_cnt) {
@@ -685,3 +684,4 @@ SKIP:
 }
 
 #endif /* boards.c */
+

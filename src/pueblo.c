@@ -1,12 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-            Funkcie Lotos v1.2.0 suvisiace s podporou Pueblo klienta
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
-/*****************************************************************************
-        POZOR !!! Zatial iba experimentalne - nerucim za funkcnost !!!!!
- *****************************************************************************/
+/*
+ * pueblo.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __PUEBLO_C__
 #define __PUEBLO_C__ 1
@@ -33,24 +34,24 @@
 int chck_pblo(UR_OBJECT user, char *str)
 {
 	set_crash();
-if (user->pueblo==1) {
-        user->pblodetect=0;
-        if (!strncmp(str,"PUEBLOCLIENT",12)) return 1;
-                else return 0;
-        }
-if (!user->pblodetect) {
-        if (!strncmp(str,"PUEBLOCLIENT",12)) return 1;
-                else return 0;
-        }
-if (!strncmp(str,"PUEBLOCLIENT",12)) {
-                user->pueblo=1;
-                user->pblodetect=0;
-                write_user(user,"</xch_mudtext><font size=+2 color=\"#FFFFFF\">Pueblo has been detected!</font><xch_mudtext>\n");
-                return 1;
-                }
-user->pueblo=0;
-user->pblodetect=0;
-return 0;
+	if (user->pueblo==1) {
+		user->pblodetect=0;
+		if (!strncmp(str,"PUEBLOCLIENT",12)) return 1;
+		else return 0;
+		}
+	if (!user->pblodetect) {
+		if (!strncmp(str,"PUEBLOCLIENT",12)) return 1;
+		else return 0;
+		}
+	if (!strncmp(str,"PUEBLOCLIENT",12)) {
+		user->pueblo=1;
+		user->pblodetect=0;
+		write_user(user,"</xch_mudtext><font size=+2 color=\"#FFFFFF\">Pueblo has been detected!</font><xch_mudtext>\n");
+		return 1;
+		}
+	user->pueblo=0;
+	user->pblodetect=0;
+	return 0;
 }
 
 
@@ -76,10 +77,10 @@ int contains_pueblo(char *str)
 
 void click_rm_access(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
-char *name;
-int cnt;
+	UR_OBJECT u;
+	RM_OBJECT rm;
+	char *name;
+	int cnt;
 
 	set_crash();
         if ((rm=get_room(word[3]))==NULL) {
@@ -252,9 +253,9 @@ void disp_song(UR_OBJECT user, int num)
 
 void pblo_jukebox(UR_OBJECT user)
 {
-int i,cnt,pos;
+	int i=0,cnt=0,pos=0;
+
 	set_crash();
-i=0; cnt=0; pos=0;
 if (word_count<2) {
         for (i=0; jb_titles[i][0]!='*'; i++) {
                 cnt++;
@@ -283,13 +284,11 @@ if (i!=cnt-1) write_user(user,"Song not found.\n");
                     are not clickable, because they sometimes require pwds. */
 void pblo_listexits(UR_OBJECT user)
 {
-	RM_OBJECT rm;
+	RM_OBJECT rm=user->room;
 	char temp[125];
 	int i,exits=0;
 
 	set_crash();
-	rm=user->room;
-
 if (rm->access!=PERSONAL_LOCKED && rm->access!=PERSONAL_UNLOCKED) sprintf(text,"The exits for this room (%s) are:",rm->name);
               else sprintf(text,"The exits for this personal room %s are:",rm->name);
 write_user(user,text);
@@ -328,8 +327,8 @@ write_user(user," * indicates a netlink.\n\n");
     ---------------------------------------------------------------------- **/
 int audioprompt(UR_OBJECT user, int prmpt, int pager)
 {
-UR_OBJECT u;
-char audiofiles[8][30]={
+	UR_OBJECT u;
+	char audiofiles[8][30]={
         "ap_f-welcome.wav",     /* 00: Login greeting        (female)  */
         "ap_m-welcome.wav",     /* 01: Login greeting        (male)    */
         "ap_f-pager.wav",       /* 02: Pager sound           (female)  */
@@ -461,3 +460,4 @@ void query_aud(UR_OBJECT user, char *inpstr)
 }
 
 #endif /* pueblo.c */
+

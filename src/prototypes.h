@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-           Hlavickovy subor s prototypmi funkcii pre Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * prototypes.h
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __PROTOTYPES_H__
 #define __PROTOTYPES_H__ 1
@@ -161,7 +165,9 @@ void      record_last_logout args((char *name));
 /* initializing of the globals and other stuff */
 
 int       load_user_details args((UR_OBJECT user));
-int       load_user_olddetails args((UR_OBJECT user));
+int       load_user_olddetails args((UR_OBJECT user, char *ver));
+int       load_user_olddetails010 args((UR_OBJECT user));
+int       load_user_olddetails011 args((UR_OBJECT user));
 int       save_user_details args((UR_OBJECT user,int save_current));
 void      set_date_time args((void));
 void      process_users args((void));
@@ -656,10 +662,10 @@ void      write_broadcast_figlet args((UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm
 void      list_fnt_files args((UR_OBJECT user));
 
 /* money */
-void      donate_cash args((UR_OBJECT));
-void      show_money args((UR_OBJECT));
-void      check_credit_updates args((void));
-void      global_money args((UR_OBJECT));
+void   donate_cash args((UR_OBJECT));
+void   show_money args((UR_OBJECT));
+void   check_credit_updates args((void));
+void   global_money args((UR_OBJECT));
 
 /* menu */
 int       setops args((UR_OBJECT user, char *inpstr));
@@ -682,3 +688,4 @@ void      crash_dump args((void));
 #endif
 
 #endif /* prototypes.h */
+

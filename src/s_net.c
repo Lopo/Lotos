@@ -1,9 +1,14 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                 Funkcie pre Lotos v1.2.0 na pracu so sietou
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * s_net.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
+
 #ifndef __S_NET_C__
 #define __S_NET_C__ 1
 

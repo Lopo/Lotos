@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                  Funkcie pre Lotos v1.2.0 - restart talkra
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * restart.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __RESTART_C__
 #define __RESTART_C__ 1
@@ -12,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/socket.h>
 
 #include "define.h"
 #include "prototypes.h"
@@ -80,11 +85,11 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "buff       %d\n%s\n/buff\n", strlen(user->buff), user->buff);
 	fprintf(fp, "ops        %d %d %d %d\n", user->misc_op, user->edit_op, user->set_op, user->set_mode);
 	fprintf(fp, "hwrap      %d %d %d %d %d\n", user->hwrap_lev, user->hwrap_id, user->hwrap_same, user->hwrap_func, user->hwrap_pl);
-	fprintf(fp, "page       %d %d %d %s\n", user->pagecnt, user->user_page_pos, user->user_page_lev, user->page_file);
+	fprintf(fp, "page       %ld %d %d %s\n", user->pagecnt, user->user_page_pos, user->user_page_lev, user->page_file);
 	fprintf(fp, "pages\n");
 		for (i=0; i<MAX_PAGES; i++) fprintf(fp, "%d ", user->pages[i]);
 	fprintf(fp, "\n/pages\n");
-	fprintf(fp, "pos        %d %d\n", user->filepos, user->buffpos);
+	fprintf(fp, "pos        %ld %d\n", user->filepos, user->buffpos);
 	fprintf(fp, "revbuff\n");
 		for (i=0; i<REVTELL_LINES; i++) {
 			if (user->revbuff[i][0]!='\0')
@@ -289,349 +294,349 @@ int reinit_load_user(UR_OBJECT user, int stage)
 		"*"};
 
 	set_crash();
-if (stage==1) {
-	sprintf(fname, "%s/%s.ri_ur", TEMPFILES, user->name);
-	if ((fp=fopen(fname, "r"))==NULL) return 0;
-	fgets(line, (ARR_SIZE*5)-1, fp);
-	line[strlen(line)-1]='\0';
+	if (stage==1) {
+		sprintf(fname, "%s/%s.ri_ur", TEMPFILES, user->name);
+		if ((fp=fopen(fname, "r"))==NULL) return 0;
+		fgets(line, (ARR_SIZE*5)-1, fp);
+		line[strlen(line)-1]='\0';
 
-	while (!feof(fp)) {
-		wn=0; wpos=0;
-		str=line;
-		do {
-			while (*str<33) if (!*str++) goto RLUOUT;
-			while (*str>32 && wpos<ARR_SIZE) ur_words[wn][wpos++]=*str++;
-			ur_words[wn++][wpos]='\0';
-			wpos=0;
-			} while (wn<1010);
-		wn--;
+		while (!feof(fp)) {
+			wn=0; wpos=0;
+			str=line;
+			do {
+				while (*str<33) if (!*str++) goto RLUOUT;
+				while (*str>32 && wpos<ARR_SIZE) ur_words[wn][wpos++]=*str++;
+				ur_words[wn++][wpos]='\0';
+				wpos=0;
+				} while (wn<1010);
+			wn--;
 RLUOUT:
-	wcnt=wn;
-	op=0; found=1;
-	while (strcmp(options[op], ur_words[0])) {
-		if (options[op][0]=='*') {
-			found=0;
-			break;
+		wcnt=wn;
+		op=0; found=1;
+		while (strcmp(options[op], ur_words[0])) {
+			if (options[op][0]=='*') {
+				found=0;
+				break;
+				}
+			op++;
 			}
-		op++;
-		}
-	if (found) {
-		switch (op) {
-			case  0: /* level */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->level=atoi(ur_words[i]); break;
-						case 2: user->real_level=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case  1: /* site */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: strcpy(user->last_site, ur_words[i]); break;
-						case 2: strcpy(user->site, ur_words[i]); break;
-						case 3: strcpy(user->ipsite, ur_words[i]); break;
-						}
-					}
-				break;
-			case  2: /* afk */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->afk=atoi(ur_words[i]); break;
-						case 2: strncpy(user->afk_mesg, remove_first(remove_first(line)), AFK_MESG_LEN); break;
-						}
-					}
-				break;
-			case  3: /* call */
-				if (wcnt>=2) strncpy(user->call, remove_first(line), USER_NAME_LEN);
-				break;
-			case  4: /* gcoms */
-				for (i=1; i<wcnt; i++)
-					user->gcoms[i-1]=atoi(ur_words[i]);
-				break;
-			case  5: /* xcoms */
-				for (i=1; i<wcnt; i++)
-					user->xcoms[i-1]=atoi(ur_words[i]);
-				break;
-			case  6: /* pueblo */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->pueblo=atoi(ur_words[i]); break;
-						case 2: user->pblodetect=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case  7: /* alarm */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->atime=atoi(ur_words[i]); break;
-						case 2: user->alarm=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case  8: /* ltell */
-				if (wcnt>=2) strncpy(user->ltell, remove_first(line), USER_NAME_LEN);
-				break;
-			case  9: /* count */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->tcount=atol(ur_words[i]); break;
-						case 2: user->bcount=atol(ur_words[i]); break;
-						}
-					}
-				break;
-			case 10: /* auth */
-				if (wcnt>=2) user->auth_addr=strtoul(remove_first(line), NULL, 10);
-				break;
-			case 11: /* afkbuff */
-				fgets(line, ARR_SIZE*5-1, fp);
-				c=0;
-				while (strcmp(line, "/afkbuff\n")) {
-					if (c<REVTELL_LINES) strncpy(user->afkbuff[c], line, REVIEW_LEN+1);
-					c++;
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				break;
-			case 12: /* buff */
-				c=atoi(ur_words[2]);
-				fgets(line, ARR_SIZE*5-1, fp);
-				i=0;
-				while (strncmp(line, "/buff", 5)) {
-					if (i<BUFSIZE) strncat(user->buff, line, BUFSIZE-strlen(user->buff)-1);
-					i+=strlen(line);
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				user->buff[c-1]='\0';
-				break;
-			case 13: /* ops */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->misc_op=atoi(ur_words[i]); break;
-						case 2: user->edit_op=atoi(ur_words[i]); break;
-						case 3: user->set_op=atoi(ur_words[i]); break;
-						case 4: user->set_mode=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 14: /* hwrap */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->hwrap_lev=atoi(ur_words[i]); break;
-						case 2: user->hwrap_id=atoi(ur_words[i]); break;
-						case 3: user->hwrap_same=atoi(ur_words[i]); break;
-						case 4: user->hwrap_func=atoi(ur_words[i]); break;
-						case 5: user->hwrap_pl=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 15: /* page */
-				strcpy(line, remove_first(line));
-				for (i=1; i<(wcnt-1); i++) {
-					strcpy(line, remove_first(line));
-					switch (i) {
-						case 1: user->pagecnt=atoi(ur_words[i]); break;
-						case 2: user->user_page_pos=atoi(ur_words[i]); break;
-						case 3: user->user_page_lev=atoi(ur_words[i]); break;
-						}
-					}
-				if (wcnt>4) strcpy(user->page_file, line);
-				break;
-			case 16: /* pages */
-				fscanf(fp, "%s ", s);
-				i=0;
-				while (strcmp(s, "/pages\n") && i<MAX_PAGES) {
-					user->pages[i]=atoi(s);
-					i++;
-					fscanf(fp, "%s ", s);
-					}
-				break;
-			case 17: /* pos */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->filepos=atoi(ur_words[i]); break;
-						case 2: user->buffpos=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 18: /* revbuff */
-				fgets(line, ARR_SIZE*5-1, fp);
-				c=0;
-				while (strcmp(line, "/revbuff\n")) {
-					if (c<REVTELL_LINES) strncpy(user->revbuff[c], line, REVIEW_LEN+1);
-					c++;
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				break;
-			case 19: /* inpstr */
-				strncpy(user->inpstr_old, remove_first(remove_first(line)), atoi(ur_words[1]));
-				break;
-			case 20: /* copyto */
-				fgets(line, ARR_SIZE*5-1, fp);
-				c=0;
-				while (strcmp(line, "/copyto\n")) {
-					if (c<MAX_COPIES) strncpy(user->revbuff[c], line, USER_NAME_LEN);
-					c++;
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				break;
-			case 21: /* invite */
-				if (wcnt>=2) strncpy(user->invite_by, remove_first(line), USER_NAME_LEN);
-				break;
-			case 22: /* ign_ur */
-				fgets(line, ARR_SIZE*5-1, fp);
-				c=0;
-				while (strcmp(line, "/ign_ur\n")) {
-					if (c<MAX_IGNORES) {
-						strncpy(user->ignoreuser[c], line, USER_NAME_LEN);
-						user->ignoreuser[c][strlen(user->ignoreuser[c])-1]='\0';
-						}
-					c++;
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				break;
-			case 23: /* editbuff */
-				fgets(line, ARR_SIZE*5-1, fp);
-				c=0;
-				while (strcmp(line, "/editbuff\n")) {
-					if (c<REVTELL_LINES) strncpy(user->editbuff[c], line, REVIEW_LEN+1);
-					c++;
-					fgets(line, ARR_SIZE*5-1, fp);
-					}
-				break;
-			case 24: /* samesite */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->samesite_all_store=atoi(ur_words[i]); break;
-						case 3: strncpy(user->samesite_check_store, ur_words[i], atoi(ur_words[i-1])); break;
-						}
-					}
-				break;
-			case 25: /* ignall */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->ignore.all=atoi(ur_words[i]); break;
-						case 2: user->ignore.all_store=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 26: /* lines */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->edit_line=atoi(ur_words[i]); break;
-						case 2: user->editline=atoi(ur_words[i]); break;
-						case 3: user->revline=atoi(ur_words[i]); break;
-						case 4: user->afkline=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 27: /* others */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case  1: user->warned=atoi(ur_words[i]); break;
-						case  2: user->editing=atoi(ur_words[i]); break;
-						case  3: user->charcnt=atoi(ur_words[i]); break;
-						case  4: user->lmail_lev=atoi(ur_words[i]); break;
-						case  5: user->remote_com=atoi(ur_words[i]); break;
-						case  6: user->last_input=(time_t)strtoul(ur_words[i], NULL, 10); break;
-						case  7: user->tmp_int=atoi(ur_words[i]); break;
-						case  8: user->status=ur_words[i][0]; break;
-						case  9: user->clone_hear=atoi(ur_words[i]); break;
-						case 10: user->kradnutie=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 28: /* wipe */
-				for (i=1; i<wcnt; i++) {
-					switch (i) {
-						case 1: user->wipe_from=atoi(ur_words[i]); break;
-						case 2: user->wipe_to=atoi(ur_words[i]); break;
-						}
-					}
-				break;
-			case 29: /* restrict */
-				if (wcnt>=2) strncpy(user->restrict, remove_first(line), MAX_RESTRICT);
-				break;
-			case 30: /* room */
-				if (wcnt>=2) {
-						rm=get_room_full(ur_words[1]);
-						if (rm!=NULL) user->room=rm;
-						}
-					break;
-				case 31: /* invite_rm */
-					if (wcnt>=2) {
-						rm=get_room_full(ur_words[2]);
-						if (rm!=NULL) user->invite_room=rm;
-						}
-					break;
-				case 32: /* wrap_rm */
-					if (wcnt>=2) {
-						rm=get_room_full(ur_words[2]);
-						if (rm!=NULL) user->wrap_room=rm;
-						}
-					break;
-				case 33: /* remind */
-					for (i=1; i<(wcnt-1); i++) {
-						strcpy(line, remove_first(line));
+		if (found) {
+			switch (op) {
+				case  0: /* level */
+					for (i=1; i<wcnt; i++) {
 						switch (i) {
-							case 1: user->temp_remind.day=atoi(ur_words[i]); break;
-							case 2: user->temp_remind.month=atoi(ur_words[i]); break;
-							case 3: user->temp_remind.year=atoi(ur_words[i]); break;
-							case 4: strncpy(user->temp_remind.msg, remove_first(line), atoi(ur_words[i])); break;
+							case 1: user->level=atoi(ur_words[i]); break;
+							case 2: user->real_level=atoi(ur_words[i]); break;
 							}
-						strcpy(line, remove_first(line));
 						}
 					break;
-				case 34: /* p_tmp_ch */
-					if (wcnt>=2)
-						user->p_tmp_ch=strdup(ur_words[2]);
-					break;
-				case 35: /* follow */
-					if (wcnt>=2) {
-						ur=get_user(ur_words[2]);
-						if (ur!=NULL) user->follow=ur;
+				case  1: /* site */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: strcpy(user->last_site, ur_words[i]); break;
+							case 2: strcpy(user->site, ur_words[i]); break;
+							case 3: strcpy(user->ipsite, ur_words[i]); break;
+							}
 						}
 					break;
-				case 36: /* clones */
+				case  2: /* afk */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->afk=atoi(ur_words[i]); break;
+							case 2: strncpy(user->afk_mesg, remove_first(remove_first(line)), AFK_MESG_LEN); break;
+							}
+						}
+					break;
+				case  3: /* call */
+					if (wcnt>=2) strncpy(user->call, remove_first(line), USER_NAME_LEN);
+					break;
+				case  4: /* gcoms */
+					for (i=1; i<wcnt; i++)
+						user->gcoms[i-1]=atoi(ur_words[i]);
+					break;
+				case  5: /* xcoms */
+					for (i=1; i<wcnt; i++)
+						user->xcoms[i-1]=atoi(ur_words[i]);
+					break;
+				case  6: /* pueblo */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->pueblo=atoi(ur_words[i]); break;
+							case 2: user->pblodetect=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case  7: /* alarm */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->atime=atoi(ur_words[i]); break;
+							case 2: user->alarm=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case  8: /* ltell */
+					if (wcnt>=2) strncpy(user->ltell, remove_first(line), USER_NAME_LEN);
+					break;
+				case  9: /* count */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->tcount=atol(ur_words[i]); break;
+							case 2: user->bcount=atol(ur_words[i]); break;
+							}
+						}
+					break;
+				case 10: /* auth */
+					if (wcnt>=2) user->auth_addr=strtoul(remove_first(line), NULL, 10);
+					break;
+				case 11: /* afkbuff */
 					fgets(line, ARR_SIZE*5-1, fp);
-					while (strcmp(line, "/clones\n")) {
-						line[strlen(line)-1]='\0';
-						rm=get_room_full(line);
-						if (rm!=NULL) {
-							if ((ur=create_user())!=NULL) {
-								ur->type=CLONE_TYPE;
-								ur->socket=user->socket;
-								ur->room=rm;
-								ur->owner=user;
-								ur->vis=1;
-								strcpy(ur->name, user->name);
-								strcpy(ur->recap, user->name);
-								strcpy(ur->bw_recap, colour_com_strip(ur->recap));
-								strcpy(ur->desc, clone_desc);
-								}
-							}
+					c=0;
+					while (strcmp(line, "/afkbuff\n")) {
+						if (c<REVTELL_LINES) strncpy(user->afkbuff[c], line, REVIEW_LEN+1);
+						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
 					break;
-				case 37: /* malloc */
-					reinit_load_user_malloc(user);
-				break;
+				case 12: /* buff */
+					c=atoi(ur_words[2]);
+					fgets(line, ARR_SIZE*5-1, fp);
+					i=0;
+					while (strncmp(line, "/buff", 5)) {
+						if (i<BUFSIZE) strncat(user->buff, line, BUFSIZE-strlen(user->buff)-1);
+						i+=strlen(line);
+						fgets(line, ARR_SIZE*5-1, fp);
+						}
+					user->buff[c-1]='\0';
+					break;
+				case 13: /* ops */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->misc_op=atoi(ur_words[i]); break;
+							case 2: user->edit_op=atoi(ur_words[i]); break;
+							case 3: user->set_op=atoi(ur_words[i]); break;
+							case 4: user->set_mode=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 14: /* hwrap */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->hwrap_lev=atoi(ur_words[i]); break;
+							case 2: user->hwrap_id=atoi(ur_words[i]); break;
+							case 3: user->hwrap_same=atoi(ur_words[i]); break;
+							case 4: user->hwrap_func=atoi(ur_words[i]); break;
+							case 5: user->hwrap_pl=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 15: /* page */
+					strcpy(line, remove_first(line));
+					for (i=1; i<(wcnt-1); i++) {
+						strcpy(line, remove_first(line));
+						switch (i) {
+							case 1: user->pagecnt=atoi(ur_words[i]); break;
+							case 2: user->user_page_pos=atoi(ur_words[i]); break;
+							case 3: user->user_page_lev=atoi(ur_words[i]); break;
+							}
+						}
+					if (wcnt>4) strcpy(user->page_file, line);
+					break;
+				case 16: /* pages */
+					fscanf(fp, "%s ", s);
+					i=0;
+					while (strcmp(s, "/pages\n") && i<MAX_PAGES) {
+						user->pages[i]=atoi(s);
+						i++;
+						fscanf(fp, "%s ", s);
+						}
+					break;
+				case 17: /* pos */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->filepos=atoi(ur_words[i]); break;
+							case 2: user->buffpos=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 18: /* revbuff */
+					fgets(line, ARR_SIZE*5-1, fp);
+					c=0;
+					while (strcmp(line, "/revbuff\n")) {
+						if (c<REVTELL_LINES) strncpy(user->revbuff[c], line, REVIEW_LEN+1);
+						c++;
+						fgets(line, ARR_SIZE*5-1, fp);
+						}
+					break;
+				case 19: /* inpstr */
+					strncpy(user->inpstr_old, remove_first(remove_first(line)), atoi(ur_words[1]));
+					break;
+				case 20: /* copyto */
+					fgets(line, ARR_SIZE*5-1, fp);
+					c=0;
+					while (strcmp(line, "/copyto\n")) {
+						if (c<MAX_COPIES) strncpy(user->revbuff[c], line, USER_NAME_LEN);
+						c++;
+						fgets(line, ARR_SIZE*5-1, fp);
+						}
+					break;
+				case 21: /* invite */
+					if (wcnt>=2) strncpy(user->invite_by, remove_first(line), USER_NAME_LEN);
+					break;
+				case 22: /* ign_ur */
+					fgets(line, ARR_SIZE*5-1, fp);
+					c=0;
+					while (strcmp(line, "/ign_ur\n")) {
+						if (c<MAX_IGNORES) {
+							strncpy(user->ignoreuser[c], line, USER_NAME_LEN);
+							user->ignoreuser[c][strlen(user->ignoreuser[c])-1]='\0';
+							}
+						c++;
+						fgets(line, ARR_SIZE*5-1, fp);
+						}
+					break;
+				case 23: /* editbuff */
+					fgets(line, ARR_SIZE*5-1, fp);
+					c=0;
+					while (strcmp(line, "/editbuff\n")) {
+						if (c<REVTELL_LINES) strncpy(user->editbuff[c], line, REVIEW_LEN+1);
+						c++;
+						fgets(line, ARR_SIZE*5-1, fp);
+						}
+					break;
+				case 24: /* samesite */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->samesite_all_store=atoi(ur_words[i]); break;
+							case 3: strncpy(user->samesite_check_store, ur_words[i], atoi(ur_words[i-1])); break;
+							}
+						}
+					break;
+				case 25: /* ignall */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->ignore.all=atoi(ur_words[i]); break;
+							case 2: user->ignore.all_store=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 26: /* lines */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->edit_line=atoi(ur_words[i]); break;
+							case 2: user->editline=atoi(ur_words[i]); break;
+							case 3: user->revline=atoi(ur_words[i]); break;
+							case 4: user->afkline=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 27: /* others */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case  1: user->warned=atoi(ur_words[i]); break;
+							case  2: user->editing=atoi(ur_words[i]); break;
+							case  3: user->charcnt=atoi(ur_words[i]); break;
+							case  4: user->lmail_lev=atoi(ur_words[i]); break;
+							case  5: user->remote_com=atoi(ur_words[i]); break;
+							case  6: user->last_input=(time_t)strtoul(ur_words[i], NULL, 10); break;
+							case  7: user->tmp_int=atoi(ur_words[i]); break;
+							case  8: user->status=ur_words[i][0]; break;
+							case  9: user->clone_hear=atoi(ur_words[i]); break;
+							case 10: user->kradnutie=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 28: /* wipe */
+					for (i=1; i<wcnt; i++) {
+						switch (i) {
+							case 1: user->wipe_from=atoi(ur_words[i]); break;
+							case 2: user->wipe_to=atoi(ur_words[i]); break;
+							}
+						}
+					break;
+				case 29: /* restrict */
+					if (wcnt>=2) strncpy(user->restrict, remove_first(line), MAX_RESTRICT);
+					break;
+				case 30: /* room */
+					if (wcnt>=2) {
+							rm=get_room_full(ur_words[1]);
+							if (rm!=NULL) user->room=rm;
+							}
+						break;
+					case 31: /* invite_rm */
+						if (wcnt>=2) {
+							rm=get_room_full(ur_words[2]);
+							if (rm!=NULL) user->invite_room=rm;
+							}
+						break;
+					case 32: /* wrap_rm */
+						if (wcnt>=2) {
+							rm=get_room_full(ur_words[2]);
+							if (rm!=NULL) user->wrap_room=rm;
+							}
+						break;
+					case 33: /* remind */
+						for (i=1; i<(wcnt-1); i++) {
+							strcpy(line, remove_first(line));
+							switch (i) {
+								case 1: user->temp_remind.day=atoi(ur_words[i]); break;
+								case 2: user->temp_remind.month=atoi(ur_words[i]); break;
+								case 3: user->temp_remind.year=atoi(ur_words[i]); break;
+								case 4: strncpy(user->temp_remind.msg, remove_first(line), atoi(ur_words[i])); break;
+								}
+							strcpy(line, remove_first(line));
+							}
+						break;
+					case 34: /* p_tmp_ch */
+						if (wcnt>=2)
+							user->p_tmp_ch=strdup(ur_words[2]);
+						break;
+					case 35: /* follow */
+						if (wcnt>=2) {
+							ur=get_user(ur_words[2]);
+							if (ur!=NULL) user->follow=ur;
+							}
+						break;
+					case 36: /* clones */
+						fgets(line, ARR_SIZE*5-1, fp);
+						while (strcmp(line, "/clones\n")) {
+							line[strlen(line)-1]='\0';
+							rm=get_room_full(line);
+							if (rm!=NULL) {
+								if ((ur=create_user())!=NULL) {
+									ur->type=CLONE_TYPE;
+									ur->socket=user->socket;
+									ur->room=rm;
+									ur->owner=user;
+									ur->vis=1;
+									strcpy(ur->name, user->name);
+									strcpy(ur->recap, user->name);
+									strcpy(ur->bw_recap, colour_com_strip(ur->recap));
+									strcpy(ur->desc, clone_desc);
+									}
+								}
+							fgets(line, ARR_SIZE*5-1, fp);
+							}
+						break;
+					case 37: /* malloc */
+						reinit_load_user_malloc(user);
+					break;
+				}
 			}
+		else damaged++;
+		fgets(line, ARR_SIZE*5-1, fp);
+		line[strlen(line)-1]='\0';
 		}
-	else damaged++;
-	fgets(line, ARR_SIZE*5-1, fp);
-	line[strlen(line)-1]='\0';
-	}
-	fclose(fp);
-	return 1;
+		fclose(fp);
+		return 1;
 	} /* stage 1 */
 
-else if (stage==2) {
+	else if (stage==2) {
 		for (pl=plugin_first; pl!=NULL; pl=pl->next)
 			for (ur=user_first; ur!=NULL; ur=ur->next)
 				call_plugin_exec(ur, "", pl, -2);
 		return 1;
 		} /* stage 2 */
-else return 0;
+	else return 0;
 }
 
 
@@ -724,7 +729,7 @@ void reinit_sockets(void)
 {
 	FILE *fp;
 	struct sockaddr_in bind_addr;
-	int i,on,size;
+	int i,on=1,size;
 
 	set_crash();
 	fp=fopen(RESTARTFILE, "r");
@@ -732,7 +737,6 @@ void reinit_sockets(void)
 	fclose(fp);
 
 	printf("reInitialising sockets on ports: %d a %d\n",port[0],port[1]);
-	on=1;
 	size=sizeof(struct sockaddr_in);
 	bind_addr.sin_family=AF_INET;
 	bind_addr.sin_addr.s_addr=INADDR_ANY;
@@ -835,3 +839,4 @@ void restore_structs(void)
 
 
 #endif /* restart.c */
+

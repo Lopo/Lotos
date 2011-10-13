@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                 Funkcie Lotos v1.2.0 suvisiace s transportami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * transport.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __TRANSPORT_C__
 #define __TRANSPORT_C__ 1
@@ -76,11 +80,10 @@ void destruct_transport(TR_OBJECT tr)
 void transport_plane(UR_OBJECT user)
 {
 	RM_OBJECT rm;
-	TR_OBJECT tr;
+	TR_OBJECT tr=user->room->transp;
 	int i;
 
 	set_crash();
-	tr=user->room->transp;
 	if (word_count<2){
 		if (tr==NULL) {
 			write_usage(user,"tplan <name>/all");
@@ -191,11 +194,10 @@ void write_transport(TR_OBJECT tr, char *str)
 void transport(void)
 {
 	UR_OBJECT u;
-	TR_OBJECT tr;
+	TR_OBJECT tr=transport_first;
 	int tmp;
 
 	set_crash();
-	tr=transport_first;
 	for (tr=transport_first; tr!=NULL; tr=tr->next) {
 		tr->time+=amsys->heartbeat;
 		if ((tr->time>=tr->route && tr->go) || (tr->time>=tr->place && !tr->go)) {
@@ -249,3 +251,4 @@ void transport(void)
 }
 
 #endif /* transport.c */
+

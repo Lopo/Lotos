@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                  Funkcie Lotos v1.2.0 pre zoznamy typu who
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * who.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __WHO_C__
 #define __WHO_C__ 1
@@ -71,12 +75,11 @@ void who_nuts333(UR_OBJECT user)
 
 void who_short(UR_OBJECT user)
 {
-	int ret,cnt,invis,logins,hidden;
+	int ret=0,cnt=0,invis=0,logins=0,hidden=0;
 	char line[USER_NAME_LEN+USER_DESC_LEN*2];
 	UR_OBJECT u;
 
 	set_crash();
-	cnt=0; ret=0; invis=0; logins=0; hidden=0;
 	write_user(user,"\n");
 	write_user(user,center_string(80,0,NULL,"~FM-~OL=~FR[ ~RSPeople in the %s %s ~OL~FR]~FM=~RS~FM-",reg_sysinfo[TALKERNAME],long_date(1)));
 	write_user(user,"\n~OL~FM------------------------------------------------------------------------------\n");
@@ -111,7 +114,7 @@ void who_moebyroom(UR_OBJECT user)
 	UR_OBJECT u, cu;
 	RM_OBJECT rm;
 	char txt[ARR_SIZE];
-	int cnt,total,invis,mins,idle,logins,hidden;
+	int cnt,total=0,invis=0,mins,idle,logins=0;
 	char line[USER_NAME_LEN+USER_DESC_LEN*2];
 	char rname[ROOM_NAME_LEN+1],levelname[20];
 	char gender[7];
@@ -120,10 +123,7 @@ void who_moebyroom(UR_OBJECT user)
 	char *msg_sleep=" %s ~RS~FMappears to be sleeping.";
 
 	set_crash();
-	total=0;  invis=0;  logins=0;  hidden=0;
-
 /*** Print Who List Header ***/
-
 	write_user(user,"\n\n");
 	write_user(user,"~FB_.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._\n");
 	strcpy(txt, center_string(66,0,NULL,"People At %s %s",reg_sysinfo[TALKERNAME],long_date(1)));
@@ -198,14 +198,13 @@ void who_hope(UR_OBJECT user)
 {
 	UR_OBJECT u, cu=user;
 
-	int total,invis,mins,idle,logins,hidden;
+	int total=0,invis=0,mins,idle,logins=0;
 	char line[USER_NAME_LEN+USER_DESC_LEN*2];
 	char rname[ROOM_NAME_LEN+1],levelname[20];
 	char gender[7], text2[ARR_SIZE+1];
 	char txt[ARR_SIZE];
 
 	set_crash();
-	total=0;  invis=0;  logins=0;  hidden=0;
 	write_user(user,"\n\n");
 	write_user(user,"~FB_.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._.-._\n");
 	sprintf(text2,"People At %s %s",reg_sysinfo[TALKERNAME],long_date(1));
@@ -269,14 +268,12 @@ void who_hope(UR_OBJECT user)
 void who_stairway(UR_OBJECT user)
 {
 	UR_OBJECT u, cu=user;
-
-int cnt,total,invis,mins,idle,logins,hidden;
-char line[USER_NAME_LEN+USER_DESC_LEN*2];
-char rname[ROOM_NAME_LEN+1],levelname[20];
-char status[6], gender[7];
+	int cnt,total=0,invis=0,mins,idle,logins=0;
+	char line[USER_NAME_LEN+USER_DESC_LEN*2];
+	char rname[ROOM_NAME_LEN+1],levelname[20];
+	char status[6], gender[7];
 
 	set_crash();
-     total=0;  invis=0;  logins=0;  hidden=0;/* Init Vars to 0 */
      write_user(user,"\n");
      sprintf(text,"~FMPeople roaming %s %s",reg_sysinfo[TALKERNAME],long_date(1));
      write_user(user,center_string(75,0,NULL,text));
@@ -334,3 +331,4 @@ char status[6], gender[7];
 }
 
 #endif /* who.c */
+

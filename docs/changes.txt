@@ -1,3 +1,16 @@
+26.12.2001 v1.2.1
+-----------------
+asi uz uplne prejdene z nazvu `OS Star' na `Lotos'
+trochu upraveny Makefile
+doplneny system logovania volanych funkcii
+motd2 vypisovany pomocou showfile() namiesto more()
+opravene bugy:
+ - nemoze user dat inemu prikaz vyssieho levelu nez je sam cez .gcom
+ - min. dlzka pridavaneho swearu je 3 znaky
+ - pri .modify nemoze dat level vyssi nez ma meniaci, nemoze menit ak ma meneny
+    vyssi ako meniaci
+zopar drobnych kozmetickych uprav
+
 23.4.2000 v1.2.0
 ----------------
 pri starte generuje subor BIN/kill - sluzi na nasilne ukoncenie talkra

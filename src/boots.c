@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                    Funkcie pre Lotos v1.2.0 na start systemu
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * boots.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __BOOTS_C__
 #define __BOOTS_C__ 1
@@ -44,10 +48,10 @@
 /*** Construct system object and reset some global variables ***/
 void create_system(void)
 {
-int i;
-struct utsname uts;
+	int i;
+	struct utsname uts;
 
-set_crash();
+	set_crash();
 if ((amsys=(SYS_OBJECT)malloc(sizeof(struct system_struct)))==NULL) {
   fprintf(stderr,"Lotos: Failed to create system object in create_system().\n");
   boot_exit(21);
@@ -200,7 +204,6 @@ RM_OBJECT rm1,rm2;
   NL_OBJECT nl;
 #endif
 
-set_crash();
 section_in=0;
 got_init=0;
 got_rooms=0;
@@ -504,11 +507,12 @@ boot_exit(16);
      ***/
 void process_users(void)
 {
-char name[USER_NAME_LEN+3];
-DIR *dirp;
-struct dirent *dp;
-UR_OBJECT u;
+	char name[USER_NAME_LEN+3];
+	DIR *dirp;
+	struct dirent *dp;
+	UR_OBJECT u;
 
+	set_crash();
 /* open the directory file up */
 dirp=opendir(USERFILES);
 if (dirp==NULL) {
@@ -548,10 +552,10 @@ destruct_user(u);
 /* Put commands in an ordered linked list for viewing with .help */
 void parse_commands(void)
 {
-	int cnt;
+	int cnt=0;
 
-	cnt=0;
-	while(command_table[cnt].name[0]!='*') {
+	set_crash();
+	while (command_table[cnt].name[0]!='*') {
 		if (!(add_command(cnt))) {
 			fprintf(stderr,"Lotos: Memory allocation failure in parse_commands().\n");
 			boot_exit(13);
@@ -567,12 +571,12 @@ void count_suggestions(void)
 {
 	char line[82],id[20];
 	FILE *fp;
-	int valid;
+	int valid=1;
 
+	set_crash();
 	if (!(fp=fopen(SUGBOARD, "r"))) return;
-	valid=1;
 	fgets(line,82,fp);
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		if (line[0]=='\n') valid=1;
 		sscanf(line,"%s",id);
 		if (valid && strstr(id,"From:")) {
@@ -620,6 +624,7 @@ int get_level(char *name)
 {
 	int i;
 
+	set_crash();
 	for (i=0;i<NUM_LEVELS;i++) {
 		if (!strcasecmp(user_level[i].name,name))
 			return i;
@@ -1275,6 +1280,7 @@ void clear_temps(void)
 	DIR *dirp;
 	struct dirent *dp;
 
+	set_crash();
 	printf("Removing temp files ... ");
 	if (!(dirp=opendir(TEMPFILES))) {
 		printf("Nemozem otvorit TEMPFILES adresar\n");
@@ -1295,6 +1301,7 @@ void write_pid(void)
 {
 	FILE *fp;
 
+	set_crash();
 	if ((fp=fopen(PIDFILE, "rb+"))==NULL) return;
 	fprintf(fp, "%d", getpid());
 	fclose(fp);
@@ -1322,5 +1329,5 @@ void create_kill_file(void)
 	system(text);
 }
 
-
 #endif /* boots.c */
+

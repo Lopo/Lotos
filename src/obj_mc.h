@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                     Struktura pre makra v Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * obj_mc.h
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __OBJ_MC_H__
 #define __OBJ_MC_H__ 1
@@ -15,3 +19,4 @@ struct macro_struct {
 typedef struct macro_struct *MC_OBJECT;
 
 #endif /* obj_mc.h */
+

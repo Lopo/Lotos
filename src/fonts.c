@@ -1,10 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                   Funkcie Lotos v1.2.0 pre pracu s fontami
-original: figlets system from CryptV5 
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * fonts.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __FONTS_C__
 #define __FONTS_C__ 1
@@ -39,9 +42,7 @@ char *myalloc(int size)
 		write_room(NULL,"~FR~OLSYSTEM: Malloc failed in figlet().\n");
 		return NULL;
 		}
-
 	return ptr;
-
 }
 
 
@@ -55,11 +56,9 @@ void readfontchar(FILE *file, long theord, char *line, int maxlen)
 {
 	int row,k;
 	char endchar;
-	fcharnode *fclsave;
+	fcharnode *fclsave=fcharlist;
 
 	set_crash();
-	fclsave = fcharlist;
-
 	fcharlist = (fcharnode*)myalloc(sizeof(fcharnode));
 	fcharlist->ord = theord;
 	fcharlist->thechar = (char**)myalloc(sizeof(char*)*charheight);
@@ -172,12 +171,8 @@ void write_text_figlet(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *fig_text
 
 	set_crash();
 	if (strcmp(font,"standard"))
-		sprintf(fig1,"~FRBanner od ~OL%s~RS~FR (%s font): ~RS%s\n",
-			name, font, fig_text
-			);
-	else
-		sprintf(fig1,"~FRBanner od ~OL%s~RS~FR: ~RS%s\n",
-			name, fig_text);
+		sprintf(fig1,"~FRBanner od ~OL%s~RS~FR (%s font): ~RS%s\n", name, font, fig_text);
+	else sprintf(fig1,"~FRBanner od ~OL%s~RS~FR: ~RS%s\n", name, fig_text);
 	sprintf(fig2,"~FRBanner od ~OL%s~RS~FR:\n",name);
 
 	if (rm) {
@@ -331,12 +326,11 @@ void getletter(long c)
 ****************************************************************************/
 int addchar(long c)
 {
-  int smushamount,row;
+  int smushamount=0,row;
   char *templine;
 
 	set_crash();
   getletter(c);
-  smushamount=0;
   if (outlinelen+currcharwidth>outlinelenlimit
       ||inchrlinelen+1>inchrlinelenlimit) {
     return 0;
@@ -369,13 +363,12 @@ int addchar(long c)
 ****************************************************************************/
 void splitline(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm)
 {
-	int i,gotspace,lastspace=0,len1,len2;
+	int i,gotspace=0,lastspace=0,len1,len2;
 	long *part1,*part2;
 
 	set_crash();
 	part1 = (long*)myalloc(sizeof(long)*(inchrlinelen+1));
 	part2 = (long*)myalloc(sizeof(long)*(inchrlinelen+1));
-	gotspace = 0;
 	for (i=inchrlinelen-1;i>=0;i--) {
 		if (!gotspace && inchrline[i]==' ') {
 			gotspace = 1;
@@ -623,3 +616,4 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 }
 
 #endif /* fonts.c */
+

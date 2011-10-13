@@ -1,47 +1,45 @@
-################################################################################
-#               Makefile subor na kompilaciu Lotos po castiach                 #
-#        Copyright (C) 2001 Pavol Hluchy - posledny update: 23.4.2001          #
-#                    lotos@losys.net | http://lotos.losys.net                  #
-################################################################################
-
-VERSION			= 1.2.0
-MAJORVER		= 1
-MINORVER		= 2
-PATCHVER		= 0
+#*
+#*   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+#*   last update   : 26.12.2001
+#*   email         : lopo@losys.sk
+#*   homepage      : lopo.losys.sk
+#*   Lotos homepage: lotos.losys.sk
+#*
 
 #ak sa pouziju netlinky, treba odkomentovat netlinks.o
-USE_NETLINKS		= false
-DEBUG			= true
+USE_NETLINKS		= n
+DEBUG			= n
 
 #umiestnenie vysledneho spustitelneho suboru
 BIN 			= ../bin
 #nazov spustitelneho suboru
-BINARY			= star
+BINARY			= lotos121
 TARGET			= $(BIN)/$(BINARY)
 #adresar so skompilovanymi castami
 OBJECT-DIR		= ../objs
+#hlavny adresar
 MAIN-DIR		= ..
 SRC-DIR			= .
 #programy
 CC      		= gcc
 SED			= sed
 #
-DISTFILE		= lotos_$(MAJORVER)$(MINORVER)$(PATCHVER).tar.gz
 DEPFILE			= .depend
+TAGFILE			= tags
 
-ifeq ($(DEBUG), true)
-	CFLAGS  	= -g -mcpu=i586 -Wall
+ifeq ($(DEBUG),y)
+	CFLAGS  	= -O0 -m486 -Wall
 else
-	CFLAGS		= -O0 -mcpu=i586 -Wall
+	CFLAGS		= -O3 -m486 -Wall
 endif
 HDRS          		=
 #definicie
-ifeq ($(DEBUG), true)
+ifeq ($(DEBUG),y)
 	DEFS		= -DDEBUG
 else
 	DEFS		= 
 endif
-ifeq ($(USE_NETLINKS), true)
+ifeq ($(USE_NETLINKS),y)
 	DEFS		+= -DNETLINKS
 endif
 #kniznice
@@ -51,7 +49,7 @@ LIBS    		= -lcrypt
 #
 #LIBS    		= -lmalloc -lsocket -lnsl
 
-OBJS          = $(OBJECT-DIR)/star.o \
+OBJS          = $(OBJECT-DIR)/main.o \
 		$(OBJECT-DIR)/globals.o \
 		$(OBJECT-DIR)/prompts.o \
 		$(OBJECT-DIR)/plugin.o \
@@ -81,7 +79,8 @@ OBJS          = $(OBJECT-DIR)/star.o \
 		$(OBJECT-DIR)/menus.o \
 		$(OBJECT-DIR)/restart.o \
 		$(OBJECT-DIR)/build.o \
-		$(OBJECT-DIR)/netlinks.o
+#		$(OBJECT-DIR)/netlinks.o
+# predchadzajuci riadok odkomentovat pri pouziti NETLINKS
 
 
 all:   			$(TARGET)
@@ -89,7 +88,7 @@ all:   			$(TARGET)
 
 $(TARGET):		$(OBJS) Makefile
 		$(CC) $(CFLAGS) $(DEFS) $(HDRS) -c build.c -o $(OBJECT-DIR)/build.o
-		$(CC) $(CFLAGS) -o $(TARGET) $(DEFS) $(NETLINKS) $(OBJS) $(LIBS) $(HDRS)
+		$(CC) $(CFLAGS) -o $(TARGET) $(DEFS) $(DMALLOC) $(OBJS) $(LIBS) $(HDRS)
 		@strip $(TARGET)
 		@chmod 700 $(TARGET)
 
@@ -107,7 +106,8 @@ clean:
 		@echo -e "\033[1;31mMazem binarky\033[0m\n"
 		@rm -f $(OBJECT-DIR)/*
 		@rm -f $(TARGET)
-		@rm -f tags
+		@rm -f $(TAGFILE)
+		@echo -e "\033[1mzmazane\033[0m\n"
 
 distclean: clean
 		@echo -e "\033[1;35mMaking distclean\033[0m\n"
@@ -118,6 +118,7 @@ distclean: clean
 		@rm -f $(OBJECT-DIR)/*
 		@rm -f $(MAIN-DIR)/tempfiles/*
 		@rm -f $(SRC-DIR)/$(DEPFILE)
+		@rm -f $(SRC-DIR)/$(TAGFILE)
 
 reall:
 		@echo "kompilujem vsetko od zaciatku\n"
@@ -127,55 +128,27 @@ reall:
 		@make all
 
 ctags:
-		@echo -e "\033[1mMaking tags file\033[0m (useful for vim)\033[0m\n"
-		@ctags --sort=yes --lang=c *.[h,c] ./plugins/*.[h,c]
+		@echo -e "\033[1mMaking tags file\033[0m (useful for vim)\033[0m"
+		@ctags --sort=yes --language-force=c *.[h,c] ./plugins/*.[h,c]
 		@echo -e "Done ...\n"
 
+final:
+		@make reall
+		@rm -vf $(OBJECT-DIR)/*
+
 dep:
-		@make $(DEPFILE)
+		@rm -f $(DEPFILE)
+		make $(DEPFILE)
 
 dist:
 		@echo -e "\033[1;32mMaking distribution\033[0m\n"
 		@make distclean
 		@( cd ../.. ;\
 			echo -e "\033[1;37mcompressing\n\033[0m\n" ;\
-			tar zcfp $(DISTFILE) lotos120 ;\
+			tar zcfp $(DISTFILE) lotos121 ;\
 			chmod 600 $(DISTFILE) ;\
 			ls -la $(DISTFILE))
 
-
 ###
 include $(DEPFILE)
-#Old style dependencies if the automatic ones don't work for you.
-#$(OBJECT-DIR)/star.o: star.c star.h
-#$(OBJECT-DIR)/globals.o: globals.c commands.h
-#$(OBJECT-DIR)/prompts.o: prompts.c
-#$(OBJECT-DIR)/plugin.o: plugin.c plugin.h ./plugins/*
-#$(OBJECT-DIR)/adds.o: adds.c adds.h
-#$(OBJECT-DIR)/boots.o: boots.c boots.h
-#$(OBJECT-DIR)/ct_general.o: ct_general.c ct_general.h
-#$(OBJECT-DIR)/ct_social.o: ct_social.c ct_social.h
-#$(OBJECT-DIR)/ct_msg.o: ct_msg.c ct_msg.h
-#$(OBJECT-DIR)/ct_user.o: ct_user.c ct_user.h
-#$(OBJECT-DIR)/ct_ignore.o: ct_ignore.c ct_ignore.h
-#$(OBJECT-DIR)/ct_move.o: ct_move.c ct_move.h
-#$(OBJECT-DIR)/ct_clone.o: ct_clone.c ct_clone.h
-#$(OBJECT-DIR)/ct_admin.o: ct_admin.c ct_admin.h
-#$(OBJECT-DIR)/mail.o: mail.c mail.h
-#$(OBJECT-DIR)/email.o: email.c email.h
-#$(OBJECT-DIR)/boards.o: boards.c boards.h
-#$(OBJECT-DIR)/transport.o: transport.c transport.h
-#$(OBJECT-DIR)/macros.o: macros.c macros.h
-#$(OBJECT-DIR)/pueblo.o: pueblo.c pueblo.h music.h
-#$(OBJECT-DIR)/fonts.o: fonts.c fonts.h
-#$(OBJECT-DIR)/poc_zoz.o: poc_zoz.c poc_zoz.h
-#$(OBJECT-DIR)/who.o: who.c who.h
-#$(OBJECT-DIR)/s_string.o: s_string.c s_string.h
-#$(OBJECT-DIR)/s_events.o: s_events.c s_events.h
-#$(OBJECT-DIR)/s_net.o: s_net.c s_net.h
-#$(OBJECT-DIR)/money.o: money.c money.h
-#$(OBJECT-DIR)/menus.o: menus.c menus.h
-#$(OBJECT-DIR)/restart.o: restart.c restart.h
-#$(OBJECT-DIR)/build.o: build.c build.h
-#$(OBJECT-DIR)/netlinks.o: netlinks.c netlinks.h
 

@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                   Funkcie pre Lotos v1.2.0 pre pracu s menu
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * menus.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __MENUS_C__
 #define __MENUS_C__ 1
@@ -49,8 +53,6 @@ int setops(UR_OBJECT user, char *inpstr)
 		default: return 0;
 		}
 }
-
-
 
 // SET
 void show_attributes(UR_OBJECT user)
@@ -156,7 +158,6 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 		no_prompt=1;
 		return;
 		}
-	i=0;
 	strtolower(word[1]);
 	while (set_tab[i].type[0]!='*') {
 		if (!strcmp(set_tab[i].type,word[1])) {
@@ -477,14 +478,13 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 int setmain_ops(UR_OBJECT user, char *inpstr)
 {
 	char temp[ARR_SIZE], *name;
-	int which, val, hlp;
+	int which, val=0, hlp;
 
 	set_crash();
 	if (user->set_mode!=SET_MAIN) return 0;
 	if (!user->vis) name=invisname;
 	else name=user->recap;
 	temp[0]='\0';
-	val=0;
 	if (inpstr[0]=='0') {
 		hlp=-1;
 		val=1;
@@ -1213,14 +1213,13 @@ void set_terminal(UR_OBJECT user, char *inpstr)
 int setops_term(UR_OBJECT user, char *inpstr)
 {
 	char *name, temp[ARR_SIZE];
-	int val, hlp;
+	int val=0, hlp;
 
 	set_crash();
 	if (user->set_mode!=SET_TERM) return 0;
 	if (!user->vis) name=invisname;
 	else name=user->recap;
 	temp[0]='\0';
-	val=0;
 	if (inpstr[0]=='0') {
 		hlp=-1;
 		val=1;
@@ -1523,14 +1522,13 @@ int setops_bank(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	char *name, temp[ARR_SIZE];
-	int val, hlp, dep, on;
+	int val=0, hlp, dep, on;
 
 	set_crash();
 	if (user->set_mode!=SET_BANK) return 0;
 	if (!user->vis) name=invisname;
 	else name=user->recap;
 	temp[0]='\0';
-	val=0;
 	if (inpstr[0]=='0') {
 		hlp=-1;
 		val=1;
@@ -1732,3 +1730,4 @@ int setops_bank(UR_OBJECT user, char *inpstr)
 
 
 #endif /* menus.c */
+

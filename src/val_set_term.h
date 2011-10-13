@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                Hodnoty poloziek pre prikaz `term' Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * val_set_term.h
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __VAL_SET_TERM_H__
 #define __VAL_SET_TERM_H__ 1
@@ -15,3 +19,4 @@ enum setterm_tabval {
 	} setterm_tab_val;
 
 #endif /* val_set_term.h */
+

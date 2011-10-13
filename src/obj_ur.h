@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                     Struktura usera pre Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * obj_ur.h
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __OBJ_UR_H__
 #define __OBJ_UR_H__ 1
@@ -44,7 +48,7 @@ typedef struct user_terminal_struct {
 struct user_struct {
   char name[USER_NAME_LEN+1],desc[USER_DESC_LEN+1],pass[PASS_LEN+6];
   char in_phrase[PHRASE_LEN+1],out_phrase[PHRASE_LEN+1];
-  char buff[BUFSIZE],site[81],ipsite[81],last_site[81],page_file[81];
+  char buff[BUFSIZE],site[81],ipsite[81],last_site[81],page_file[500];
   char mail_to[WORD_LEN+1],revbuff[REVTELL_LINES][REVIEW_LEN+2];
   char afk_mesg[AFK_MESG_LEN+1],inpstr_old[REVIEW_LEN+1];
   char logout_room[ROOM_NAME_LEN+1],version[10];
@@ -57,12 +61,13 @@ struct user_struct {
   int type,login,attempts,vis,prompt,command_mode,muzzled;
   int gender,hideemail,edit_line,warned,accreq,real_level;
   int afk,clone_hear,unarrest,arrestby,expire,lroom,monitor;
-  int show_rdesc,alert,mail_verified,autofwd,editing,show_pass,pagecnt,pages[MAX_PAGES];
+  int show_rdesc,alert,mail_verified,autofwd,editing,show_pass,pages[MAX_PAGES];
   int samesite_all_store;
-  int port,site_port,socket,buffpos,filepos,remote_com,charcnt,misc_op,last_login_len;
+  int port,site_port,socket,buffpos,remote_com,charcnt,misc_op,last_login_len;
   int edit_op,revline,level,wipe_from,wipe_to,logons,cmd_type,user_page_pos,user_page_lev;
   int age,misses,hits,kills,deaths,bullets,hps,afkline,editline;
   int lmail_lev,hwrap_lev,hwrap_id,hwrap_same,hwrap_func,gcoms[MAX_GCOMS],xcoms[MAX_XCOMS];
+  long int filepos, pagecnt;
   struct room_struct *room,*invite_room,*wrap_room;
   struct user_struct *prev,*next,*owner;
   struct {

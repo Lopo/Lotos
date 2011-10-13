@@ -1,12 +1,12 @@
-L o t o s   v1.2.0
+L o t o s   v1.2.1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Informacie o chybach
 --------------------
 V tomto dokumente su spisane vsetky chyby o ktorych vyskyte viem.
 
-Obcas mi to z nevysvetlitelnych pricin pada. Stale nemozem zistit preco. :(
+(-: Momentalne nie su zname ziadne chyby. :-)
 
 Takze prosim kazdeho, kto pouzije Lotos, nech sa ozve
-na lotos@losys.net s oznamenim, ci sa chyba prejavuje a na akom systeme Lotos
+na lopo@losys.sk s oznamenim, ci sa chyba prejavuje a na akom systeme Lotos
 skusal. Samozrejme nech tam napise kazdy, kto si mysli, ze vie ako tu chybu
 odstranit, pripadne ak nasiel dalsiu chybu.

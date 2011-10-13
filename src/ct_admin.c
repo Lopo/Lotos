@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                  Funkcie pre Lotos v1.2.0 na administratorov
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_admin.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_ADMIN_C__
 #define __CT_ADMIN_C__ 1
@@ -199,12 +203,11 @@ void kill_user(UR_OBJECT user, char *inpstr)
 /*** Promote a user ***/
 void promote(UR_OBJECT user, char *inpstr)
 {
-UR_OBJECT u;
-char text2[180],*name, *msg=NULL, *tmp;
-int level;
+	UR_OBJECT u;
+	char text2[180],*name, *msg=NULL, *tmp;
+	int level=-1;
 
 	set_crash();
-level=-1;
 if (word_count<2) {
   write_usage(user,"%s <user> [<level>][<dovod>]", command_table[PROMOTE].name);
   return;
@@ -383,10 +386,9 @@ void demote(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	char text2[180],*name, *msg=NULL, *tmp;
-	int level;
+	int level=-1;
 
 	set_crash();
-	level=-1;
 	if (word_count<2) {
 		write_usage(user,"%s <user> [<level>]", command_table[DEMOTE].name);
 		return;
@@ -545,7 +547,7 @@ destructed=0;
 /*** List banned sites or users ***/
 void listbans(UR_OBJECT user)
 {
-int i;
+	int i;
 
 	set_crash();
 strtolower(word[1]);
@@ -697,7 +699,7 @@ destructed=0;
 /*** Umuzzle the bastard now he's apologised and grovelled enough via email ***/
 void unmuzzle(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if ((u=get_user(word[1]))!=NULL) {
@@ -769,7 +771,7 @@ destructed=0;
      cannot remove a muzzle set by a god.  ***/
 void muzzle(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -853,8 +855,8 @@ destructed=0;
 /*** Turn on and off each individual system log, or globally on/off ***/
 void logging(UR_OBJECT user)
 {
-char temp[ARR_SIZE];
-int cnt;
+	char temp[ARR_SIZE];
+	int cnt;
 
 	set_crash();
 if (word_count<2) {
@@ -1023,10 +1025,10 @@ if (!strcmp(word[1],"-off")) {
 /*** Set minlogin level ***/
 void minlogin(UR_OBJECT user)
 {
-UR_OBJECT u,next;
-char *usage="minlogin NONE/<user level>";
-char levstr[5],*name;
-int lev,cnt;
+	UR_OBJECT u,next;
+	char *usage="minlogin NONE/<user level>";
+	char levstr[5],*name;
+	int lev,cnt;
 
 	set_crash();
 if (word_count<2) {
@@ -1076,23 +1078,23 @@ destructed=0;
 void system_details(UR_OBJECT user)
 {
 #ifdef NETLINKS
-  NL_OBJECT nl;
+	NL_OBJECT nl;
 #endif
-RM_OBJECT rm;
-UR_OBJECT u;
-PL_OBJECT plugin;
-CM_OBJECT plcmd;
-char bstr[40],min_login[5];
-char *ca[]={ "NONE  ","IGNORE","REBOOT" };
-char *rip[]={"OFF","AUTO","MANUAL"};
-int days,hours,mins,secs;
-int netlinks,live,inc,outg;
-int rms,inlinks,num_clones,mem,size;
-
+	RM_OBJECT rm;
+	UR_OBJECT u;
+	PL_OBJECT plugin;
+	CM_OBJECT plcmd;
+	char bstr[40],min_login[5];
+	char *ca[]={ "NONE  ","IGNORE","REBOOT" };
+	char *rip[]={"OFF","AUTO","MANUAL"};
+	int days,hours,mins,secs;
+	int netlinks,live,inc,outg;
+	int rms,inlinks,num_clones,mem,size;
+	
 	set_crash();
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-vwrite_user(user,"~OL~FTSystem details for %s~RS v%s (Lotos version %s)\n", reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
-write_user(user,"+----------------------------------------------------------------------------+\n");
+	write_user(user,"\n+----------------------------------------------------------------------------+\n");
+	vwrite_user(user,"~OL~FTSystem details for %s~RS v%s (Lotos version %s)\n", reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
+	write_user(user,"+----------------------------------------------------------------------------+\n");
 
 /* Get some values */
 strcpy(bstr,ctime(&amsys->boot_time));
@@ -1184,8 +1186,8 @@ write_user(user,"+--------------------------------------------------------------
 /*** Free a hung socket ***/
 void clearline(UR_OBJECT user)
 {
-UR_OBJECT u;
-int sock;
+	UR_OBJECT u;
+	int sock;
 
 	set_crash();
 if (word_count<2 || !is_number(word[1])) {
@@ -1452,9 +1454,9 @@ switch(amsys->ban_swearing) {
 /*** Delete a user ***/
 void delete_user(UR_OBJECT user, int this_user)
 {
-UR_OBJECT u;
-char name[USER_NAME_LEN+1];
-int level;
+	UR_OBJECT u;
+	char name[USER_NAME_LEN+1];
+	int level;
 
 	set_crash();
 if (this_user) {
@@ -1571,7 +1573,7 @@ no_prompt=1;
 /* allows the user to call the purge function */
 void purge_users(UR_OBJECT user)
 {
-int exp=0;
+	int exp=0;
 
 	set_crash();
 if (word_count<2) {
@@ -1638,7 +1640,7 @@ vwrite_user(user,"Checked ~OL%d~RS user%s (~OL%d~RS skipped), ~OL%d~RS %s purged
 /* shows the history file of a given user */
 void user_history(UR_OBJECT user)
 {
-char filename[500];
+	char filename[500];
 
 	set_crash();
 if (word_count<2) {
@@ -1662,7 +1664,7 @@ switch(more(user,user->socket,filename)) {
 /* Set a user to either expire after a set time, or never expire */
 void user_expires(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -1719,8 +1721,8 @@ save_user_details(u,0); destruct_user(u); destructed=0; return;
 /* Unarrest a user who is currently under arrest/in jail */
 void unarrest(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
+	UR_OBJECT u;
+	RM_OBJECT rm;
 
 	set_crash();
 word[1][0]=toupper(word[1][0]);
@@ -1801,30 +1803,30 @@ destructed=0;
 /* Put annoying user in jail */
 void arrest(UR_OBJECT user, int type)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
+	UR_OBJECT u;
+	RM_OBJECT rm;
+
+	if (type) {
+		user->unarrest=ARCH;
+		user->arrestby=GOD;
+		--amsys->level_count[user->level];
+		user->level=JAILED;
+		user_list_level(user->name, user->level);
+		strcpy(user->date, (long_date(1)));
+		++amsys->level_count[user->level];
+		rm=get_room(default_jail);
+		write_room(NULL,"The Hand of Justice reaches through the air...\n");
+		vwrite_user(user,"Bol%s si uvrhnut%s do vazenia.\n", grm_gnd(4, user->gender), grm_gnd(1, user->gender));
+		if (rm!=NULL) move_user(user, rm, 2);
+		vwrite_room_except(NULL, user, "%s~RS has been placed under arrest...\n",user->recap);
+		write_syslog(SYSLOG,1,"Bank ARRESTED %s (at level %s)\n", user->name, user_level[user->arrestby].name);
+		sprintf(text,"Was ~FRarrested~RS by Bank (at level ~OL%s~RS).\n", user_level[user->arrestby].name);
+		add_history(user->name,1,text);
+		save_user_details(user, 1);
+		return;
+		}
 
 	set_crash();
-if (type) {
-	user->unarrest=ARCH;
-	user->arrestby=GOD;
-	--amsys->level_count[user->level];
-	user->level=JAILED;
-	user_list_level(user->name, user->level);
-	strcpy(user->date, (long_date(1)));
-	++amsys->level_count[user->level];
-	rm=get_room(default_jail);
-	write_room(NULL,"The Hand of Justice reaches through the air...\n");
-	vwrite_user(user,"Bol%s si uvrhnut%s do vazenia.\n", grm_gnd(4, user->gender), grm_gnd(1, user->gender));
-	if (rm!=NULL) move_user(user, rm, 2);
-	vwrite_room_except(NULL, user, "%s~RS has been placed under arrest...\n",user->recap);
-	write_syslog(SYSLOG,1,"Bank ARRESTED %s (at level %s)\n", user->name, user_level[user->arrestby].name);
-	sprintf(text,"Was ~FRarrested~RS by Bank (at level ~OL%s~RS).\n", user_level[user->arrestby].name);
-	add_history(user->name,1,text);
-	save_user_details(user, 1);
-	return;
-	}
-
 if (word_count<2) {
   write_usage(user,"%s <user> [-cancel]", command_table[ARREST].name);
   return;
@@ -1940,12 +1942,11 @@ vwrite_user(user,"You have added to %s's history list.\n",word[1]);
 /* Display all the people logged on from the same site as user */
 void samesite(UR_OBJECT user, int stage)
 {
-UR_OBJECT u,u_loop;
-int found,cnt,same,on;
-struct user_dir_struct *entry;
+	UR_OBJECT u,u_loop;
+	int found,cnt,same,on=0;
+	struct user_dir_struct *entry;
 
 	set_crash();
-on=0;
 if (!stage) {
   if (word_count<2) {
     write_usage(user,"%s user/site [all]", command_table[SAMESITE].name);
@@ -2124,10 +2125,9 @@ if (stage==2) {
 void force_save(UR_OBJECT user)
 {
 	UR_OBJECT u;
-	int cnt;
+	int cnt=0;
 
 	set_crash();
-	cnt=0;
 	for (u=user_first; u!=NULL; u=u->next) {
 #ifdef NETLINKS
 		if (u->type==REMOTE_TYPE) continue;
@@ -2147,7 +2147,7 @@ void force_save(UR_OBJECT user)
 /* Allow a user to move between rooms again */
 void unshackle(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if (!(u=get_user_name(user,word[1]))) {
@@ -2220,7 +2220,7 @@ write_syslog(SYSLOG,1,"%s SHACKLED %s to the room: %s\n",user->name,u->name,u->r
 /*** Unretire a user - ie, put them back on show on the wizlist ***/
 void unretire_user(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 word[1][0]=toupper(word[1][0]);
@@ -2278,7 +2278,7 @@ destructed=0;
 /*** retire a member of the law - ie, remove from the wizlist but don't alter level ***/
 void retire_user(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -2344,25 +2344,25 @@ destructed=0;
 /**** Show the amount of memory that the objects are currently taking up ***/
 void show_memory(UR_OBJECT user)
 {
-int ssize,usize,rsize,nsize,dsize,csize,lsize,wsize,plsize,tcmsize,total,i;
-int tusize,trsize,tnsize,tdsize,tcsize,tlsize,twsize,tplsize,cmsize;
-int sppsize;
-float mb;
-UR_OBJECT u;
-RM_OBJECT r;
+	int ssize=0,usize=0,rsize=0,dsize=0,csize=0,lsize=0,wsize=0,plsize=0,tcmsize=0,total,i;
 #ifdef NETLINKS
-  NL_OBJECT n;
+	int nsize=0;
 #endif
-PL_OBJECT pl;
-CM_OBJECT cm;
-struct command_struct *c;
-struct user_dir_struct *d;
-struct wiz_list_struct *w;
+	int tusize=0,trsize=0,tnsize=0,tdsize=0,tcsize=0,tlsize=0,twsize=0,tplsize=0,cmsize=0;
+	int sppsize=0;
+	float mb;
+	UR_OBJECT u;
+	RM_OBJECT r;
+#ifdef NETLINKS
+	NL_OBJECT n;
+#endif
+	PL_OBJECT pl;
+	CM_OBJECT cm;
+	struct command_struct *c;
+	struct user_dir_struct *d;
+	struct wiz_list_struct *w;
 
 	set_crash();
-ssize=usize=rsize=nsize=dsize=csize=lsize=wsize=plsize=cmsize=0;
-tusize=trsize=tnsize=tdsize=tcsize=tlsize=twsize=tplsize=tcmsize=0;
-sppsize=0;
 
 ssize=sizeof(struct system_struct);
 sppsize=sizeof(struct syspp_struct);
@@ -2416,12 +2416,11 @@ write_user(user,"+--------------------------------------------------------------
      ***/
 void show_command_counts(UR_OBJECT user)
 {
-struct command_struct *cmd;
-int total_hits,total_cmds,cmds_used,i,x;
-char text2[ARR_SIZE];
+	struct command_struct *cmd;
+	int total_hits=0,total_cmds=0,cmds_used=0,i=0,x=0;
+	char text2[ARR_SIZE];
 
 	set_crash();
-x=i=total_hits=total_cmds=cmds_used=0;
 text2[0]='\0';
 /* get totals of commands and hits */
 for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
@@ -2482,13 +2481,13 @@ write_user(user,"+--------------------------------------------------------------
 /*** read all the user files to check if a user exists ***/
 void recount_users(UR_OBJECT user, int ok)
 {
-int level,incorrect,correct,inlist,notin,added,removed;
-char name[USER_NAME_LEN+3],filename[500];
-DIR *dirp;
-struct dirent *dp;
-struct user_dir_struct *entry;
-FILE *fp;
-UR_OBJECT u;
+	int level,incorrect,correct,inlist,notin,added,removed;
+	char name[USER_NAME_LEN+3],filename[500];
+	DIR *dirp;
+	struct dirent *dp;
+	struct user_dir_struct *entry;
+	FILE *fp;
+	UR_OBJECT u;
 
 	set_crash();
 if (!ok) {
@@ -2595,15 +2594,14 @@ user->misc_op=0;
 /*** Allows a user to alter the minimum level which can use the command given ***/
 void set_command_level(UR_OBJECT user)
 {
-struct command_struct *cmd;
-int new_lev,found;
+	struct command_struct *cmd;
+	int new_lev,found=0;
 
 	set_crash();
 if (word_count<3) {
   write_usage(user,"%s <prikaz> <level>/norm", command_table[SETCMDLEV].name);
   return;
   }
-found=0;
 /* levels and 'norm' are checked in upper case */
 strtoupper(word[2]);
 if (!strcmp(word[2],"NORM")) {
@@ -2665,9 +2663,9 @@ else vwrite_user(user,"The command '~OL%s~RS' could not be found.\n",word[1]);
 /*** stop a user from using a certain command ***/
 void user_xcom(UR_OBJECT user)
 {
-int i,x,cmd_id;
-struct command_struct *cmd;
-UR_OBJECT u;
+	int i,x,cmd_id;
+	struct command_struct *cmd;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -2721,6 +2719,10 @@ if (cmd_id==-1) {
   write_user(user,"That command does not exist.\n");
   return;
   }
+	if (command_table[cmd_id].level>user->level) {
+		write_user(user, "Nemozes spristupnit tento prikaz !\n");
+		return;
+		}
 /* check to see is the user has previously been given the command */
 if (has_gcom(u,cmd_id)) {
   write_user(user,"You cannot ban a command that a user has been specifically given.\n");
@@ -2752,9 +2754,9 @@ if (set_xgcom(user,u,cmd_id,1,1)) {
 /*** stop a user from using a certain command ***/
 void user_gcom(UR_OBJECT user)
 {
-int i,x,cmd_id;
-struct command_struct *cmd;
-UR_OBJECT u;
+	int i,x,cmd_id;
+	struct command_struct *cmd;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -2841,10 +2843,10 @@ if (set_xgcom(user,u,cmd_id,0,1)) {
      ***/
 void reload_room_description(UR_OBJECT user, int w)
 {
-int i,error;
-RM_OBJECT rm;
-char c,filename[500],pat[4];
-FILE *fp;
+	int i,error;
+	RM_OBJECT rm;
+	char c,filename[500],pat[4];
+	FILE *fp;
 
 	set_crash();
 /* if reload all of the rooms */
@@ -2947,7 +2949,7 @@ if (u->afk) {
 	return;
 	}
 inpstr=remove_first(inpstr);
-write_syslog(SYSLOG,0,"%s FORCED %s to: '%s'\n",user->name,u->name,inpstr);
+write_syslog(SYSLOG,1,"%s FORCED %s to: '%s'\n",user->name,u->name,inpstr);
 
 /* shift words down to pass to exec_com */
 for (w=2;w<word_count;++w) strcpy(word[w-2],word[w]);
@@ -2966,7 +2968,7 @@ prompt(u);
 void personal_room_admin(UR_OBJECT user) {
 RM_OBJECT rm;
 int rsize,trsize,rmcnt,locked,unlocked,pcnt;
-char usrname[USER_NAME_LEN+1],filename[100];
+char usrname[USER_NAME_LEN+1],filename[500];
 
 if (word_count<2) {
   write_usage(user,"%s -l / -m / -u <name> / -d <name>", command_table[RMADMIN].name);
@@ -3115,7 +3117,7 @@ if (!strcmp("-r",word[1])) {
   sprintf(filename,"%s/%s.dump", DUMPFILES,user_level[lev].name);
   if (!(fp=fopen(filename,"w"))) {
     write_user(user,"There was an error trying to open the file to dump to.\n");
-    write_syslog(SYSLOG,0,"Unable to open dump file %s in dump_to_file().\n",filename);
+    write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
   cnt=0;
@@ -3140,7 +3142,7 @@ if (!strcmp("-u",word[1])) {
   sprintf(filename,"%s/users.dump", DUMPFILES);
   if (!(fp=fopen(filename,"w"))) {
     write_user(user,"There was an error trying to open the file to dump to.\n");
-    write_syslog(SYSLOG,0,"Unable to open dump file %s in dump_to_file().\n",filename);
+    write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
   cnt=0;
@@ -3164,7 +3166,7 @@ if (!strcmp("-c",word[1])) {
   sprintf(filename,"%s/cmds.dump", DUMPFILES);
   if (!(fp=fopen(filename,"w"))) {
     write_user(user,"There was an error trying to open the file to dump to.\n");
-    write_syslog(SYSLOG,0,"Unable to open dump file %s in dump_to_file().\n",filename);
+    write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
   fprintf(fp,"------------------------------------------------------------------------------\n");
@@ -3181,7 +3183,7 @@ if (!strcmp("-m",word[1])) {
   sprintf(filename,"%s/memory.dump", DUMPFILES);
   if (!(fp=fopen(filename,"w"))) {
     write_user(user,"There was an error trying to open the file to dump to.\n");
-    write_syslog(SYSLOG,0,"Unable to open dump file %s in dump_to_file().\n",filename);
+    write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
   ssize=sizeof(struct system_struct);
@@ -3237,7 +3239,7 @@ if (!strcmp("-s",word[1])) {
   sprintf(filename,"%s/system.dump", DUMPFILES);
   if (!(fp=fopen(filename,"w"))) {
     write_user(user,"There was an error trying to open the file to dump to.\n");
-    write_syslog(SYSLOG,0,"Unable to open dump file %s in dump_to_file().\n",filename);
+    write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
   strcpy(bstr,ctime(&amsys->boot_time));
@@ -3284,8 +3286,8 @@ return;
 /*** do a promotion of a user that lasts only for the current session ***/
 void temporary_promote(UR_OBJECT user)
 {
-UR_OBJECT u;
-int lev;
+	UR_OBJECT u;
+	int lev;
 
 	set_crash();
  if (word_count<2) {
@@ -3336,11 +3338,11 @@ int lev;
 /*** Change a user's name from their existing one to whatever ***/
 void change_user_name(UR_OBJECT user)
 {
-UR_OBJECT u,usr;
-char *name,oldname[ARR_SIZE],newname[ARR_SIZE],oldfile[500],newfile[500];
-int i,on=0;
-struct wiz_list_struct *wiz;
-struct user_dir_struct *uds;
+	UR_OBJECT u,usr;
+	char *name,oldname[ARR_SIZE],newname[ARR_SIZE],oldfile[500],newfile[500];
+	int i,on=0;
+	struct wiz_list_struct *wiz;
+	struct user_dir_struct *uds;
 
 	set_crash();
 if (word_count<3) {
@@ -3719,13 +3721,13 @@ void swear_com(UR_OBJECT user)
 		return;
 		}
 	/* list swear words */
-	if(word[1][0]=='?' || !strcmp(word[1],"list")) {
+	if (word[1][0]=='?' || !strcmp(word[1],"list")) {
 		i=0;
-		while(swear_words[i][0]!='*') {
+		while (swear_words[i][0]!='*') {
 			if(!i) write_user(user,"\n~BB--->>> Swearing ban list <<<---\n\n");
 			vwrite_user(user, "\t'%s~RS'\n",swear_words[i++]);
 			}
-		if(!i) write_user(user, ">>>No swear words found.\n");
+		if (!i) write_user(user, ">>>No swear words found.\n");
 		else vwrite_user(user, ">>>Total of ~FT%d~RS swear words found.\n",i);
 		return;
 		}        
@@ -3771,6 +3773,12 @@ void swear_com(UR_OBJECT user)
 				vwrite_user(user, ">>>%s: Unable to append file.\n",syserror);
 				write_syslog(ERRLOG, 1, "Unable to append swearfile in swears().\n");
 				amsys->ban_swearing=sw_save;
+				return;
+				}
+			if (strlen(word[2])<3) {
+				write_user(user, "minimalna dlzka slova su 3 znaky !!!\n");
+				amsys->ban_swearing=sw_save;
+				fclose(fp);
 				return;
 				}
 			fprintf(fp,"%s\n",word[2]);
@@ -3959,6 +3967,12 @@ void modify(UR_OBJECT user, char *inpstr)
 			return;
 			}
 		free(tmp);
+		if (level>user->level || u->level>=user->level) {
+			write_user(user, "Nemozes zmenit level !!!\n");
+			destruct_user(u);
+			destructed=0;
+			return;
+			}
 		u->real_level=u->level=level;
 		vwrite_user(user, ">>> Menis %s level ...\n",u->named);
 		sprintf(text, "~OLSYSTEM:~RS %s changed %s's level: %s.\n",
@@ -4443,3 +4457,4 @@ void identify(UR_OBJECT user)
 
 
 #endif /* ct_admin.c */
+

@@ -1,4 +1,4 @@
-L o t o s   verzia 1.2.0
+L o t o s   verzia 1.2.1
 ==============================================================================
                  Instalacia, nastavenie, pouzivatelsky manual
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,7 +38,8 @@ POZN.: Pozri samostatne specializovane manualy
        Lotos je zalozeny na kode AmNUTS 2.2.1 od Andrew Collingtona
       chraneneho autorskym pravom. Okrem kodu AmNUTS 2.2.1 su v Lotos-e pouzite
       casti kodov z inych modifikacii NUTS-u.
-      Tu je ich zoznam s popisom co z nich bolo pouzite:
+      Tu je ich zoznam s popisom co z nich bolo pouzite (verzie su tie z
+      ktorych som zacinal, odvtedy uz mam vacsinu aj novsie):
        1. TalkerOS 4.03
         - system plugin modulov
         - tento vzhlad manualu
@@ -54,10 +55,10 @@ POZN.: Pozri samostatne specializovane manualy
         - fonty a praca s nimi
        6. nejake doplnky z roznych slovenskych talkrov
        	- Star AMD talker
-        - NooK
        	- Hysteria - pocitadla
        	- M.A.R.S talker - restart (reinicializacia)
         - Kesican - system transportov
+        - NooK
       Takze si vazte to co mate teraz k dispozicii, pretoze ma to stalo velmi
       vela casu a nervov. Je to silny, modularny, lahko rozsiritelny a lahko
       pouzitelny system. Takze si prestudujte najprv vsetku dokumentaciu a hura
@@ -87,8 +88,8 @@ POZN.: Pozri samostatne specializovane manualy
       sa na to cele vy... (dopln podla uvazenia :). Do vianoc 1999 som toho moc
       neurobil, v podstate som len podrobnejsie pozeral zdrojove kody
       jednotlivych talkrov a vyberal si co vsetko pouzijem v mojom systeme.
-      Odvtedy stale nieco pridavam, prerabam, opravujem, vylepsujem a pod.
-      V pravidelne nepravidelnych ;) intervaloch uverejnujem novu verziu.
+      Ale potom to uz islo celkom rychlo, a tak davam na web nove verzie
+      tak rychlo ako sa da.
 
    ---------------------------------------------
    O d s t a v e c   A - nastavenie a instalacia
@@ -102,15 +103,15 @@ POZN.: Pozri samostatne specializovane manualy
         a pripadne aj GZIP. Obidva by mali byt standardne dostupne na kazdom
         UN*X konte. Takze najprv sa treba prihlasit na svoje konto.
         Potom nasledujte tieto kroky:
-        `cd ~' - prepne do vasho domovskeho adresara
-        `cp <stary_adresar>/lotos120.tar.gz .' skopiruje balik do domovskeho
+        `cd ~´ - prepne do vasho domovskeho adresara
+        `cp <stary_adresar>/lotos120.tar.gz .´ skopiruje balik do domovskeho
         adresara ak uz je balik stiahnuty z internetu. Ak nie je, tak ho
         treba najprv stiahnut z Lotos domovskej web stranky do vasho 
         domovskeho adresara.
-        `gzip -d lotos120.tar.gz' rozbali subor a premenuje ho na lotos120.tar
-        `tar -xvf lotos120.tar' rozbali subor na jednotlive subory a adresare
+        `gzip -d lotos120.tar.gz´ rozbali subor a premenuje ho na lotos120.tar
+        `tar -xvf lotos120.tar´ rozbali subor na jednotlive subory a adresare
         v jednom adresari lotos120. Ak chcete iny nazov adresara, treba pouzit
-        prikaz `mv ./lotos120 ./<novy_nazov>'. Po tomto je uz Lotos kompletne
+        prikaz `mv ./lotos120 ./<novy_nazov>´. Po tomto je uz Lotos kompletne
         naistalovany.
 
     2. SYSTEM SUBOROV
@@ -118,34 +119,34 @@ POZN.: Pozri samostatne specializovane manualy
          Adresar s Lotos-om obsahuje dalsie podadresare. V nich sa nachadzuju
         subory triedene podla ich urcenia. Ich zoznam s urcenim:
         BACKUPS - zalohy systemu vytvorene rucne zo systemu
-        BIN - (len) spustaci subor systemu
-        DATAFILES - rozne datove subory vacsinu potrebne na beh systemu
+        BIN - spustaci subor systemu
+        DATAFILES - rozne subory potrebne na beh systemu
         DOCS - dokumentacia k systemu
         DUMPFILES - rozne obrazy systemu vytvorene pocas behu
         LOGFILES - log subory
         OBJS - objektove subory jednotlivych casti vytvorene pri kompilacii
         SRC - zdrojove kody systemu
-        TEMPFILES - docasne subory vytvorene za behu systemu
+        TEMPFILES - docasne subory vytvorene systemom
         USERFILES - subory s nastaveniami jednotlivych userov
 
          Adresar DATAFILES sa dalej deli nasledovne:
         CONFFILES - konfiguracne subory
-        COUNTERS - pocitadla userov
+        COUNTERS - pocitadla
         FONTS - fonty pre bannery
         HELPFILES - subory s napovedou k jednotlivym prikazom
         KILLMSGS - subory s kill hlaskami
-        MAILSPOOL - pouziva sa pri posielani posty
+        MAILSPOOL - pouziva posta
         MAPFILES - mapy
-        MISCFILES - rozne doplnkove dokumenty, zoznamy a obrazky
+        MISCFILES - rozne doplnkove dokumenty a zoznamy
         MOTDS - prihlasovacie a odhlasovacie obrazovky
         PICTFILES - ascii obrazky na posielanie
-        PLFILES - subory k plugin modulom - napoveda, data, ...
+        PLFILES - subory k plugin modulom
         ROOMFILES - nastenky, popisy a pod. k miestnostiam
         SCREENS - subory obsahujuce obrazovky najcastejsie pouzivane pri
                    nastavovani parametrov
-        TEXTFILES - rozsirene napovedy - texty
-        TRFILES - nastenky, popisy a pod. k transportom
-        VOTEFILES - subory k volbam - popisy, vysledky
+        TEXTFILES - rozsirene napovedy
+        TRFILES - nastenky, popisy a po. k transportom
+        VOTEFILES - subory k volbam
 
     3. PRVE NASTAVENIE
        ---------------
@@ -159,27 +160,28 @@ POZN.: Pozri samostatne specializovane manualy
         boots.h - nazvy levelov v strukture user_level
         prompts.c - kratke texty, hlasky, popisy a pod.
         star.h - nazvy defaultnych miestnosti
-        A najdolezitejsie:
         define.h - korenovy adresar > `ROOTDIR'
 
    4. PRVA KOMPILACIA A SPUSTENIE
       ---------------------------
-        Na konmpilaciu sluzi subor Makefile. Takze staci napisat `make'
+        Na konmpilaciu sluzi subor Makefile. Takze staci napisat `make´
         v adresari SRC a vsetko sa automaticky skompiluje. Ak sa vyskytnu nejake
         chyby, treba skontrolovat subor, v ktorom je podla kompilatora chyba.
         Ak ste neurobily v zdrojovych kodoch ziadne zmeny, nemali by sa
         pri kompilacii vyskytnut ziadne chyby.
+         POZNAKMA: Red Hat system vyzaduje kniznicu crypt. Ta sa prida
+                   dopisanim do suboru makefile. (Pozri redhat.txt)
         Ak kompilacia prebehla bez chyb, staci uz len spustit program. Na to
-        sa treba presunut do adresara z programom - `cd ../bin' a spustit
-        program prikazom `./lotos'. Tym sa nastartuje talker a vy sa mozete
-        pripojit cez port nastaveny v konfiguracnom subore (defaultne 7000).
+        sa treba presunut do adresara z programom - `cd ../bin´ a spustit
+        program prikazom `./lotos´. Tym sa nastartuje talker a vy sa mozete
+        pripojit cez port nastaveny v konfiguracnom subore.
         Lotos je dodavany s nasledujucim kontom nastavenym na najvyssi level.
                 Username: fred
                 Password: test
         Ak ste zmenili meno majitela v strukture reg_sysinfo, treba najprv
         premenovat subor s tymto defaultnym userom. To sa dosiahne prikazom
-        `mv Fred.D <novemeno>.D' v adresari USERFILES. Potom uz staci len
-        napisat `telnet localhost <port>'. Ak ste nezmenili meno, tak to radim
+        `mv Fred.D <novemeno>.D´ v adresari USERFILES. Potom uz staci len
+        napisat `telnet localhost <port>´. Ak ste nezmenili meno, tak to radim
         urobit kvoli bezpecnosti !
 
    ----------------------------------------------
@@ -192,11 +194,11 @@ POZN.: Pozri samostatne specializovane manualy
         tak popisem len tie najhlavnejsie. Su tam:
         PID - sidlo procesu, cas startu, cas prevadzky a porty.
         Ak by sa program vymkol konrole, staci napisat z UN*X konta kill <PID>.
-        Pripadne spustit skript `kill' v adresari BIN.
+        Pripadne spustit skript star.kill v hlavnom adresari.
         Inac pozor - PID cislo je pri kazdom starte systemu ine. Cisla portov
         uvadzaju, na ktorych portoch system akceptuje pripojenia.
         MAINport- pre vsetkych userov, WIZ - pre wizardov a adminov
-        a LINKport pre pripojenie dalsich talkrov (ak je zakompilovane).
+        a LINKport pre pripojenie dalsich talkrov.
         MINLOGIN level urcuje, aky musi mat user minimalny level, aby sa mohol
         pripojit cez MAINport. Dalej su dolezite LEVEL hodnoty. Tie treba mat
         velmi starostlivo nastavene.
@@ -206,7 +208,7 @@ POZN.: Pozri samostatne specializovane manualy
      6. BEZPECNOSTNE PROBLEMY
         ---------------------
          Ak by boli nejake problemy s niektorym userom, su nejake moznosti
-        ako si ho udrzat `od tela' a mat v systeme klud.
+        ako si ho udrzat `od tela´ a mat v systeme klud.
         "krok 1"
           MUZZLE - znemozni userovi rozpravat a viest akukolvek
                    konverzaciu.
@@ -232,7 +234,7 @@ POZN.: Pozri samostatne specializovane manualy
         ACCREQ LOG - zaznamy ziadosti o prve promote
         DEBUG LOG - zaznamy pri odladovani systemu
         ERROR LOG - zaznamy vacsiny chyb
-         Je vhodne ich pravidelne citat, hlavne ERRLOG.
+         Je chodne ich pravidelne citat, hlavne ERRLOG.
 
      8. ONLINE UTILITY
         --------------
@@ -251,14 +253,14 @@ POZN.: Pozri samostatne specializovane manualy
          Pretoze sa casto doplnaju rozne hry, funkcie a pod z inych systemov,
         alebo sa do inych systemov exportuju, rozhodol som sa pridat rozsirenie
         (prebrate z TOS) na pridavanie takychto veci cez plugin moduly. Takze
-        ak je plugin napisany spravne a aj druhy system ma toto rozhranie,
+        ak je plugin napisane spravne a aj druhy system ma toto rozhranie,
         nie je potom problem prenasat ich medzi nimi bez akejkolvek upravy.
         Toto doplnenie plugin modulu potom spociva v dopisani 3-4 riadkov kodu
         pri mensich moduloch, alebo pri 5-6-.. riadkoch pri velkych moduloch.
         Aj tak je to ale velka uspora oproti desiatkam alebo stovkam riadkov
         pri tradicnom doplnani.
 
-     10. TECHNICKE ROZDIELY MEDZI PLUGINOM A `HARD-CODE'
+     10. TECHNICKE ROZDIELY MEDZI PLUGINOM A `HARD-CODE´
         -----------------------------------------------
          V tradicnom programovani sa system rozsiroval dopisovanim do zdrojoveho
         kodu systemu. Musel byt pridany kod a obnovene struktury v EXEC_COM(),
@@ -289,7 +291,7 @@ POZN.: Pozri samostatne specializovane manualy
                    Place third-party plugin initialization calls HERE
                    -------------------------------------------------- */
          POZNAMKA: Nejaky vacsi (komplexnejsi) modul mozno bude pozadovat
-                    vlozenie dalsich riadkov napr. do obj_ur.h. Ak je to tak,
+                    vlozenie dalsich riadkov napr. do ur_obj.h. Ak je to tak,
                     je to napisane na zaciatku .C suboru plugin modulu.
 
      12. ODOBERANIE PLUGIN MODULOV ZO SYSTEMU
@@ -301,4 +303,3 @@ POZN.: Pozri samostatne specializovane manualy
          -------------------------
          Lotos neposkytuje podporu na jednotlive pluginy. Ak autor modulu
         napise kontaktne informacie, kontaktujte priamo autora pluginu.
-

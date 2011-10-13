@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                     Globalne konstanty Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * globals.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __GLOBALS_C__
 #define __GLOBALS_C__ 1
@@ -90,12 +94,12 @@ char *crypt_salt="NU";
 /* you can change this for whatever sig you want - of just "" if you don't want
    to have a sig file attached at the end of emails */
 char *talker_signature=
-"\n\n+--------------------------------------------------------------------------+\n\
-|        Tato sprava ti pola poslana prikazom .smail na talkri Star        |\n\
-|    a toto je tvoj Auto-forward. Neodpovedaj priamo na tento mail !!!!    |\n\
-|                                                                          |\n\
-|  Star - talker spusteny na star.losys.net:7000    email talker@losys.net |\n\
-+--------------------------------------------------------------------------+\n";
+"\n\n+-------------------------------------------------------------------------+\n\
+|        Tato sprava ti pola poslana prikazom .smail na talkri Star       |\n\
+|    a toto je tvoj Auto-forward. Neodpovedaj priamo na tento mail !!!!   |\n\
+|                                                                         |\n\
+| Star - talker spusteny na talker.losys.sk:7000    email talker@losys.sk |\n\
++-------------------------------------------------------------------------+\n";
 
 
 char *vrf_fwd_email=
@@ -244,10 +248,10 @@ char *reg_sysinfo[13]={
 /* Talker meno     */ "Star talker",
 /* Seriove cislo   */ "000000000000",
 /* Registrovany user */ "Lopo",
-/* Server DNS      */ "www.fa.stuba.sk",
+/* Server DNS      */ "talker.losys.sk",
 /* Server IP       */ "100.100.100.200",
-/* Talker E-Mail   */ "talker@losys.net",
-/* Talker Website  */ "http://100.100.100.200/talker/",
+/* Talker E-Mail   */ "talker@losys.sk",
+/* Talker Website  */ "http://talker.losys.sk/",
 /* Sysop Real Name */ "Pavol Hluchy",
 /* Sysop User Name */ "Fred",
 /* Pueblo Web Dir. */ "media/",
@@ -374,3 +378,4 @@ struct {
 		};
 
 #endif /* globals.c */
+

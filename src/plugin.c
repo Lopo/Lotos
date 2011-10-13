@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                Funkcie Lotos v1.2.0 na pracu s plugin modulmi
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * plugin.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __PLUGIN_C__
 #define __PLUGIN_C__ 1
@@ -33,45 +37,47 @@ void destroy_pl_cmd(CM_OBJECT c)
 {
 	set_crash();
 /* Remove from linked list */
-if (c==cmds_first) {
-        cmds_first=c->next;
-        if (c==cmds_last) cmds_last=NULL;
-        else cmds_first->prev=NULL;
-        }
-else {
-        c->prev->next=c->next;
-        if (c==cmds_last) { 
-                cmds_last=c->prev;  cmds_last->next=NULL; 
-                }
-        else c->next->prev=c->prev;
-        }
-free(c);
+	if (c==cmds_first) {
+		cmds_first=c->next;
+		if (c==cmds_last) cmds_last=NULL;
+		else cmds_first->prev=NULL;
+		}
+	else {
+		c->prev->next=c->next;
+		if (c==cmds_last) { 
+			cmds_last=c->prev;
+			cmds_last->next=NULL; 
+                
+			}
+		else c->next->prev=c->prev;
+		}
+	free(c);
 }
 
 void destroy_plugin(PL_OBJECT p)
 {
 	set_crash();
 /* Remove from linked list */
-if (p==plugin_first) {
-        plugin_first=p->next;
-        if (p==plugin_last) plugin_last=NULL;
-        else plugin_first->prev=NULL;
-        }
-else {
-        p->prev->next=p->next;
-        if (p==plugin_last) { 
-                plugin_last=p->prev;  plugin_last->next=NULL; 
-                }
-        else p->next->prev=p->prev;
-        }
-free(p);
+	if (p==plugin_first) {
+		plugin_first=p->next;
+		if (p==plugin_last) plugin_last=NULL;
+		else plugin_first->prev=NULL;
+		}
+	else {
+		p->prev->next=p->next;
+		if (p==plugin_last) { 
+			plugin_last=p->prev;
+			plugin_last->next=NULL; 
+			}
+		else p->next->prev=p->prev;
+		}
+	free(p);
 }
 
 void save_plugin_data(UR_OBJECT user)
 {
 	PL_OBJECT plugin;
-	int i;
-	i=0;
+	int i=0;
 
 	set_crash();
 	for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
@@ -141,12 +147,11 @@ void load_plugin_data(UR_OBJECT user)
 
 void disp_plugin_registry(UR_OBJECT user)
 {
-PL_OBJECT plugin;
-CM_OBJECT com;
-int cm,total;
+	PL_OBJECT plugin;
+	CM_OBJECT com;
+	int cm=0,total=0;
 
 	set_crash();
-cm=0;  total=0;
 /* write data for each loaded plugin */
 for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
         if (!total) {
@@ -168,13 +173,13 @@ else write_user(user,"\n");
 /*** Construct plugin object ***/
 PL_OBJECT create_plugin(void)
 {
-PL_OBJECT plugin;
+	PL_OBJECT plugin;
 
 	set_crash();
-if ((plugin=(PL_OBJECT)malloc(sizeof(struct plugin_struct)))==NULL) {
-        write_syslog(ERRLOG, 1, "Memory allocation failure in create_plugin().\n");
-        return NULL;
-        }
+	if ((plugin=(PL_OBJECT)malloc(sizeof(struct plugin_struct)))==NULL) {
+		write_syslog(ERRLOG, 1, "Memory allocation failure in create_plugin().\n");
+		return NULL;
+		}
 
 /* Append object into linked list. */
 if (plugin_first==NULL) {  
@@ -197,7 +202,7 @@ return plugin;
 }
 
 /* -------------------
-    Plug-in Debuger
+    Lotos Debuger
    ------------------- */
 void oss_debugger(UR_OBJECT user)
 {
@@ -222,15 +227,13 @@ void oss_debugger(UR_OBJECT user)
 
 void oss_debug_commands(UR_OBJECT user)
 {
-PL_OBJECT plugin;
-CM_OBJECT com;
-int i,pos,num,sysN,plc,pl,total;
+	PL_OBJECT plugin;
+	CM_OBJECT com;
+	int i=0,pos=0,sysN=0,plc=0,pl=0,total=0;
 
 	set_crash();
-i=0; pos=0; num=0; sysN=0; plc=0; pl=0; total=0;
-
-for (i=0; command_table[i].name[0]!='*'; i++) {
-        if (!total) write_user(user,"\n          Lotos DEBUGGER:  Command Listing by Memory Address\n\n");
+	for (i=0; command_table[i].name[0]!='*'; i++) {
+		if (!total) write_user(user,"\n        Lotos DEBUGGER:  Command Listing by Memory Address\n\n");
         if (!pos) write_user(user,"  ");
         total++;  sysN++;  pos++;
         sprintf(text,"%10s - %3d   ",command_table[i].name,sysN);
@@ -239,7 +242,7 @@ for (i=0; command_table[i].name[0]!='*'; i++) {
         }
 
 for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
-        if (!total) write_user(user,"\n          Lotos DEBUGGER:  Command Listing by Addressable Location\n\n");
+        if (!total) write_user(user,"\n        Lotos DEBUGGER:  Command Listing by Addressable Location\n\n");
         for (com=cmds_first; com!=NULL; com=com->next) {
                 if (com->plugin != plugin) continue;
                 if (!pos) write_user(user,"  ");
@@ -258,30 +261,31 @@ write_user(user,text);
 void oss_debug_allinput(UR_OBJECT user)
 {
 	set_crash();
-if (syspp->debug_input) {
-        syspp->debug_input=0;  syspp->highlev_debug_on--;
-        write_syslog(SYSLOG, 1, "%s deaktivoval Debuger systemoveho vstupu.\n",user->name);
-        sprintf(text,"\n%s%sSYSTEM Debuger:  Logovanie vstupu bolo deaktivovane.\n\n",colors[CBOLD],colors[CSYSBOLD]);
-        write_room_except(NULL,text,user);
-        write_user(user,"Debuger:  Logovanie vstupu bolo deaktivovane.\n");
-        }
-else {
-        syspp->debug_input=1;  syspp->highlev_debug_on++;
-        write_syslog(SYSLOG, 1, "%s activated the System Input Debugger.\n",user->name);
-        sprintf(text,"\n%s%sSYSTEM Debugger:  Input logging has been activated!\n                  NOTE:  *ALL* commands, speech, and text are being\n                         logged for debugging and testing purposes.\n\n",colors[CBOLD],colors[CSYSBOLD]);
-        write_room_except(NULL,text,user);
-        write_user(user,"Debugger:  Input logging has been activated!\n           ~OLNOTE: If left on, this command will *rapidly* fill up the system log.\n");
-        }
+	if (syspp->debug_input) {
+		syspp->debug_input=0;
+		syspp->highlev_debug_on--;
+		write_syslog(SYSLOG, 1, "%s deaktivoval Debuger systemoveho vstupu.\n",user->name);
+		sprintf(text,"\n%s%sSYSTEM Debuger:  Logovanie vstupu bolo deaktivovane.\n\n",colors[CBOLD],colors[CSYSBOLD]);
+		write_room_except(NULL,text,user);
+		write_user(user,"Debuger:  Logovanie vstupu bolo deaktivovane.\n");
+		}
+	else {
+		syspp->debug_input=1;
+		syspp->highlev_debug_on++;
+		write_syslog(SYSLOG, 1, "%s activated the System Input Debugger.\n",user->name);
+		sprintf(text,"\n%s%sSYSTEM Debugger:  Input logging has been activated!\n                  NOTE:  *ALL* commands, speech, and text are being\n                         logged for debugging and testing purposes.\n\n",colors[CBOLD],colors[CSYSBOLD]);
+		write_room_except(NULL,text,user);
+		write_user(user,"Debugger:  Input logging has been activated!\n           ~OLNOTE: If left on, this command will *rapidly* fill up the system log.\n");
+		}
 }
 
 void oss_debug_plugindata(UR_OBJECT user)
 {
-PL_OBJECT plugin;
-CM_OBJECT cmd;
-int num,cnt,found;
+	PL_OBJECT plugin=plugin_first;
+	CM_OBJECT cmd;
+	int num=-1,cnt=0,found=0;
 
 	set_crash();
-num = -1;       cnt = 0;       found = 0;       plugin = plugin_first;
 if (word_count<3) {
 	write_user(user,"DEBUG PluginData requires the plugin position to retrieve data.\n");
 	return;
@@ -325,43 +329,45 @@ write_user(user,"Debugger:  Search finished.\n");
 void oss_debug_alert(UR_OBJECT user)
 {
 	set_crash();
-if (syspp->highlev_debug_on) {
-        write_user(user,"~OL~FYATTENTION!!!     ATTENTION!!!   ATTENTION!!!\n\n");
-        write_user(user,"Higher-level debug features are currently active on this\n");
-        write_user(user,"system.  You are being informed for privacy reasons.  Do\n");
-        write_user(user,"NOT send private information or change your password until\n");
-        write_user(user,"this message no longer appears when you log in.  See the\n");
-        write_user(user,"~OL.tinfo~RS command for status information.\n\n");
-        }
+	if (syspp->highlev_debug_on) {
+		write_user(user,"~OL~FYATTENTION!!!     ATTENTION!!!   ATTENTION!!!\n\n");
+		write_user(user,"Higher-level debug features are currently active on this\n");
+		write_user(user,"system.  You are being informed for privacy reasons.  Do\n");
+		write_user(user,"NOT send private information or change your password until\n");
+		write_user(user,"this message no longer appears when you log in.  See the\n");
+		write_user(user,"~OL.tinfo~RS command for status information.\n\n");
+		}
 }
 
 CM_OBJECT create_cmd(void)
 {
-CM_OBJECT cmd;
+	CM_OBJECT cmd;
 
 	set_crash();
-if ((cmd=(CM_OBJECT)malloc(sizeof(struct plugin_cmd)))==NULL) {
-        write_syslog(ERRLOG, 1, "Memory allocation failure in create_cmd().\n");
-        return NULL;
-        }
+	if ((cmd=(CM_OBJECT)malloc(sizeof(struct plugin_cmd)))==NULL) {
+		write_syslog(ERRLOG, 1, "Memory allocation failure in create_cmd().\n");
+		return NULL;
+		}
 
 /* Append object into linked list. */
-if (cmds_first==NULL) {  
-        cmds_first=cmd;  cmd->prev=NULL;  
-        }
-else {  
-        cmds_last->next=cmd;  cmd->prev=cmds_last;  
-        }
-cmd->next=NULL;
-cmds_last=cmd;
+	if (cmds_first==NULL) {  
+		cmds_first=cmd;
+		cmd->prev=NULL;  
+		}
+	else {  
+		cmds_last->next=cmd;
+		cmd->prev=cmds_last;  
+		}
+	cmd->next=NULL;
+	cmds_last=cmd;
 
 /* initialise plugin command structure */
-cmd->command[0]='\0';
-cmd->id=-1;
-cmd->comnum=-1;
-cmd->req_lev=99;
-cmd->plugin=NULL;
-return cmd;
+	cmd->command[0]='\0';
+	cmd->id=-1;
+	cmd->comnum=-1;
+	cmd->req_lev=99;
+	cmd->plugin=NULL;
+	return cmd;
 }
 
 
@@ -380,5 +386,5 @@ void load_plugins(void)
    ------------------------------------------------ */
 }
 
-
 #endif /* plugin.c */
+

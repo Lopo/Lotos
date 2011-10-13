@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-            Funkcie Lotos v1.2.0 na rozne medzipouzivatelske akcie
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_social.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_SOCIAL_C__
 #define __CT_SOCIAL_C__ 1
@@ -285,7 +289,6 @@ void emote(UR_OBJECT user, char *inpstr)
 char *name;
 
 	set_crash();
-name="";
 if (user->muzzled) {
   vwrite_user(user, muzzled_cannot, "kecat");  return;
   }
@@ -302,7 +305,7 @@ if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSW
     }
   }
 if (user->type==CLONE_TYPE) {
-  if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) vwrite_room(user->room,"The clone of %s%s\n",name,inpstr);
+  if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) vwrite_room(user->room,"The clone of %s%s\n",user->name,inpstr);
   else vwrite_room(user->room,"The clone of %s~RS %s\n",user->recap,inpstr);
   record(user->room,text);
   plugin_triggers(user, inpstr);
@@ -539,11 +542,10 @@ record(user->room,text);
 /*** Set the room topic ***/
 void set_topic(UR_OBJECT user, char *inpstr)
 {
-RM_OBJECT rm;
-char *name;
+	RM_OBJECT rm=user->room;
+	char *name;
 
 	set_crash();
-rm=user->room;
 if (word_count<2) {
   if (!strlen(rm->topic)) {
     write_user(user,"No topic has been set yet.\n");  return;
@@ -721,15 +723,14 @@ void revclr(UR_OBJECT user)
 /*** Show recorded tells and pemotes ***/
 void revtell(UR_OBJECT user)
 {
-	int i,cnt,line;
+	int i,cnt=0,line;
 
 	set_crash();
 	if (user->restrict[RESTRICT_VIEW]==restrict_string[RESTRICT_VIEW]) {
 		write_user(user,">>>Sorry, you have no right to access the revtell buffer.\n");
 		return;
 		}
-cnt=0;
-for(i=0;i<REVTELL_LINES;++i) {
+for (i=0;i<REVTELL_LINES;++i) {
   line=(user->revline+i)%REVTELL_LINES;
   if (user->revbuff[line][0]) {
     cnt++;
@@ -745,8 +746,8 @@ else write_user(user,"\n~BB~FG*** End ***\n\n");
 /* clears a room topic */
 void clear_topic(UR_OBJECT user)
 {
-RM_OBJECT rm;
-char *name;
+	RM_OBJECT rm;
+	char *name;
 
 	set_crash();
 strtolower(word[1]);
@@ -777,8 +778,8 @@ write_usage(user,"%s [all]", command_table[CTOPIC].name);
 /** Tell something to everyone but one person **/
 void mutter(UR_OBJECT user, char *inpstr)
 {
-UR_OBJECT user2;
-char *name;
+	UR_OBJECT user2;
+	char *name;
 
 	set_crash();
 if (word_count<3) {
@@ -818,8 +819,8 @@ vwrite_room_except(user->room,user2,"~FT%s mutters:~RS %s ~FY~OL(to all but %s)\
 /** ask all the law, (sos), no muzzle restrictions **/
 void plead(UR_OBJECT user, char *inpstr)
 {
-int found=0;
-UR_OBJECT u;
+	int found=0;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -953,9 +954,9 @@ void preview(UR_OBJECT user)
 /*** Show a picture to the whole room that the user is in ***/
 void picture_all(UR_OBJECT user)
 {
-UR_OBJECT u;
-char filename[500],*name,*c;
-FILE *fp;
+	UR_OBJECT u;
+	char filename[500],*name,*c;
+	FILE *fp;
 
 	set_crash();
 if (word_count<2) {
@@ -1120,7 +1121,7 @@ void think_it(UR_OBJECT user, char *inpstr)
 /** put speech in a music notes **/
 void sing_it(UR_OBJECT user, char *inpstr)
 {
-char *name;
+	char *name;
 
 	set_crash();
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
@@ -1149,7 +1150,7 @@ plugin_triggers(user, inpstr);
      defaults to WIZ level. ***/
 void wizemote(UR_OBJECT user, char *inpstr)
 {
-int lev;
+	int lev;
 
 	set_crash();
 if (user->muzzled) {
@@ -1195,11 +1196,10 @@ write_level(WIZ,1,text,user);
 /*** See review of shouts ***/
 void revshout(UR_OBJECT user)
 {
-	int i,line,cnt;
+	int i,line,cnt=0;
 
 	set_crash();
-	cnt=0;
-	for(i=0;i<REVIEW_LINES;++i) {
+	for (i=0;i<REVIEW_LINES;++i) {
 		line=(amsys->sbuffline+i)%REVIEW_LINES;
 		if (amsys->shoutbuff[line][0]) {
 			cnt++;    
@@ -1218,7 +1218,7 @@ void clear_shouts(void)
 	int c;
 
 	set_crash();
-	for(c=0;c<REVIEW_LINES;++c)
+	for (c=0;c<REVIEW_LINES;++c)
 		amsys->shoutbuff[c][0]='\0';
 	amsys->sbuffline=0;
 }
@@ -1230,7 +1230,7 @@ void clear_tells(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for(c=0;c<REVTELL_LINES;++c)
+	for (c=0;c<REVTELL_LINES;++c)
 		user->revbuff[c][0]='\0';
 	user->revline=0;
 }
@@ -1239,7 +1239,7 @@ void clear_tells(UR_OBJECT user)
 /* set a name for a quick call */
 void quick_call(UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
 
 	set_crash();
 if (word_count<2) {
@@ -1276,19 +1276,19 @@ vwrite_user(user,"Qcall nastaveny na: ~OL%s\n", user->call);
 /*** Show recorded tells and pemotes ***/
 void revafk(UR_OBJECT user)
 {
-int i,cnt,line;
+	int i,cnt=0,line;
+
 	set_crash();
-cnt=0;
-for(i=0;i<REVTELL_LINES;++i) {
-  line=(user->afkline+i)%REVTELL_LINES;
-  if (user->afkbuff[line][0]) {
-    cnt++;
-    if (cnt==1) write_user(user,"\n~BB~FG*** Your AFK review buffer ***\n\n");
-    write_user(user,user->afkbuff[line]); 
-    }
-  }
-if (!cnt) write_user(user,"AFK review buffer is empty.\n");
-else write_user(user,"\n~BB~FG*** End ***\n\n");
+	for (i=0;i<REVTELL_LINES;++i) {
+		line=(user->afkline+i)%REVTELL_LINES;
+		if (user->afkbuff[line][0]) {
+			cnt++;
+			if (cnt==1) write_user(user,"\n~BB~FG*** Your AFK review buffer ***\n\n");
+			write_user(user,user->afkbuff[line]); 
+			}
+		}
+	if (!cnt) write_user(user,"AFK review buffer is empty.\n");
+	else write_user(user,"\n~BB~FG*** End ***\n\n");
 }
 
 
@@ -1298,7 +1298,7 @@ void clear_afk(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for(c=0;c<REVTELL_LINES;++c)
+	for (c=0;c<REVTELL_LINES;++c)
 		user->afkbuff[c][0]='\0';
 	user->afkline=0;
 }
@@ -1307,19 +1307,19 @@ void clear_afk(UR_OBJECT user)
 /*** Show recorded tells and pemotes ***/
 void revedit(UR_OBJECT user)
 {
-int i,cnt,line;
+	int i,cnt=0,line;
+
 	set_crash();
-cnt=0;
-for(i=0;i<REVTELL_LINES;++i) {
-  line=(user->editline+i)%REVTELL_LINES;
-  if (user->editbuff[line][0]) {
-    cnt++;
-    if (cnt==1) write_user(user,"\n~BB~FG*** Your edit review  buffer ***\n\n");
-    write_user(user,user->editbuff[line]); 
-    }
-  }
-if (!cnt) write_user(user,"EDIT review buffer is empty.\n");
-else write_user(user,"\n~BB~FG*** End ***\n\n");
+	for (i=0;i<REVTELL_LINES;++i) {
+		line=(user->editline+i)%REVTELL_LINES;
+		if (user->editbuff[line][0]) {
+			cnt++;
+			if (cnt==1) write_user(user,"\n~BB~FG*** Your edit review  buffer ***\n\n");
+			write_user(user,user->editbuff[line]); 
+			}
+		}
+	if (!cnt) write_user(user,"EDIT review buffer is empty.\n");
+	else write_user(user,"\n~BB~FG*** End ***\n\n");
 }
 
 
@@ -1329,7 +1329,7 @@ void clear_edit(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for(c=0;c<REVTELL_LINES;++c)
+	for (c=0;c<REVTELL_LINES;++c)
 		user->editbuff[c][0]='\0';
 	user->editline=0;
 }
@@ -1458,13 +1458,12 @@ void say_to(UR_OBJECT user, char *inpstr)
 /* take a users name and add it to friends list */
 void friends(UR_OBJECT user)
 {
-int i,cnt,found;
-char filename[500];
-FILE *fp;
-struct user_dir_struct *entry;
+	int i,cnt=0,found;
+	char filename[500];
+	FILE *fp;
+	struct user_dir_struct *entry;
 
 	set_crash();
-cnt=0;
 if (word_count<2) {
   for (i=0;i<MAX_FRIENDS;++i) {
     if (!user->friend[i][0]) continue;
@@ -1544,8 +1543,8 @@ if (!cnt) unlink(filename);
 /*** Say user speech to all people listed on users friends list ***/
 void friend_say(UR_OBJECT user, char *inpstr)
 {
-char type[15],*name;
-int i,cnt;
+	char type[15],*name;
+	int i,cnt=0;
 
 	set_crash();
 if (user->muzzled) {
@@ -1553,7 +1552,6 @@ if (user->muzzled) {
   return;
   }
 /* check to see if use has friends listed */
-cnt=0;
 for (i=0;i<MAX_FRIENDS;++i) if (user->friend[i][0]) ++cnt;
 if (!cnt) {
   write_user(user,"You have no friends listed.\n");
@@ -1584,8 +1582,8 @@ write_friends(user,text,1);
 /*** Emote something to all the people on the suers friends list ***/
 void friend_emote(UR_OBJECT user, char *inpstr)
 {
-char *name;
-int i,cnt;
+	char *name;
+	int i,cnt=0;
 
 	set_crash();
 if (user->muzzled) {
@@ -1596,7 +1594,6 @@ if (word_count<2) {
   return;
   }
 /* check to see if use has friends listed */
-cnt=0;
 for (i=0;i<MAX_FRIENDS;++i) if (user->friend[i][0]) ++cnt;
 if (!cnt) {
   write_user(user,"You have no friends listed.\n");
@@ -2230,3 +2227,4 @@ void kick(UR_OBJECT user)
 }
 
 #endif /* ct_social.c */
+

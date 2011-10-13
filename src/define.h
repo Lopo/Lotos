@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                     Hlavne definicie pre Lotos v1.2.0
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * define.h
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __DEFINE_H__
 #define __DEFINE_H__ 1
@@ -12,16 +16,16 @@
    ostatne musia byt nezmenene */
 
 #define TVERSION "1.0.0"
-#define OSSVERSION "1.2.0"
+#define OSSVERSION "1.2.1"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
 #define USERVER "0.12"
-#define RUN_VER "120"
+#define RUN_VER "121"
 
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/home/lotos/lotos120"
+#define ROOTDIR "/home/lotos/lotos121"
 #define DATAFILES ROOTDIR"/datafiles"
 #define CONFFILES DATAFILES"/conffiles"
 #define MAPFILES DATAFILES"/mapfiles"
@@ -84,6 +88,7 @@
 #define PIDFILE ROOTDIR"/star.pid"
 #define HOSTSFILE MISCFILES"/hostsfile"
 #define KILLFILE BINFILES"/kill"
+#define TEMPFILE TEMPFILES"/tempfile"
 
 /* fun files */
 #define HUGFILE MISCFILES"/hug"
@@ -381,6 +386,9 @@
 #define ID_BUFFLEN    196 /* max. buffer length for reads and writes in identify() */
 #define ID_READTIMEOUT 30 /* number of seconds after a socket read operation is timed out. */
 
+/* objekty */
+//#define OBJECT_NAME_LEN 20
+
 /* money */
 #define DEFAULT_MONEY 1000
 #define DEFAULT_BANK 3000
@@ -394,6 +402,7 @@
 #	define set_crash() { s_crash(__FILE__, __LINE__); }
 #else
 #	define set_crash() ((void)0)
-#endif
+#endif //DEBUG
 
 #endif /* define.h */
+

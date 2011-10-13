@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                  Funkcie Lotos v1.2.0 suvisiace s pohybom
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_move.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_MOVE_C__
 #define __CT_MOVE_C__ 1
@@ -30,11 +34,11 @@
 /*** Move to another room ***/
 void go(UR_OBJECT user)
 {
-RM_OBJECT rm;
+	RM_OBJECT rm;
 #ifdef NETLINKS
-  NL_OBJECT nl;
+	NL_OBJECT nl;
 #endif
-int i;
+	int i;
 
 	set_crash();
 if (user->lroom==2) {
@@ -260,9 +264,9 @@ void s_move(UR_OBJECT user)
 /*** Join a user in another room ***/
 void join(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
-char *name;
+	UR_OBJECT u;
+	RM_OBJECT rm;
+	char *name;
 
 	set_crash();
 if (word_count<2) {
@@ -311,8 +315,8 @@ look(user);
 /*** bring a user to the same room ***/
 void bring(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
+	UR_OBJECT u;
+	RM_OBJECT rm;
 
 	set_crash();
 if (word_count<2) {
@@ -464,3 +468,4 @@ move_user(user,rm,1);
 }
 
 #endif /* ct_move.c */
+

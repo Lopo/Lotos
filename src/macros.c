@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                   Funkcie Lotos v1.2.0 na pracu s makrami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * macros.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __MACROS_C__
 #define __MACROS_C__ 1
@@ -68,17 +72,15 @@ void get_macros(UR_OBJECT user)
 	int l_len=(MC_NAME_LEN+MC_COM_LEN+2);
 	MC_OBJECT mc;
 	char filename[500], line[ARR_SIZE*2];
-	
+
 	set_crash();
 	if (user->type==REMOTE_TYPE) return;
 	sprintf(filename,"%s/%s.MAC",USERMACROS,user->name);
 
-	if ((fp=fopen(filename, "r"))==NULL) {
-		return;
-		}
+	if ((fp=fopen(filename, "r"))==NULL) return;
 	fgets(line, l_len, fp);
 	
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		line[strlen(line)-1]='\0';
 		if ((mc=create_macro())==NULL) {
 			fclose(fp);
@@ -105,7 +107,7 @@ void get_macros(UR_OBJECT user)
 
 void show_macros(UR_OBJECT user)
 {
-	int cnt;
+	int cnt=0;
 	MC_OBJECT mc;
 
 	set_crash();
@@ -114,7 +116,6 @@ void show_macros(UR_OBJECT user)
 		write_user(user, "\nNemas ziadne makro\n");
 		return;
 		}
-	cnt=0;
 	for (mc=user->first_macro; mc!=NULL; mc=mc->next) {
 		cnt++;
 		vwrite_user(user, "%*.*s~RS  %s~RS\n", MC_NAME_LEN, MC_NAME_LEN, mc->name, mc->comstr);
@@ -149,6 +150,7 @@ void macros(UR_OBJECT user, char *inpstr)
 	MC_OBJECT mc;
 	char *p, *n, *c;
 	int i;
+
 	set_crash();
 #ifdef NETLINKS
 	if (user->type==REMOTE_TYPE) {
@@ -324,3 +326,4 @@ int check_macros(UR_OBJECT user, char *inpstr)
 }
 
 #endif /* macros.c */
+

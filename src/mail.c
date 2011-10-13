@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-              Funkcie Lotos v1.2.0 na pracu so spravami typu mail
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * mail.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __MAIL_C__
 #define __MAIL_C__ 1
@@ -31,8 +35,8 @@
 /*** Spool mail file and ask for confirmation of users existence on remote site ***/
 void send_external_mail(NL_OBJECT nl, UR_OBJECT user, char *to, char *ptr)
 {
-FILE *fp;
-char filename[500];
+	FILE *fp;
+	char filename[500];
 
 	set_crash();
 /* Write out to spool file first */
@@ -59,16 +63,15 @@ write_user(user,"Mail sent to external talker.\n");
 int send_mail(UR_OBJECT user, char *to, char *ptr, int iscopy)
 {
 #ifdef NETLINKS
-  NL_OBJECT nl;
+	NL_OBJECT nl;
 #endif
-FILE *infp,*outfp;
-char *c,d,*service,filename[500],cc[4],header[ARR_SIZE];
-int amount,size,tmp1,tmp2;
-struct stat stbuf;
+	FILE *infp,*outfp;
+	char *c=to,d,*service=NULL,filename[500],cc[4],header[ARR_SIZE];
+	int amount,size,tmp1,tmp2;
+	struct stat stbuf;
 
 	set_crash();
 /* See if remote mail */
-c=to;  service=NULL;
 while(*c) {
   if (*c=='@') {  
     service=c+1;  *c='\0'; 
@@ -86,7 +89,7 @@ while(*c) {
   ++c;
   }
 /* Local mail */
-if (!(outfp=fopen("tempfile","w"))) {
+if (!(outfp=fopen(TEMPFILE, "w"))) {
   write_user(user,"Error in mail delivery.\n");
   write_syslog(ERRLOG,1,"Couldn't open tempfile in send_mail().\n");
   return 0;
@@ -130,7 +133,7 @@ fputs(header,outfp);
 fputs(ptr,outfp);
 fputs("\n",outfp);
 fclose(outfp);
-rename("tempfile",filename);
+rename(TEMPFILE, filename);
 switch(iscopy) {
   case 0: vwrite_user(user,"Mail is delivered to %s\n",to); break;
   case 1: vwrite_user(user,"Mail is copied to %s\n",to); break;
@@ -147,7 +150,7 @@ return 1;
      mail file first line - along with how many new mail messages there are
      ***/
 void read_new_mail(UR_OBJECT user) {
-char filename[100];
+char filename[500];
 int total,new;
 
 /* Get total number of mail */
@@ -293,9 +296,9 @@ void send_copies(UR_OBJECT user, char *ptr)
 /*** Send mail message ***/
 void smail(UR_OBJECT user, char *inpstr, int done_editing)
 {
-UR_OBJECT u;
-int remote,has_account;
-char *c;
+	UR_OBJECT u;
+	int remote,has_account;
+	char *c;
 
 	set_crash();
 if (user->muzzled) {
@@ -375,11 +378,11 @@ editor(user,NULL);
 /*** This is function that sends mail to other users ***/
 int send_broadcast_mail(UR_OBJECT user, char *ptr, int lvl, int type)
 {
-FILE *infp,*outfp;
-char d,*cc,header[ARR_SIZE],filename[500];
-int tmp1,tmp2,amount,size,cnt=0;
-struct user_dir_struct *entry;
-struct stat stbuf;
+	FILE *infp,*outfp;
+	char d,*cc,header[ARR_SIZE],filename[500];
+	int tmp1,tmp2,amount,size,cnt=0;
+	struct user_dir_struct *entry;
+	struct stat stbuf;
 
 	set_crash();
 if ((entry=first_dir_entry)==NULL) return 0;
@@ -453,8 +456,8 @@ return 1;
      read it first. ***/
 void dmail(UR_OBJECT user)
 {
-int num,cnt;
-char filename[500];
+	int num,cnt;
+	char filename[100];
 
 	set_crash();
 if (word_count<2) {
@@ -494,9 +497,9 @@ user->read_mail=time(0)+1;
 /*** Show list of people your mail is from without seeing the whole lot ***/
 void mail_from(UR_OBJECT user)
 {
-FILE *fp;
-int valid,cnt,tmp1,tmp2,nmail;
-char w1[ARR_SIZE],line[ARR_SIZE],filename[500];
+	FILE *fp;
+	int valid,cnt,tmp1,tmp2,nmail;
+	char w1[ARR_SIZE],line[ARR_SIZE],filename[500];
 
 	set_crash();
 sprintf(filename,"%s/%s.M", USERMAILS,user->name);
@@ -526,8 +529,8 @@ vwrite_user(user,"\nTotal of ~OL%d~RS message%s, ~OL%d~RS of which %s new.\n\n",
 /*** get users which to send copies of smail to ***/
 void copies_to(UR_OBJECT user)
 {
-int remote,i=0,docopy,found,cnt;
-char *c;
+	int remote,i=0,docopy,found,cnt;
+	char *c;
 
 	set_crash();
 if (com_num==NOCOPIES) {
@@ -600,7 +603,7 @@ else write_user(user,text);
 /*** Send mail message to everyone ***/
 void level_mail(UR_OBJECT user, char *inpstr, int done_editing)
 {
-int level,i;
+	int level,i;
 
 	set_crash();
 if (user->muzzled) {
@@ -684,14 +687,13 @@ editor(user,NULL);
 /*** Send mail message to all people on your friends list ***/
 void friend_smail(UR_OBJECT user, char *inpstr, int done_editing)
 {
-int i,fcnt;
+	int i,fcnt=0;
 
 	set_crash();
 if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot mail anyone.\n");  return;
   }
 /* check to see if any friends listed */
-fcnt=0;
 for (i=0;i<MAX_FRIENDS;++i) {
   if (user->friend[i][0]) fcnt++;
   }
@@ -839,12 +841,11 @@ vwrite_user(user,"You have now sent smail number ~FM~OL%d~RS to your email accou
      ***/
 int mail_sizes(char *name, int type)
 {
-FILE *fp;
-int valid,cnt,new,size;
-char w1[ARR_SIZE],line[ARR_SIZE],filename[500],*str;
+	FILE *fp;
+	int valid,cnt=0,new=0,size=0;
+	char w1[ARR_SIZE],line[ARR_SIZE],filename[500],*str;
 
 	set_crash();
-cnt=new=size=0;
 name[0]=toupper(name[0]);
 sprintf(filename,"%s/%s.M", USERMAILS,name);
 if (!(fp=fopen(filename,"r"))) return cnt;
@@ -906,3 +907,4 @@ int reset_mail_counts(UR_OBJECT user)
 }
 
 #endif /* mail.c */
+

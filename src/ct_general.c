@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-               Funkcie Lotos v1.2.0 skupiny hlavnych, verejnych
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_general.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_GENERAL_C__
 #define __CT_GENERAL_C__ 1
@@ -37,7 +41,7 @@
 void disconnect_user(UR_OBJECT user)
 {
 	UR_OBJECT ur;
-	RM_OBJECT rm;
+	RM_OBJECT rm=user->room;
 #ifdef NETLINKS
 	NL_OBJECT nl;
 #endif
@@ -46,8 +50,6 @@ void disconnect_user(UR_OBJECT user)
 	set_crash();
 	for (ur=user_first; ur!=NULL; ur=ur->next)
 		if (ur->follow==user) ur->follow=NULL;
-
-	rm=user->room;
 	if (user->login) {
 		close(user->socket);  
 		destruct_user(user);
@@ -109,18 +111,16 @@ void disconnect_user(UR_OBJECT user)
 /*** Display details of room ***/
 void look(UR_OBJECT user)
 {
-RM_OBJECT rm, rm2;
-UR_OBJECT u;
-char temp[181],null[1],*ptr;
-char *uafk="~BR(AFK)";
-int i,exits,users;
+	RM_OBJECT rm=user->room, rm2;
+	UR_OBJECT u;
+	char temp[181],null[1],*ptr;
+	char *uafk="~BR(AFK)";
+	int i,exits=0,users;
 
 	set_crash();
-rm=user->room;
 if (rm->access & PRIVATE) vwrite_user(user,"\n~FTRuuma: ~FR%s\n\n",rm->name);
 else vwrite_user(user,"\n~FTRuuma: ~FG%s\n\n",rm->name);
 if (user->show_rdesc) write_user(user,user->room->desc);
-exits=0;
 null[0]='\0';
 strcpy(text,"\n~FTVychody:~RS");
 for(i=0;i<MAX_LINKS;++i) {
@@ -213,13 +213,12 @@ else write_user(user, notopic_prompt);
 /*** Set rooms to public or private ***/
 void set_room_access(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
-char *name;
-int cnt;
+	UR_OBJECT u;
+	RM_OBJECT rm=user->room;
+	char *name;
+	int cnt;
 
 	set_crash();
-rm=user->room;
 if (word_count<2) rm=user->room;
 else {
   if (user->level<amsys->gatecrash_level) {
@@ -274,8 +273,8 @@ clear_revbuff(rm);
 /*** Ask to be let into a private room ***/
 void letmein(UR_OBJECT user)
 {
-RM_OBJECT rm;
-int i,got;
+	RM_OBJECT rm;
+	int i,got;
 
 	set_crash();
 if (word_count<2) {
@@ -343,9 +342,9 @@ void uninvite(UR_OBJECT user)
 /*** Invite a user into a private room ***/
 void invite(UR_OBJECT user)
 {
-UR_OBJECT u;
-RM_OBJECT rm;
-char *name;
+	UR_OBJECT u;
+	RM_OBJECT rm=user->room;
+	char *name;
 
 	set_crash();
 if (word_count<2) {
@@ -355,7 +354,6 @@ if (!strcmp(word[2], "-cancel")) {
 	uninvite(user);
 	return;
 	}
-rm=user->room;
 if ((!(rm->access & PRIVATE)) && (rm->access!=ROOT_CONSOLE)) {
   write_user(user,"Tato ruuma je prave verejna.\n");
   return;
@@ -386,18 +384,16 @@ strcpy(u->invite_by,user->name);
 /*** Show who is on.  type 0=who, 1=fwho, 2=people ***/
 void who(UR_OBJECT user, int type)
 {
-UR_OBJECT u;
-int cnt,total,invis,logins,friend,wholen;
-long mins, idle;
-char line[(USER_NAME_LEN+USER_DESC_LEN*2)+510];
-char rname[ROOM_NAME_LEN+1],portstr[5],idlestr[20],sockstr[3];
+	UR_OBJECT u;
+	int cnt,total=0,invis=0,logins=0,wholen;
+	long mins, idle;
+	char line[(USER_NAME_LEN+USER_DESC_LEN*2)+510];
+	char rname[ROOM_NAME_LEN+1],portstr[5],idlestr[20],sockstr[3];
 #ifdef NETLINKS
- int remote=0;
+	int remote=0;
 #endif 
 
 	set_crash();
-total=0;  invis=0;  logins=0;  friend=0;
-
 	if(user->restrict[RESTRICT_WHO]==restrict_string[RESTRICT_WHO]) {
 		write_user(user,">>>You have no right to use .who or .people! Sorry...\n");
 		return;
@@ -531,10 +527,10 @@ write_user(user,"+--------------------------------------------------------------
      private will be ignore if the users level is less than gatecrash_level ***/
 void search_boards(UR_OBJECT user)
 {
-RM_OBJECT rm;
-FILE *fp;
-char filename[500],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[USER_NAME_LEN];
-int w,cnt,message,yes,room_given;
+	RM_OBJECT rm;
+	FILE *fp;
+	char filename[500],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[USER_NAME_LEN];
+	int w,cnt=0,message,yes,room_given;
 
 	set_crash();
 if (word_count<2) {
@@ -542,8 +538,7 @@ if (word_count<2) {
   return;
   }
 /* Go through rooms */
-cnt=0;
-for(rm=room_first;rm!=NULL;rm=rm->next) {
+for (rm=room_first;rm!=NULL;rm=rm->next) {
   if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
     sscanf(rm->name,"%s",rmname);
     rmname[0]=toupper(rmname[0]);
@@ -638,7 +633,7 @@ void show_version(UR_OBJECT user)
 	write_user(user,".----------------------------------------------------------------------------.\n");
 	sprintf(text, "(C) %s", reg_sysinfo[SYSOPUNAME]);
 	vwrite_user(user,"| ~FT~OLStar talker verzia %-8.8s                           %20.20s~RS |\n", TVERSION, text);
-	vwrite_user(user,"| ~FT~OLLotos verzia %-8.8s                         (C) Pavol Hluchy, April 2001~RS |\n", OSSVERSION);
+	vwrite_user(user,"| ~FT~OLLotos verzia %-8.8s                         (C) Pavol Hluchy, Januar 2002~RS |\n", OSSVERSION);
 	vwrite_user(user,"| ~FT~OLAmnuts version %-5s                 (C) Andrew Collington, September 1999~RS |\n", AMNUTSVER);
 	vwrite_user(user,"| NUTS version %5s                       (C) Neil Robertson, November 1996 |\n", NUTSVER);
 	if (user->level>=ARCH) {
@@ -662,14 +657,14 @@ void show_version(UR_OBJECT user)
 /*** Show talker rooms ***/
 void rooms(UR_OBJECT user, int show_topics, int wrap)
 {
-RM_OBJECT rm;
-UR_OBJECT u;
+	RM_OBJECT rm;
+	UR_OBJECT u;
 #ifdef NETLINKS
-  NL_OBJECT nl;
-  char serv[SERV_NAME_LEN+1],nstat[9];
+	NL_OBJECT nl;
+	char serv[SERV_NAME_LEN+1],nstat[9];
 #endif
-char rmaccess[9];
-int cnt,rm_cnt,rm_pub,rm_priv,rm_tr;
+	char rmaccess[9];
+	int cnt,rm_cnt,rm_pub,rm_priv,rm_tr;
 
 	set_crash();
 if (word_count<2) {
@@ -759,8 +754,8 @@ write_usage(user,"%s [level]", command_table[RMST].name);
 /*** Change whether a rooms access is fixed or not ***/
 void change_room_fix(UR_OBJECT user, int fix)
 {
-RM_OBJECT rm;
-char *name;
+	RM_OBJECT rm;
+	char *name;
 
 	set_crash();
 if (word_count<2) rm=user->room;
@@ -814,8 +809,8 @@ void cls(UR_OBJECT user)
 /* show the ranks and commands per level for the talker */
 void show_ranks(UR_OBJECT user)
 {
-	CM_OBJECT pcom;
-	int i,total,cnt[ROOT+1];
+	CM_OBJECT pcom=cmds_first;
+	int i,total=0,cnt[ROOT+1];
 	char *ptr, chr;
 	char *cl[ROOT+1]={
 		"~CG", "~CG", "~FG", "~FG", "~FB",
@@ -826,13 +821,12 @@ void show_ranks(UR_OBJECT user)
 
 	set_crash();
 	for (i=JAILED;i<=ROOT;i++) cnt[i]=0;
-	total=i=0;
+	i=0;
 	while (command_table[i].name[0]!='*') {
 		cnt[command_table[i].level]++;
 		i++;
 		}
 	i=0;
-	pcom=cmds_first;
 	while (pcom!=NULL) {
 		cnt[pcom->req_lev]++;
 		pcom=pcom->next;
@@ -859,11 +853,11 @@ void show_ranks(UR_OBJECT user)
 /* Show the wizzes that are currently logged on, and get a list of names from the lists saved */
 void wiz_list(UR_OBJECT user)
 {
-UR_OBJECT u;
-int some_on=0,count=0,cnt,i,inlist;
-char text2[ARR_SIZE], temp[ARR_SIZE];
-char *clrs[]={"~FT","~FM","~FG","~FB","~OL","~FR","~FY"};
-struct wiz_list_struct *entry;
+	UR_OBJECT u;
+	int some_on=0,count=0,cnt,i,inlist;
+	char text2[ARR_SIZE], temp[ARR_SIZE];
+	char *clrs[]={"~FT","~FM","~FG","~FB","~OL","~FR","~FY"};
+	struct wiz_list_struct *entry;
 
 	set_crash();
 write_user(user,"+----- ~FGWiz List~RS -------------------------------------------------------------+\n\n");
@@ -938,9 +932,9 @@ void get_time(UR_OBJECT user)
      a particular pattern ***/
 void grep_users(UR_OBJECT user)
 {
-int found,x;
-char name[USER_NAME_LEN+1],pat[ARR_SIZE];
-struct user_dir_struct *entry;
+	int found,x;
+	char name[USER_NAME_LEN+1],pat[ARR_SIZE];
+	struct user_dir_struct *entry;
 
 	set_crash();
 if (word_count<2) {
@@ -993,9 +987,9 @@ write_user(user,"+--------------------------------------------------------------
 /*** Shoot another user... Fun! Fun! Fun! ;) ***/
 void shoot_user(UR_OBJECT user)
 {
-UR_OBJECT user2;
-RM_OBJECT rm;
-int prob1,prob2;
+	UR_OBJECT user2;
+	RM_OBJECT rm;
+	int prob1,prob2;
 
 	set_crash();
 rm=get_room(default_shoot);
@@ -1074,7 +1068,7 @@ write_user(user,"~FRYou couldn't hit the side of a barn!\n");
 /*** well.. Duh!  Reload the gun ***/
 void reload_gun(UR_OBJECT user)
 {
-RM_OBJECT rm;
+	RM_OBJECT rm;
 
 	set_crash();
 rm=get_room(default_shoot);
@@ -1349,9 +1343,9 @@ else write_user(user,"There was an error taking the key away from that user.\n")
 /*** allow a user to bump others from their personal room ***/
 void personal_room_bgone(UR_OBJECT user)
 {
-RM_OBJECT rm, rmto;
-UR_OBJECT u;
-char name[ROOM_NAME_LEN+1];
+	RM_OBJECT rm, rmto;
+	UR_OBJECT u;
+	char name[ROOM_NAME_LEN+1];
 
 	set_crash();
 if (!amsys->personal_rooms) {
@@ -1415,8 +1409,8 @@ move_user(u,rmto,0);
 ***/
 void display_files(UR_OBJECT user,int admins)
 {
-char filename[500],*c;
-int ret;
+	char filename[500],*c;
+	int ret;
 
 	set_crash();
 if (word_count<2) {
@@ -1459,7 +1453,7 @@ return;
 void main_help(UR_OBJECT user)
 {
 	int ret;
-	
+
 	set_crash();
 	if (!(ret=more(user,user->socket,MAINHELP))) {
 		write_user(user,"Sorrac, momentalne neni help.\n");
@@ -1703,3 +1697,4 @@ void list_cmdas(UR_OBJECT user)
 }
 
 #endif /* ct_general.c */
+

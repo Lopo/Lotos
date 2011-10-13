@@ -1,10 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-               Funkcie Lotos v1.2.0 pre manipulaciu s kreditmi
-original:  Money system version 1.0.1 - Copyright (C) Andrew Collington
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * money.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __MONEY_C__
 #define __MONEY_C__ 1
@@ -23,9 +26,9 @@ original:  Money system version 1.0.1 - Copyright (C) Andrew Collington
 /* give some cash to another user */
 void donate_cash(UR_OBJECT user)
 {
-UR_OBJECT u;
-int cash;
-char *name;
+	UR_OBJECT u;
+	int cash;
+	char *name;
 
 	set_crash();
 if (word_count<3) {
@@ -72,22 +75,21 @@ add_history(u->name,1,text);
 void show_money(UR_OBJECT user)
 {
 	set_crash();
-if (!user->money) {
-  write_user(user,"You do not have any money on your right now.\n");
-  return;
-  }
-vwrite_user(user,"You currently have ~OL~FT$%d~RS on you.\n",user->money);
+	if (!user->money) {
+		write_user(user,"You do not have any money on your right now.\n");
+		return;
+		}
+	vwrite_user(user,"You currently have ~OL~FT$%d~RS on you.\n",user->money);
 }
 
 
 /** Add in the credits system **/
 void check_credit_updates(void)
 {
-UR_OBJECT u,next;
+	UR_OBJECT u=user_first,next;
 
 	set_crash();
-u=user_first;
-while(u!=NULL) {
+while (u!=NULL) {
   next=u->next;  
   /* only update credits for users who qualify */
   if (u->level<MIN_CREDIT_UPDATE_LEVEL || u->afk || u->login || (int)(time(0)-u->last_input)>=amsys->user_idle_time) return;
@@ -105,12 +107,11 @@ while(u!=NULL) {
 /* give, take and view money of users currently logged on */
 void global_money(UR_OBJECT user)
 {
-UR_OBJECT u;
-int cash,i,x,user_cnt;
-char *name,text2[ARR_SIZE];
+	UR_OBJECT u;
+	int cash,x=0,user_cnt=0;
+	char *name,text2[ARR_SIZE];
 
 	set_crash();
-x=i=user_cnt=0;
 text2[0]='\0';
 
 if (word_count<2) {
@@ -226,3 +227,4 @@ write_usage(user,"money -l/-g/-t [<user> <amount>]");
 }
 
 #endif /* money.c */
+

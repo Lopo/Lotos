@@ -1,9 +1,13 @@
-/* vi: set ts=4 sw=4: ai*/
-/*****************************************************************************
-                Funkcie Lotos v1.2.0 suvisiace s ignoraciami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/* vi: set ts=4 sw=4 ai: */
+/*
+ * ct_ignore.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_IGNORE_C__
 #define __CT_IGNORE_C__ 1
@@ -17,7 +21,7 @@
 #include "obj_ur.h"
 #include "ct_ignore.h"
 #include "comvals.h"
-#include "ignval.h"
+#include "val_ign.h"
 
 
 
@@ -103,10 +107,9 @@ void set_igusers(UR_OBJECT user)
 /*** Allows a user to listen to everything again ***/
 void user_listen(UR_OBJECT user)
 {
-	int yes;
+	int yes=0;
 
 	set_crash();
-	yes=0;
 	if (user->ignore.all) {
 		user->ignore.all=0;
 		yes=1;
@@ -161,6 +164,7 @@ void user_listen(UR_OBJECT user)
 void set_ign_word(UR_OBJECT user)
 {
 	char *pp;
+
 	set_crash();
 	if (word_count<3) {
 		if (user->ign_word!=NULL)
@@ -201,11 +205,10 @@ void set_ign_word(UR_OBJECT user)
 
 void set_ignores(UR_OBJECT user)
 {
-	int i, ignattrval=-1;
+	int i=0, ignattrval=-1;
 
 	set_crash();
 	if (word_count<2) goto IGN_JUMP;
-	i=0;
 	strtolower(word[1]);
 	while (ignstr[i].type[0]!='*') {
 		if (!strcmp(ignstr[i].type, word[1])) {
@@ -337,3 +340,4 @@ IGN_JUMP:
 }
 
 #endif /* ct_ignore.c */
+

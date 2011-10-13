@@ -1,9 +1,13 @@
 /* vi: set ts=4 sw=4 ai: */
-/*****************************************************************************
-                  Funkcie Lotos v1.2.0 suvisiace so spravami
-            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
-          lotos@losys.net           |          http://lotos.losys.net
- *****************************************************************************/
+/*
+ * ct_msg.c
+ *
+ *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
+ *   last update   : 26.12.2001
+ *   email         : lopo@losys.sk
+ *   homepage      : lopo.losys.sk
+ *   Lotos homepage: lotos.losys.sk
+ */
 
 #ifndef __CT_MSG_C__
 #define __CT_MSG_C__ 1
@@ -56,12 +60,10 @@ if (amsys->auto_promote) check_autopromote(user, 3);
      ***/
 void show_reminders(UR_OBJECT user, int stage)
 {
-char temp[ARR_SIZE];
-int i,j,d,m,y,cnt_total,cnt_today,del,done;
+	char temp[ARR_SIZE];
+	int i,j,d,m,y,cnt_total=0,cnt_today=0,del,done;
 
 	set_crash();
-cnt_total=cnt_today=0;
-
 /* display manually */
 if (!stage) {
   if (word_count<2) {
@@ -291,3 +293,4 @@ switch(stage) {
 }
 
 #endif /* ct_msg.c */
+

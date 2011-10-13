@@ -1,7 +1,7 @@
-# Main config file for Lotos 1.2.0
+# Main config file for Lotos 1.2.1
 
 INIT:
-verification       lotos120
+verification       lotos121
 mainport           7000
 wizport            7001
 linkport           7002
