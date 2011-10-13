@@ -1,4 +1,4 @@
-T a l k r o v y   O S  S t a r   verzia 1.0.0b
+T a l k r o v y   O S  S t a r   verzia 1.0.0
 ==============================================================================
                  Instalacia, nastavenie, pouzivatelsky manual
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,7 +50,9 @@ POZN.: Pozri samostatne specializovane manualy
         - zalohovanie talkra
        4. Gaen K 16
         - system fontov a ich pouzitie
-       5. nejake doplnky z roznych slovenskych talkrov
+       5. Crypt V5
+        - fonty a praca s nimi
+       6. nejake doplnky z roznych slovenskych talkrov
        	- Star AMD talker
        	- Hysteria - pocitadla
        	- M.A.R.S talker - restart (reinicializacia)
@@ -85,7 +87,7 @@ POZN.: Pozri samostatne specializovane manualy
       neurobil, v podstate som len podrobnejsie pozeral zdrojove kody
       jednotlivych talkrov a vyberal si co vsetko pouzijem v mojom systeme.
       Ale potom to uz islo celkom rychlo.
-      Tato verzia bola dokoncena 28.3.2000 o 13.03 (presne :).
+      Tato verzia bola dokoncena 2.5.2000.
 
    ---------------------------------------------
    O d s t a v e c   A - nastavenie a instalacia

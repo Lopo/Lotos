@@ -1,6 +1,6 @@
 /*****************************************************************************
-               Funkcie OS Star v1.0.0b pre pracu s email spravami
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+               Funkcie OS Star v1.0.0 pre pracu s email spravami
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -101,68 +101,68 @@ write_user(user,"If you do not receive any email, then use ~FTset email <email>~
 /*** send smail to the email ccount ***/
 void forward_email(char *name, char *from, char *message)
 {
-FILE *fp;
-UR_OBJECT u;
-char filename[100];
-int on=0;
+    FILE *fp;
+    UR_OBJECT u;
+    char filename[300];
+    int on=0;
 
-if (!amsys->forwarding) return;
-if ((u=get_user(name))) {
-  on=1;
-  goto SKIP;
-  }
+    if (!amsys->forwarding) return;
+    if ((u=get_user(name))) {
+	on=1;
+	goto SKIP;
+	}
 /* Have to create temp user if not logged on to check if email verified, etc */
-if ((u=create_user())==NULL) {
-  write_syslog(SYSLOG,0,"ERROR: Unable to create temporary user object in forward_email().\n");
-  return;
-  }
-strcpy(u->name,name);
-if (!load_user_details(u)) {
-  destruct_user(u);
-  destructed=0;
-  return;
-  }
-on=0;
+    if ((u=create_user())==NULL) {
+	write_syslog(SYSLOG,0,"ERROR: Unable to create temporary user object in forward_email().\n");
+	return;
+	}
+    strcpy(u->name,name);
+    if (!load_user_details(u)) {
+	destruct_user(u);
+	destructed=0;
+	return;
+	}
+    on=0;
 SKIP:
-	if (!u->mail_verified) {
-		if (!on) {
-			destruct_user(u);
-			destructed=0;
-			}
-		return;
-		}
-	if (!u->autofwd){
-		if (!on) {
-			destruct_user(u);
-			destructed=0;
-			}
-		return;
-		} 
+    if (!u->mail_verified) {
+	if (!on) {
+	    destruct_user(u);
+	    destructed=0;
+	    }
+	return;
+	}
+    if (!u->autofwd){
+	if (!on) {
+	    destruct_user(u);
+	    destructed=0;
+	    }
+	return;
+	} 
 
-sprintf(filename,"%s/%s.FWD",MAILSPOOL,u->name);
-if (!(fp=fopen(filename,"w"))) {
-  write_syslog(SYSLOG,0,"Unable to open forward mail file in set_forward_email()\n");
-  return;
-  }
-fprintf(fp,"From: %s\n",reg_sysinfo[TALKERNAME]);
-fprintf(fp,"To: %s <%s>\n",u->name,u->email);
-fprintf(fp,"Subject: Auto-forward of smail.\n");
-fprintf(fp,"\n");
-from=colour_com_strip(from);
-fputs(from,fp);
-fputs("\n",fp);
-message=colour_com_strip(message);
-fputs(message,fp);
-fputs("\n\n",fp);
-fputs(talker_signature,fp);
-fclose(fp);
-send_forward_email(u->email,filename);
-write_syslog(SYSLOG,1,"%s had mail sent to their email address.\n",u->name);
-if (!on) {
-  destruct_user(u);
-  destructed=0;
-  }
-return;
+    sprintf(filename,"%s/%s/%s/%s.FWD", ROOTDIR, DATAFILES, MAILSPOOL, u->name);
+    if (!(fp=fopen(filename,"w"))) {
+	write_syslog(SYSLOG,0,"Unable to open forward mail file in set_forward_email()\n");
+	return;
+	}
+    fprintf(fp,"From: %s\n",reg_sysinfo[TALKERNAME]);
+    fprintf(fp,"To: %s <%s>\n",u->name,u->email);
+    fprintf(fp,"Subject: Auto-forward of smail.\n");
+    fprintf(fp,"\n");
+    from=colour_com_strip(from);
+    fputs(from,fp);
+    fputs("\n",fp);
+    message=colour_com_strip(message);
+    fputs(message,fp);
+    fputs("\n\n",fp);
+    fputs(talker_signature,fp);
+    fclose(fp);
+    send_forward_email(u->email,filename);
+    write_syslog(SYSLOG,1,"%s had mail sent to their email address.\n",u->name);
+    if (!on) {
+	destruct_user(u);
+	destructed=0;
+	}
+    return;
 }
 
 

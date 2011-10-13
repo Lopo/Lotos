@@ -1,0 +1,27 @@
+t a l k r o v y  O S  S t a r v1.0.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Informacie o zmenach v jednotlivych verziach OS Star
+----------------------------------------------------
+
+2.5.2000 v1.0.0 - prva full verzia
+---------------
+forward_email() - opravena dlzka nazvu suboru a jeho umiestnenia
+pueblo.c - includ nl_obj.h dany medzi #ifdef NETLINKS
+load_and_parse_config() - opravena chyba s #ifdef
+arrest() - opravena chyba umoznujuca cez suicide utiect z vazenia
+par oprav v transportoch
+upravene restrict obmedzenia
+tell() - opraveny prikaz call
+disconnect_user() - doplnenie oznamu o odhlaseni usera v notify liste
+doplnenie v promote() - nemozem promotnut az na moj level
+oprava v suggestions(), delete_suggestions(), suggestions_from() - zvacsena
+ dlzka nazvu suboru SUGBORAD a jeho umiestnenia
+clear_files() - doplnene zmazanie userovych dat z pluginov
+nick_grm() - oprava a doplnenie sklonovania nicku
+load_user_details() - opravene nastavenie icq
+zopar malych bugfixov, kozmetickych uprav a doplneni textov
+
+
+28.3.2000 v1.0.0b - prva volne dostupna verzia
+-----------------
+velmi vela zmien oproti povodnemu Amnuts 2.2.1

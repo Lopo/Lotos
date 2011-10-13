@@ -1,6 +1,6 @@
 /*****************************************************************************
-         Funkcie pre OS Star v1.0.0b nezaradene do specifickej skupiny
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+         Funkcie pre OS Star v1.0.0 nezaradene do specifickej skupiny
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -325,7 +325,7 @@ void nick_grm(UR_OBJECT user)
 				break;
 			case 'y' : strcat(user->named, "mu"); break;
 			case 'a' :
-				user->name[strlen(user->named)-1]='o';
+				user->named[strlen(user->named)-1]='o';
 				strcat(user->named, "vi");
 				break;
 			default  : strcat(user->named, "ovi"); break;
@@ -376,7 +376,7 @@ void nick_grm(UR_OBJECT user)
 				break;
 			case 'y' : strcat(user->namel, "m"); break;
 			case 'a' :
-				user->name[strlen(user->namel)-1]='o';
+				user->namel[strlen(user->namel)-1]='o';
 				strcat(user->namel, "vi");
 				break;
 			default  : strcat(user->namel, "ovi"); break;
@@ -387,6 +387,7 @@ void nick_grm(UR_OBJECT user)
 			case 'o' : strcat(user->namel, "vi"); break;
 			case 'a' :
 				switch (c2) {
+					case 'k' :
 					case 'n' : user->namel[strlen(user->namel)-1]='e'; break;
 					default  : user->namel[strlen(user->namel)-1]='i'; break;
 					}
@@ -441,7 +442,7 @@ void nick_grm(UR_OBJECT user)
 		switch (c1) {
 			case 'o' : strcat(user->namei, "m"); break;
 			case 'a' :
-				user->namei[strlen(user->namei)-2]='\0';
+				user->namei[strlen(user->namei)-1]='\0';
 				strcat(user->namei, "ou");
 				break;
 			default  :

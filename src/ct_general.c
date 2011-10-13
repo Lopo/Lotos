@@ -1,6 +1,6 @@
 /*****************************************************************************
-              Funkcie OS Star v1.0.0b skupiny hlavnych, verejnych
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+              Funkcie OS Star v1.0.0 skupiny hlavnych, verejnych
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -34,65 +34,65 @@ void disconnect_user(UR_OBJECT user)
 #endif
 	long int onfor,hours,mins;
 
-for (ur=user_first; ur!=NULL; ur=ur->next)
-	if (ur->follow==user)
-		ur->follow=NULL;
+	for (ur=user_first; ur!=NULL; ur=ur->next)
+		if (ur->follow==user) ur->follow=NULL;
 
-rm=user->room;
-if (user->login) {
-  close(user->socket);  
-  destruct_user(user);
-  amsys->num_of_logins--;  
-  return;
-  }
-if (user->type!=REMOTE_TYPE) {
-  onfor=(int)(time(0)-user->last_login);
-  hours=(onfor%86400)/3600;
-  mins=(onfor%3600)/60;
-  save_user_details(user,1);
-  save_plugin_data(user);
-  write_syslog(SYSLOG,1,"%s logged out.\n",user->name);
-  write_user(user,"\n~OL~FBYou are removed from this reality...\n\n");
-  vwrite_user(user,"You were logged on from site %s\n",user->site);
-  vwrite_user(user,"On %s, %d%s %s, for a total of %d hour%s and %d minute%s.\n\n",
-	  day[twday],tmday,ordinal_text(tmday),month[tmonth],(int)hours,PLTEXT_S(hours),(int)mins,PLTEXT_S(mins));
-  close(user->socket);
-  logon_flag=1;
-  if (user->vis) vwrite_room(NULL,"~OL[Leaving is:~RS %s~RS %s~RS~OL]\n",user->recap,user->desc);
-  else {
-    sprintf(text,"~OL~FY[ INVIS ]~RS ~OL[Leaving is:~RS %s~RS %s~RS~OL]\n",user->recap,user->desc);
-    write_level(WIZ,1,text,NULL);
-    }
-  logon_flag=0;
+	rm=user->room;
+	if (user->login) {
+		close(user->socket);  
+		destruct_user(user);
+		amsys->num_of_logins--;  
+		return;
+		}
+	if (user->type!=REMOTE_TYPE) {
+		onfor=(int)(time(0)-user->last_login);
+		hours=(onfor%86400)/3600;
+		mins=(onfor%3600)/60;
+		save_user_details(user,1);
+		save_plugin_data(user);
+		write_syslog(SYSLOG,1,"%s logged out.\n",user->name);
+		write_user(user,"\n~OL~FBYou are removed from this reality...\n\n");
+		vwrite_user(user,"You were logged on from site %s\n",user->site);
+		vwrite_user(user,"On %s, %d%s %s, for a total of %d hour%s and %d minute%s.\n\n",
+			day[twday],tmday,ordinal_text(tmday),month[tmonth],(int)hours,PLTEXT_S(hours),(int)mins,PLTEXT_S(mins));
+		close(user->socket);
+		logon_flag=1;
+		if (user->vis) vwrite_room(NULL,"~OL[Leaving is:~RS %s~RS %s~RS~OL]\n",user->recap,user->desc);
+		else {
+			sprintf(text,"~OL~FY[ INVIS ]~RS ~OL[Leaving is:~RS %s~RS %s~RS~OL]\n",user->recap,user->desc);
+			write_level(WIZ,1,text,NULL);
+			}
+		logon_flag=0;
 #ifdef NETLINKS
-  if (user->room==NULL) {
-    sprintf(text,"REL %s\n",user->name);
-    write_sock(user->netlink->socket,text);
-    for(nl=nl_first;nl!=NULL;nl=nl->next) 
-      if (nl->mesg_user==user) {  
-	nl->mesg_user=(UR_OBJECT)-1;  break;  
-        }
-    }
+		if (user->room==NULL) {
+			sprintf(text,"REL %s\n",user->name);
+			write_sock(user->netlink->socket,text);
+			for(nl=nl_first;nl!=NULL;nl=nl->next) 
+				if (nl->mesg_user==user) {  
+					nl->mesg_user=(UR_OBJECT)-1;
+					break;
+					}
+				}
 #endif
-  }
+		}
 #ifdef NETLINKS
-else {
-  save_plugin_data(user);
-  write_user(user,"\n~FR~OLYou are pulled back in disgrace to your own domain...\n");
-  sprintf(text,"REMVD %s\n",user->name);
-  write_sock(user->netlink->socket,text);
-  vwrite_room_except(rm,user,"~FR~OL%s is banished from here!\n",user->name);
-  write_syslog(NETLOG,1,"NETLINK: Remote user %s removed.\n",user->name);
-  }
+	else {
+		save_plugin_data(user);
+		write_user(user,"\n~FR~OLYou are pulled back in disgrace to your own domain...\n");
+		sprintf(text,"REMVD %s\n",user->name);
+		write_sock(user->netlink->socket,text);
+		vwrite_room_except(rm,user,"~FR~OL%s is banished from here!\n",user->name);
+		write_syslog(NETLOG,1,"NETLINK: Remote user %s removed.\n",user->name);
+		}
 #endif
-if (user->malloc_start!=NULL) free(user->malloc_start);
-syspp->acounter[3]--;
-syspp->acounter[user->gender]--;
-record_last_logout(user->name);
-/* Destroy any clones */
-destroy_user_clones(user);
-destruct_user(user);
-reset_access(rm);
+	if (user->malloc_start!=NULL) free(user->malloc_start);
+	syspp->acounter[3]--;
+	syspp->acounter[user->gender]--;
+	record_last_logout(user->name);
+	alert_friends(user, 0);
+	destroy_user_clones(user);
+	destruct_user(user);
+	reset_access(rm);
 }
 
 
@@ -111,7 +111,7 @@ else vwrite_user(user,"\n~FTRoom: ~FG%s\n\n",rm->name);
 if (user->show_rdesc) write_user(user,user->room->desc);
 exits=0;
 null[0]='\0';
-strcpy(text,"\n~FTExits are:");
+strcpy(text,"\n~FTExits are:~RS");
 for(i=0;i<MAX_LINKS;++i) {
   if (rm->link[i]==NULL) break;
   if (rm->link[i]->access & PRIVATE) sprintf(temp,"  ~FR%s",rm->link[i]->name);
@@ -598,9 +598,10 @@ void show_version(UR_OBJECT user)
 	RM_OBJECT rm;
 
 	write_user(user,".----------------------------------------------------------------------------.\n");
-	vwrite_user(user,"| ~FT~OLtalker Star verzia %8.8s                           (C) Lopo, Marec 2000~RS |\n", TVERSION);
-	vwrite_user(user,"| ~FT~OLOS Star verzia %8.8s                       (C) Pavol Hluchy, Marec 2000~RS |\n", OSSVERSION);
-	vwrite_user(user,"| ~FT~OLAmnuts version %5s                 (C) Andrew Collington, September 1999~RS |\n", AMNUTSVER);
+	sprintf(text, "(C) %s", reg_sysinfo[SYSOPUNAME]);
+	vwrite_user(user,"| ~FT~OLtalker Star verzia %-8.8s                           %20.20s~RS |\n", TVERSION, text);
+	vwrite_user(user,"| ~FT~OLOS Star verzia %-8.8s                       (C) Pavol Hluchy, Marec 2000~RS |\n", OSSVERSION);
+	vwrite_user(user,"| ~FT~OLAmnuts version %-5s                 (C) Andrew Collington, September 1999~RS |\n", AMNUTSVER);
 	vwrite_user(user,"| NUTS version %5s                       (C) Neil Robertson, November 1996 |\n", NUTSVER);
 	if (user->level>=ARCH) {
 	write_user(user,"+----------------------------------------------------------------------------+\n");
@@ -613,7 +614,7 @@ void show_version(UR_OBJECT user)
 		write_user(user,"| Compiled netlinks        : ~OLNIE~RS                                             |\n");
 	#endif
 		write_user(user,"+----------------------------------------------------------------------------+\n");
-		for (i=JAILED;i<=GOD;i++)
+		for (i=JAILED;i<=ROOT;i++)
 			vwrite_user(user,"| Number of users at level %-6s : ~OL%-4d~RS                                     |\n",user_level[i].alias,amsys->level_count[i]);
 		}
 	write_user(user,"`----------------------------------------------------------------------------'\n");
@@ -811,7 +812,7 @@ char *clrs[]={"~FT","~FM","~FG","~FB","~OL","~FR","~FY"};
 struct wiz_list_struct *entry;
 
 write_user(user,"+----- ~FGWiz List~RS -------------------------------------------------------------+\n\n");
-for (i=GOD;i>=WIZ;i--) {
+for (i=ROOT;i>=WIZ;i--) {
   text2[0]='\0';  cnt=0;  inlist=0;
   sprintf(text,"~OL%s%-11s~RS: ",clrs[i%4],user_level[i].name);
   for(entry=first_wiz_entry;entry!=NULL;entry=entry->next) {
@@ -1321,7 +1322,7 @@ strtolower(word[1]);
 /* bounce everyone out - except GODS */
 if (!strcmp(word[1],"all")) {
   for (u=user_first;u!=NULL;u=u->next) {
-    if (u==user || u->room!=rm || u->level==GOD) continue;
+    if (u==user || u->room!=rm || u->level>=GOD) continue;
     vwrite_user(user,"%s~RS is forced to leave the room.\n",u->recap);
     write_user(u,"You are being forced to leave the room.\n");
     move_user(u,rmto,0);
@@ -1337,7 +1338,7 @@ if (u->room!=rm) {
   vwrite_user(user,"%s is not in your personal room.\n",u->name);
   return;
   }
-if (u->level==GOD) {
+if (u->level>=GOD) {
   vwrite_user(user,"%s cannot be forced to leave your personal room.\n",u->name);
   return;
   }

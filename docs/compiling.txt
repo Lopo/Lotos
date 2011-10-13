@@ -1,4 +1,4 @@
-t a l k r o v y   O S  S t a r  verzia 1.0.0b
+t a l k r o v y   O S  S t a r  verzia 1.0.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Informacie o kompilacii
 -----------------------

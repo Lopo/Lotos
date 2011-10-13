@@ -1,3 +1,7 @@
+t a l k r o v y  O S  S t a r  v1.0.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Informacie o nastaveni OS Star pomocou konfiguracneho suboru
+------------------------------------------------------------
 Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
 systemu, v sekcii ROOMS su mena miestnosti, ich prepojenia a netlinky,
 v TRANSPORTS sa definuju transporty - ich mena, drahy a casy ciest a zastavok,

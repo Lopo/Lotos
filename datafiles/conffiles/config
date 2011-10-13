@@ -1,7 +1,7 @@
-# Main config file for talker OS Star 1.0.0b
+# Main config file for talker OS Star 1.0.0
 
 INIT:
-verification       osstar100b
+verification       osstar100
 mainport           7000
 wizport            7001
 linkport           7002

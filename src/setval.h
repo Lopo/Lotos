@@ -1,6 +1,6 @@
 /*****************************************************************************
-               Hodnoty poloziek pre prikaz `set' OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+               Hodnoty poloziek pre prikaz `set' OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 

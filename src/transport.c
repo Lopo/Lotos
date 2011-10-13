@@ -1,6 +1,6 @@
 /*****************************************************************************
-               Funkcie OS Star v1.0.0b suvisiace s transportami
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+               Funkcie OS Star v1.0.0 suvisiace s transportami
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -107,22 +107,17 @@ void write_transport_except(RM_OBJECT tr, char *str, UR_OBJECT user)
 	for(u=user_first; u!=NULL; u=u->next) {
 		if (u->room) if (!u->room->tr) continue;
 		if (u->login
-		    || (u->room!=tr && tr!=NULL)
+		    || u->room!=tr
 		    || (u->ignall && !force_listen)
 		    || u->igntr
-		    || (u->ignshouts && (com_num==SHOUT || com_num==SEMOTE || com_num==SHOUTTO))
 		    || u==user)
 			continue;
-		if ((check_igusers(u,user))!=-1 && user->level<ARCH) continue;
 		if (u->type==CLONE_TYPE) {
 			if (u->clone_hear==CLONE_HEAR_NOTHING || u->owner->ignall) continue;
 			/* Ignore anything not in clones room, eg shouts,
 			   system messages and semotes since the clones owner
 			   will hear them anyway. */
-			if (tr!=u->room) continue;
-			if (u->clone_hear==CLONE_HEAR_SWEARS) {
-				if (!contains_swearing(str)) continue;
-				}
+			if (u->clone_hear==CLONE_HEAR_SWEARS && !contains_swearing(str)) continue;
 			vwrite_user(user->owner, "~FT[ %s ]:~RS %s",u->room->name,str);
 			}
 		else write_user(u,str); 
@@ -160,6 +155,7 @@ void transport(void)
 					if (u->ignall
 					    || u->igntr
 					    || u->misc_op
+						|| u->login
 					    || u->room!=tr->link[tr->out]) continue;
 					 else vwrite_user(u, "~OLPrisiel transport '%s', mozes nastupit.\n", tr->name);
 					}
@@ -175,6 +171,8 @@ void transport(void)
 				for (u=user_first; u!=NULL; u=u->next) {
 					if (!u->ignall
 					    && !u->igntr
+						&& !u->login
+						&& !u->misc_op
 					    && u->room==tr->link[tr->out]
 					    ) {
 						vwrite_user(u, "~OLTransport '%s' odisiel\n", tr->name);

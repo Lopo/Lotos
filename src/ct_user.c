@@ -1,6 +1,6 @@
 /*****************************************************************************
-              Funkcie OS Star v1.0.0b pre userovu osobnu potrebu
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+              Funkcie OS Star v1.0.0 pre userovu osobnu potrebu
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 

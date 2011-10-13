@@ -1,6 +1,6 @@
 /*****************************************************************************
-            Funkcie OS Star v1.0.0b na pracu so spravami typu mail
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+            Funkcie OS Star v1.0.0 na pracu so spravami typu mail
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -29,10 +29,10 @@ UR_OBJECT get_user(char *name);
 void send_external_mail(NL_OBJECT nl, UR_OBJECT user, char *to, char *ptr)
 {
 FILE *fp;
-char filename[100];
+char filename[200];
 
 /* Write out to spool file first */
-sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,user->name,to,nl->service);
+sprintf(filename,"%s/%s/%s/OUT_%s_%s@%s", ROOTDIR, DATAFILES, MAILSPOOL,user->name,to,nl->service);
 if (!(fp=fopen(filename,"a"))) {
   sprintf(text,"%s: unable to spool mail.\n",syserror);
   write_user(user,text);
@@ -59,7 +59,7 @@ UR_OBJECT u;
   NL_OBJECT nl;
 #endif
 FILE *infp,*outfp;
-char *c,d,*service,filename[300],cc[4],header[ARR_SIZE];
+char *c,d,*service,filename[300],cc[4],header[ARR_SIZE], tempfile[200];
 int amount,size,tmp1,tmp2;
 struct stat stbuf;
 
@@ -82,7 +82,8 @@ while(*c) {
   ++c;
   }
 /* Local mail */
-if (!(outfp=fopen("tempfile","w"))) {
+sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+if (!(outfp=fopen(tempfile,"w"))) {
   write_user(user,"Error in mail delivery.\n");
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in send_mail().\n");
   return 0;
@@ -126,7 +127,7 @@ fputs(header,outfp);
 fputs(ptr,outfp);
 fputs("\n",outfp);
 fclose(outfp);
-rename("tempfile",filename);
+rename(tempfile,filename);
 switch(iscopy) {
   case 0: vwrite_user(user,"Mail is delivered to %s\n",to); break;
   case 1: vwrite_user(user,"Mail is copied to %s\n",to); break;
@@ -143,7 +144,7 @@ return 1;
      mail file first line - along with how many new mail messages there are
      ***/
 void read_new_mail(UR_OBJECT user) {
-char filename[100];
+char filename[200];
 int total,new;
 
 /* Get total number of mail */
@@ -370,7 +371,7 @@ editor(user,NULL);
 int send_broadcast_mail(UR_OBJECT user, char *ptr, int lvl, int type)
 {
 FILE *infp,*outfp;
-char d,*cc,header[ARR_SIZE],filename[100];
+char d,*cc,header[ARR_SIZE],filename[200], tempfile[200];
 int tmp1,tmp2,amount,size,cnt=0;
 struct user_dir_struct *entry;
 struct stat stbuf;
@@ -384,7 +385,8 @@ while (entry!=NULL) {
     }
   /* if type == -2 then do everyone */
   entry->name[0]=toupper(entry->name[0]);
-  if (!(outfp=fopen("tempfile","w"))) {
+  sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+  if (!(outfp=fopen(tempfile,"w"))) {
     write_user(user,"Error in mail delivery.\n");
     write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in send_broadcast_mail().\n");
     entry=entry->next;
@@ -429,7 +431,7 @@ while (entry!=NULL) {
   fputs(ptr,outfp);
   fputs("\n",outfp);
   fclose(outfp);
-  rename("tempfile",filename);
+  rename(tempfile,filename);
   forward_email(entry->name,header,ptr);
   write_user(get_user(entry->name),"\07~FT~OL~LI*** YOU HAVE NEW MAIL ***\n");
   ++cnt;
@@ -447,13 +449,13 @@ return 1;
 void dmail(UR_OBJECT user)
 {
 int num,cnt;
-char filename[100];
+char filename[200];
 
 if (word_count<2) {
   write_user(user,"Pouzitie: dmail all\n");
-  write_user(user,"Pouzitie: dmail <#>\n");
-  write_user(user,"Pouzitie: dmail to <#>\n");
-  write_user(user,"Pouzitie: dmail from <#> to <#>\n");
+  write_user(user,"          dmail <#>\n");
+  write_user(user,"          dmail to <#>\n");
+  write_user(user,"          dmail from <#> to <#>\n");
   return;
   }
 if (get_wipe_parameters(user)==-1) return;
@@ -488,7 +490,7 @@ void mail_from(UR_OBJECT user)
 {
 FILE *fp;
 int valid,cnt,tmp1,tmp2,nmail;
-char w1[ARR_SIZE],line[ARR_SIZE],filename[100];
+char w1[ARR_SIZE],line[ARR_SIZE],filename[200];
 
 sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR,USERFILES,USERMAILS,user->name);
 if (!(fp=fopen(filename,"r"))) {
@@ -724,7 +726,7 @@ editor(user,NULL);
 void forward_specific_mail(UR_OBJECT user) {
 FILE *fpi,*fpo;
 int valid,cnt,total,smail_number,tmp1,tmp2;
-char w1[ARR_SIZE],line[ARR_SIZE],filenamei[100],filenameo[100];
+char w1[ARR_SIZE],line[ARR_SIZE],filenamei[200],filenameo[200];
 
 if (word_count<2) {
   write_usage(user,"fmail all/<mail number>");
@@ -740,7 +742,7 @@ if (!user->mail_verified) {
   }
 /* send all smail */ 
 if (!strcasecmp(word[1],"all")) {
-  sprintf(filenameo,"%s/%s.FWD",MAILSPOOL,user->name);
+  sprintf(filenameo,"%s/%s/%s/%s.FWD", ROOTDIR, DATAFILES, MAILSPOOL,user->name);
   if (!(fpo=fopen(filenameo,"w"))) {
     write_syslog(SYSLOG,0,"Unable to open forward mail file in forward_specific_mail()\n");
     write_user(user,"Sorry, could not forward any mail to you.\n");
@@ -779,7 +781,7 @@ if (smail_number>total) {
   vwrite_user(user,"You only have %d message%s in your mailbox.\n",total,PLTEXT_S(total));
   return;
   }
-sprintf(filenameo,"%s/%s.FWD",MAILSPOOL,user->name);
+sprintf(filenameo,"%s/%s/%s/%s.FWD", ROOTDIR, DATAFILES, MAILSPOOL,user->name);
 if (!(fpo=fopen(filenameo,"w"))) {
   write_syslog(SYSLOG,0,"Unable to open forward mail file in forward_specific_mail()\n");
   write_user(user,"Sorry, could not forward any mail to you.\n");
@@ -829,7 +831,7 @@ int mail_sizes(char *name, int type)
 {
 FILE *fp;
 int valid,cnt,new,size;
-char w1[ARR_SIZE],line[ARR_SIZE],filename[100],*str;
+char w1[ARR_SIZE],line[ARR_SIZE],filename[200],*str;
 
 cnt=new=size=0;
 name[0]=toupper(name[0]);
@@ -863,7 +865,7 @@ int reset_mail_counts(UR_OBJECT user)
 {
 	FILE *infp,*outfp;
 	int size,tmp1,tmp2;
-	char c,filename[200];
+	char c,filename[200], tempfile[200];
 	struct stat stbuf;
 
 	sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR,USERFILES,USERMAILS,user->name);
@@ -873,7 +875,8 @@ int reset_mail_counts(UR_OBJECT user)
 
 	if (!(infp=fopen(filename,"r"))) return 0;
 	/* Update last read / new mail received time at head of file */
-	if ((outfp=fopen("tempfile","w"))) {
+	sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+	if ((outfp=fopen(tempfile,"w"))) {
 		fprintf(outfp,"0 %d\r",size);
 		/* skip first line of mail file */
 		fscanf(infp,"%d %d\r",&tmp1,&tmp2);
@@ -884,7 +887,7 @@ int reset_mail_counts(UR_OBJECT user)
 			c=getc(infp);
 			}
 		fclose(outfp);
-		rename("tempfile",filename);
+		rename(tempfile,filename);
 		}
 	user->read_mail=time(0);
 	fclose(infp);

@@ -1,6 +1,6 @@
 /*****************************************************************************
-           Funkcie OS Star v1.0.0b na rozne medzipouzivatelske akcie
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+           Funkcie OS Star v1.0.0 na rozne medzipouzivatelske akcie
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -93,7 +93,7 @@ if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSW
 vwrite_user(user,"~OLYou shout:~RS %s\n",inpstr);
 if (user->vis) name=user->bw_recap; else name=invisname;
 if (!user->vis) write_monitor(user,NULL,0);
-sprintf(text,"~OL%s shouts:~RS %s\n",name,inpstr);
+sprintf(text,"~OL~FY%s shouts:~RS %s\n",name,inpstr);
 write_room_except(NULL,text,user);
 record_shout(text);
 }
@@ -104,7 +104,7 @@ void tell(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	char type[15],*name;
-	int mur=0, i;
+	int mur=0, i, c=0;
 
 	if (user->muzzled) {
 		write_user(user,"You are muzzled, you cannot tell anyone anything.\n");
@@ -116,8 +116,9 @@ void tell(UR_OBJECT user, char *inpstr)
 			write_user(user, "tellnut co?\n");
 			return;
 			}
-		u=get_user_name(user,user->call);
+		u=get_user_name(user, user->call);
 		inpstr=remove_first(inpstr);
+		c=1;
 		}
 	else {
 		if (word_count<2) {
@@ -207,19 +208,19 @@ void tell(UR_OBJECT user, char *inpstr)
 		#endif
 			if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 			else strcpy(type,"tell");
-			sprintf(text,"~OL~FTYou %s %s:~RS %s\n",type,u->bw_recap,inpstr);
+			sprintf(text,"~FTYou %s %s:~RS %s\n",type,u->bw_recap,inpstr);
 			write_user(user,text);
 			record_tell(user,text);
 			if (user->vis || u->level>=user->level) name=user->bw_recap;
 			else name=invisname;
-			sprintf(text,"~FT%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~OL~FT%s %ss you:~RS %s\n",name,type,inpstr);
 			write_user(u,text);
 			record_tell(u,text);
 			sprintf(u->ltell, user->name);
 			}
 		}
 	else {
-		u=get_user_name(user,word[1]);
+		if (!c) u=get_user_name(user,word[1]);
 
 		if (!u) {
 			write_user(user,notloggedon);
@@ -248,7 +249,7 @@ void tell(UR_OBJECT user, char *inpstr)
 			if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 			else strcpy(type,"tell");
 			if (user->vis || u->level>=user->level) name=user->bw_recap; else name=invisname;
-			sprintf(text,"~FG~OL%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~FT~OL%s %ss you:~RS %s\n",name,type,inpstr);
 			record_afk(u,text);
 			sprintf(u->ltell, user->name);
 			return;
@@ -259,7 +260,7 @@ void tell(UR_OBJECT user, char *inpstr)
 			if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 			else strcpy(type,"tell");
 			if (user->vis || u->level>=user->level) name=user->bw_recap; else name=invisname;
-			sprintf(text,"~FG~OL%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~FT~OL%s %ss you:~RS %s\n",name,type,inpstr);
 			record_edit(u,text);
 			sprintf(u->ltell, user->name);
 			return;
@@ -277,12 +278,12 @@ void tell(UR_OBJECT user, char *inpstr)
 	#endif
 		if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 		else strcpy(type,"tell");
-		sprintf(text,"~OL~FTYou %s %s:~RS %s\n",type,u->bw_recap,inpstr);
+		sprintf(text,"~FTYou %s %s:~RS %s\n",type,u->bw_recap,inpstr);
 		write_user(user,text);
 		record_tell(user,text);
 		if (user->vis || u->level>=user->level) name=user->bw_recap;
 		else name=invisname;
-		sprintf(text,"~FT%s %ss you:~RS %s\n",name,type,inpstr);
+		sprintf(text,"~OL~FT%s %ss you:~RS %s\n",name,type,inpstr);
 		write_user(u,text);
 		record_tell(u,text);
 		sprintf(u->ltell, user->name);
@@ -2002,7 +2003,7 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		write_user(user, "Kricat co ?\n");
 		return;
 		}
-	if (amsys->ban_swearing && contains_swearing(inpstr)) {
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
 		switch(amsys->ban_swearing) {
 			case SBMIN:
 				inpstr=censor_swear_words(inpstr);
@@ -2033,7 +2034,7 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		vwrite_user(user,"%s~RS momentalne ignoruje vykriky.\n", u->recap);
 		return;
 		}
-	if (amsys->ban_swearing && contains_swearing(inpstr)) {
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
 		switch(amsys->ban_swearing) {
 			case SBMIN:
 				inpstr=censor_swear_words(inpstr);

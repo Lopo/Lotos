@@ -1,6 +1,6 @@
 /*****************************************************************************
-           Hlavickovy subor s prototypmi funkcii pre OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+           Hlavickovy subor s prototypmi funkcii pre OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -383,7 +383,7 @@ void      reload_room_description args((UR_OBJECT user, int w));
 /* friends stuff */
 
 int       user_is_friend args((UR_OBJECT user, UR_OBJECT u));
-void      alert_friends args((UR_OBJECT user));
+void      alert_friends args((UR_OBJECT user, int mode));
 void      get_friends args((UR_OBJECT user));
 void      friends args((UR_OBJECT user));
 void      friend_say args((UR_OBJECT user, char *inpstr));

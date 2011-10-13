@@ -33,14 +33,14 @@ int i,verFail;
 i=0; verFail=0;
 /* create plugin */
 if ((plugin=create_plugin())==NULL) {
-        write_syslog(SYSLOG, 0, "CHYBA: Nemozem vytvorit novu polozku v registroch !\n");
+        write_syslog(ERRLOG, 0, "Nemozem vytvorit novu polozku v registroch pre plugin 'hangman'!\n");
         return 0;
 	}
 strcpy(plugin->name,"Hangman");                 /* Plugin Description   */
 strcpy(plugin->author,"Lopo");                  /* Author's name        */
 strcpy(plugin->registration,"02-100");          /* Plugin/Author ID     */
-strcpy(plugin->ver,"1.0");                      /* Plugin version       */
-strcpy(plugin->req_ver,"100");                  /* TOS version required */
+strcpy(plugin->ver,"1.1");                      /* Plugin version       */
+strcpy(plugin->req_ver,"100");                  /* OSS version required */
 plugin->id = cm;                                /* ID used as reference */
 plugin->req_userfile = 1;                       /* Requires user data?  */
                                                 /* (no separate file required
@@ -60,7 +60,7 @@ plugin->triggerable = 0;                        /* This plugin is triggered
                                                    checked. */
 /* create associated command */
 if ((com=create_cmd())==NULL) {
-        write_syslog(SYSLOG, 0, "CHYBA: Nemozem pridat prikaz do registrov !\n");
+        write_syslog(ERRLOG, 0, "Nemozem pridat prikaz do registrov pre plugin %s !\n", plugin->registration);
         return 0;
 	}
 i++;                                            /* Keep track of number created */
@@ -103,7 +103,7 @@ char options[5][20]={"start","stop","ukaz","vloz","status"};
 
 if (user->plugin_02x100_hangman==NULL) {
 	if ((user->plugin_02x100_hangman=plugin_02x100_create_hang_player())==NULL) {
-		write_syslog(SYSLOG, 1, "CHYBA: chyba alokacie pamate v plugin_02x100_switch()\n");
+		write_syslog(ERRLOG, 1, "chyba alokacie pamate v plugin_02x100_switch()\n");
 		write_user(user, "HANGMAN: vyskytla sa chyba pri alokacii pamate\n");
 		return;
 		}
@@ -151,7 +151,7 @@ struct plugin_02x100_hang_player *player;
 int i;
 
 if ((player=(struct plugin_02x100_hang_player *)malloc(sizeof(struct plugin_02x100_hang_player)))==NULL) {
-        write_syslog(SYSLOG, 1, "CHYBA: chyba alokacie pamate v create_hang_player().\n");
+        write_syslog(ERRLOG, 1, "chyba alokacie pamate v create_02x100_hang_player().\n");
         return NULL;
         }
 
@@ -172,7 +172,7 @@ plugin_02x100_load_user_details(UR_OBJECT user)
 	user->plugin_02x100_hangman->hwin=user->plugin_02x100_hangman->hlose=0;
 	sprintf(filename, "%s/%s/%s/%s.02x100", ROOTDIR, USERFILES, USERPLDATAS, user->name);
 	if (!(fp=fopen(filename, "r"))) {
-		write_user(user, "TICTAC: Chyba pri nahravani user dat\n");
+		write_user(user, "HANGMAN: Chyba pri nahravani user dat\n");
 		return 0;
 		}
 	fscanf(fp, "%d %d", &user->plugin_02x100_hangman->hwin, &user->plugin_02x100_hangman->hlose);
@@ -204,6 +204,7 @@ plugin_02x100_save_user_details(UR_OBJECT user)
 	sprintf(filename, "%s/%s/%s/%s.02x100", ROOTDIR, USERFILES, USERPLDATAS, user->name);
 	if (!(fp=fopen(filename, "w"))) {
 		write_user(user, "HANGMAN: chyba pri ukladani user dat\n");
+		write_syslog(ERRLOG, 1, "Chyba pri ukladani dat v plugin_02x100_save_user_details()\n");
 		return;
 		}
 	fprintf(fp, "%d %d", user->plugin_02x100_hangman->hwin, user->plugin_02x100_hangman->hlose);
@@ -362,3 +363,4 @@ if (!blanks) {
   plugin_02x100_save_user_details(user);
   }
 }
+

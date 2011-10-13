@@ -1,6 +1,6 @@
 /*****************************************************************************
-              Funkcie pre OS Star v1.0.0b pracujuce s nastenkami
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+              Funkcie pre OS Star v1.0.0 pracujuce s nastenkami
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -85,7 +85,7 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 {
 	FILE *fp;
 	int cnt,inp;
-	char *ptr,*name,filename[180],rmname[USER_NAME_LEN];
+	char *ptr,*name,filename[280],rmname[USER_NAME_LEN];
 
 	if (user->muzzled) {
 		write_user(user,"You are muzzled, you cannot write on the board.\n");  
@@ -239,7 +239,7 @@ void check_messages(UR_OBJECT user, int chforce)
 {
 	RM_OBJECT rm;
 	FILE *infp,*outfp;
-	char id[182],filename[180],line[82],rmname[USER_NAME_LEN];
+	char id[182],filename[280],line[82],rmname[USER_NAME_LEN], tempfile[200];
 	int valid,pt,write_rest;
 	int board_cnt,old_cnt,bad_cnt,tmp;
 	static int done=0;
@@ -290,7 +290,8 @@ void check_messages(UR_OBJECT user, int chforce)
 		else sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR, DATAFILES, ROOMFILES, rm->name);
 		if (!(infp=fopen(filename,"r"))) continue;
 		if (chforce<2) {
-			if (!(outfp=fopen("tempfile","w"))) {
+			sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+			if (!(outfp=fopen(tempfile,"w"))) {
 				if (chforce)
 					fprintf(stderr,"OS Star: Couldn't open tempfile.\n");
 				write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in check_messages().\n");
@@ -336,8 +337,8 @@ void check_messages(UR_OBJECT user, int chforce)
 		if (chforce<2) {
 			fclose(outfp);
 			unlink(filename);
-			if (!write_rest) unlink("tempfile");
-			else rename("tempfile",filename);
+			if (!write_rest) unlink(tempfile);
+			else rename(tempfile,filename);
 			}
 		if (rm->mesg_cnt!=tmp) bad_cnt++;
 		}
@@ -363,11 +364,11 @@ void check_messages(UR_OBJECT user, int chforce)
 void suggestions(UR_OBJECT user, int done_editing)
 {
 FILE *fp;
-char filename[30],*c;
+char filename[200],*c;
 int cnt=0;
 
 if (com_num==RSUG) {
-  sprintf(filename,"%s/%s/%s", ROOTDIR,MISCFILES,SUGBOARD);
+  sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SUGBOARD);
   write_user(user,"~BB~FG*** The Suggestions board has the following ideas ***\n\n");
   switch(more(user,user->socket,filename)) {
     case 0: write_user(user,"There are no suggestions.\n\n");  break;
@@ -385,7 +386,7 @@ if (!done_editing) {
   editor(user,NULL);
   return;
   }
-sprintf(filename,"%s/%s/%s", ROOTDIR,MISCFILES,SUGBOARD);
+sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SUGBOARD);
 if (!(fp=fopen(filename,"a"))) {
   vwrite_user(user,"%s: couldn't add suggestion.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to write in suggestions().\n",filename);
@@ -410,7 +411,7 @@ amsys->suggestion_count++;
 void delete_suggestions(UR_OBJECT user)
 {
 int cnt;
-char filename[100];
+char filename[200];
 
 if (word_count<2) {
   write_user(user,"Pouzitie: dsug all\n");
@@ -420,7 +421,7 @@ if (word_count<2) {
   return;
   }
 if (get_wipe_parameters(user)==-1) return;
-sprintf(filename,"%s/%s/%s", ROOTDIR,MISCFILES,SUGBOARD);
+sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SUGBOARD);
 if (!amsys->suggestion_count) {
   write_user(user,"There are no suggestions to delete.\n");  return;
   }
@@ -454,7 +455,7 @@ void board_from(UR_OBJECT user)
 {
 	FILE *fp;
 	int cnt;
-	char id[ARR_SIZE],line[ARR_SIZE],filename[80],rmname[USER_NAME_LEN];
+	char id[ARR_SIZE],line[ARR_SIZE],filename[280],rmname[USER_NAME_LEN];
 	RM_OBJECT rm;
 
 	if (word_count<2)
@@ -508,13 +509,13 @@ void suggestions_from(UR_OBJECT user)
 {
 FILE *fp;
 int cnt;
-char id[ARR_SIZE],line[ARR_SIZE],filename[100],*str;
+char id[ARR_SIZE],line[ARR_SIZE],filename[200],*str;
 
 if (!amsys->suggestion_count) {
   write_user(user,"There are currently no suggestions.\n");
   return;
   }
-sprintf(filename,"%s/%s/%s", ROOTDIR,MISCFILES,SUGBOARD);
+sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SUGBOARD);
 if (!(fp=fopen(filename,"r"))) {
   write_user(user,"There was an error trying to read the suggestion board.\n");
   write_syslog(SYSLOG,0,"Unable to open suggestion board in suggestions_from().\n");
@@ -543,7 +544,7 @@ void read_board_specific(UR_OBJECT user, RM_OBJECT rm, int msg_number)
 {
 FILE *fp;
 int valid,cnt,pt;
-char id[ARR_SIZE],line[ARR_SIZE],filename[100],*name,rmname[USER_NAME_LEN];
+char id[ARR_SIZE],line[ARR_SIZE],filename[200],*name,rmname[USER_NAME_LEN];
 
 if (!rm->mesg_cnt) {
   vwrite_user(user, read_no_messages, rm->name);
@@ -604,7 +605,7 @@ int check_board_wipe(UR_OBJECT user)
 {
 	FILE *fp;
 	int valid,cnt,msg_number,yes,pt;
-	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],filename[80],id[ARR_SIZE],rmname[USER_NAME_LEN];
+	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],filename[280],id[ARR_SIZE],rmname[USER_NAME_LEN];
 	RM_OBJECT rm;
 
 	if (word_count<2) {

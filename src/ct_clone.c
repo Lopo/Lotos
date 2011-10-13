@@ -1,6 +1,6 @@
 /*****************************************************************************
-                   Funkcie OS Star v1.0.0b suvisiace s klonmi
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                   Funkcie OS Star v1.0.0 suvisiace s klonmi
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 

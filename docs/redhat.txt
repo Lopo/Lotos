@@ -1,4 +1,8 @@
-Ak nude OS Star spustany na systeme RedHat, je potrebne prilinkovat k OS Star
+t a l k r o v y  O S  S t a r v1.0.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Informacie pre pouzitie na RedHat linuxe
+----------------------------------------
+Ak bude OS Star spustany na systeme RedHat, je potrebne prilinkovat k OS Star
 kniznicu `crypt'. Na inych systemoch to pokial viem potrebne nie je.
 Kniznica sa najlahsie prilinkuje pomocou dopisania do suboru Makefile.
 Staci v nom najst riadok zacinajuci slovom LIBS a dopisat na koniec riadka

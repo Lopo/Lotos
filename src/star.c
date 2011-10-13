@@ -2,8 +2,8 @@
      MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE
  *****************************************************************************/
 /*****************************************************************************
-                       Zakladne funkcie OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                       Zakladne funkcie OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -71,305 +71,307 @@
  The setting up of the talker configs and the main program loop
  *****************************************************************************/
 
-
 int main(int argc,char *argv[])
 {
-fd_set readmask; 
-int i,len; 
-char inpstr[ARR_SIZE];
-UR_OBJECT user,next;
+	fd_set readmask; 
+	int i,len; 
+	char inpstr[ARR_SIZE];
+	UR_OBJECT user,next;
 #ifdef NETLINKS
- NL_OBJECT nl;
+	NL_OBJECT nl;
 #endif
 
-strcpy(progname,argv[0]);
-if (argc<2) strcpy(confile,CONFIGFILE);
-else strcpy(confile,argv[1]);
+	strcpy(progname, argv[0]);
+	if (argc<2) strcpy(confile, CONFIGFILE);
+	else strcpy(confile, argv[1]);
 
 /* Run in background automatically. */
 /* moved here because of .reboot wasn't working properly with the forking after
    the rest of the initiation had taken place.
    */
-switch(fork()) {
-  case -1: boot_exit(11);  /* fork failure */
-  case  0: break; /* child continues */
-  default: sleep(1); exit(0);  /* parent dies */
-  }
+	switch(fork()) {
+		case -1: boot_exit(11);  /* fork failure */
+		case  0: break; /* child continues */
+		default: sleep(1); exit(0);  /* parent dies */
+		}
 
 /* Startup and do initial counts and parses */
-create_system();
-create_systempp();
-set_date_time();
-init_signals();
-write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\nSERVER BOOTING\n");
-printf("\n------------------------------------------------------------------------------\n");
-printf("%s %s server boot %s\n", reg_sysinfo[TALKERNAME], TVERSION, long_date(1));
-printf("OS Star system v%s\n", OSSVERSION);
-printf("------------------------------------------------------------------------------\n");
-printf("Systemove meno : %s, release %s, %s\n",amsys->sysname,amsys->sysrelease,amsys->sysversion);
-printf("Spustene na    : %s, %s\n",amsys->sysmachine,amsys->sysnodename);
+	create_system();
+	create_systempp();
+	set_date_time();
+	init_signals();
+	write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\nSERVER BOOTING\n");
+	printf("\n------------------------------------------------------------------------------\n");
+	printf("%s %s server boot %s\n", reg_sysinfo[TALKERNAME], TVERSION, long_date(1));
+	printf("OS Star system v%s\n", OSSVERSION);
+	printf("------------------------------------------------------------------------------\n");
+	printf("Systemove meno : %s, release %s, %s\n",amsys->sysname,amsys->sysrelease,amsys->sysversion);
+	printf("Spustene na    : %s, %s\n",amsys->sysmachine,amsys->sysnodename);
 #ifndef NETLINKS
-printf("Netlinky       : Zakazane\n");
+	printf("Netlinky       : Zakazane\n");
 #else
-printf("Netlinky       : Povolene\n");
+	printf("Netlinky       : Povolene\n");
 #endif
+	load_and_parse_config();
 
-load_and_parse_config();
+	(amsys->flood_protect) ? printf("Flood ochrana je ZAP.\n") : printf("Flood ochrana je VYP.\n");
+	if (amsys->personal_rooms) {
+		if (amsys->startup_room_parse) parse_user_rooms();
+		else printf("Osobne miestnosti su aktivne, ale neskontrolovane pri boote.\n");
+		}
+	else printf("Osobne miestnosti zakazane.\n");
+	printf("Kontrolujem strukturu user adresarov\n");	check_directories();
+	printf("Processing user list\n");					process_users();
+	printf("Pocitam userov\n");							count_users();
+	printf("Rozbor struktury prikazov\n");				parse_commands();
 
-(amsys->flood_protect) ? printf("Flood ochrana je ZAP.\n") : printf("Flood ochrana je VYP.\n");
-if (amsys->personal_rooms) {
-  if (amsys->startup_room_parse) parse_user_rooms();
-  else printf("Osobne miestnosti su aktivne, ale neskontrolovane pri boote.\n");
-  }
-else printf("Osobne miestnosti zakazane.\n");
-printf("Kontrolujem strukturu user adresarov\n"); check_directories();
-printf("Processing user list\n");                 process_users();
-printf("Pocitam userov\n");                       count_users();
-printf("Rozbor struktury prikazov\n");            parse_commands();
+	purge(0,NULL,0);
+	if (!amsys->auto_purge) printf("PURGE: Auto-purge je vyp.\n");
+	else printf("PURGE: Checked %d user%s, %d %s deleted due to lack of use.\n",
+		amsys->purge_count,PLTEXT_S(amsys->purge_count),amsys->users_purged,
+		PLTEXT_WAS(amsys->users_purged));
 
-purge(0,NULL,0);
-if (!amsys->auto_purge) printf("PURGE: Auto-purge je vyp.\n");
-else printf("PURGE: Checked %d user%s, %d %s deleted due to lack of use.\n",
-	    amsys->purge_count,PLTEXT_S(amsys->purge_count),amsys->users_purged,PLTEXT_WAS(amsys->users_purged));
-
-check_messages(NULL,1);
-count_suggestions();
-printf("There %s %d suggestion%s.\n",PLTEXT_WAS(amsys->suggestion_count),amsys->suggestion_count,PLTEXT_S(amsys->suggestion_count));
-count_motds(0);
-printf("There %s %d login motd%s and %d post-login motd%s\n",
-       PLTEXT_WAS(amsys->motd1_cnt),amsys->motd1_cnt,PLTEXT_S(amsys->motd1_cnt),amsys->motd2_cnt,PLTEXT_S(amsys->motd2_cnt));
+	check_messages(NULL,1);
+	count_suggestions();
+	printf("There %s %d suggestion%s.\n",PLTEXT_WAS(amsys->suggestion_count),amsys->suggestion_count,PLTEXT_S(amsys->suggestion_count));
+	count_motds(0);
+	printf("There %s %d login motd%s and %d post-login motd%s\n",
+		PLTEXT_WAS(amsys->motd1_cnt),amsys->motd1_cnt,PLTEXT_S(amsys->motd1_cnt),amsys->motd2_cnt,
+		PLTEXT_S(amsys->motd2_cnt));
 
 /* open the talker after everything else has parsed */
-if (!strcmp(argv[argc-1], "-reinit")) reinit_sockets();
-else init_sockets();
+	if (!strcmp(argv[argc-1], "-reinit")) reinit_sockets();
+	else init_sockets();
 #ifdef NETLINKS
- if (amsys->auto_connect) init_connections();
- else printf("Preskakujem pripajaciu cast.\n");
+	if (amsys->auto_connect) init_connections();
+	else printf("Preskakujem pripajaciu cast.\n");
 #endif
 
 /* finish off the boot-up process */
-reset_alarm();
-osstar_load();
-load_counters();
-reloads(NULL);
-load_swear_file(NULL);
-if (!strcmp(argv[argc-1], "-reinit")) reconnect_users();
-clear_temps();
-printf("------------------------------------------------------------------------------\n");
-printf("Nabootovane s PID %u\n",amsys->pid);
-printf("------------------------------------------------------------------------------\n\n");
-write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\n");
-write_syslog(SYSLOG,0,"SERVER BOOTED with PID %u %s\n",amsys->pid,long_date(1));
-write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\n\n");
-
+	reset_alarm();
+	osstar_load();
+	load_counters();
+	reloads(NULL);
+	load_swear_file(NULL);
+	if (!strcmp(argv[argc-1], "-reinit")) reconnect_users();
+	clear_temps();
+	printf("------------------------------------------------------------------------------\n");
+	printf("Nabootovane s PID %u\n",amsys->pid);
+	printf("------------------------------------------------------------------------------\n\n");
+	write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\n");
+	write_syslog(SYSLOG,0,"SERVER BOOTED with PID %u %s\n",amsys->pid,long_date(1));
+	write_syslog(SYSLOG,0,"------------------------------------------------------------------------------\n\n");
 
 /******************************************************************************
  Main program loop
  *****************************************************************************/
-
-
-setjmp(jmpvar); /* jump to here if we crash and crash_action = IGNORE */
-while(1) {
+	setjmp(jmpvar); /* jump to here if we crash and crash_action = IGNORE */
+	while (1) {
   /* set up mask then wait */
-  setup_readmask(&readmask);
-  if (select(FD_SETSIZE,&readmask,0,0,0)==-1) continue;
+		setup_readmask(&readmask);
+		if (select(FD_SETSIZE,&readmask,0,0,0)==-1) continue;
   /* check for connection to listen sockets */
-  for(i=0;i<port_total;++i) {
-    if (FD_ISSET(listen_sock[i],&readmask)) 
-      accept_connection(listen_sock[i],i);
-      }
+		for (i=0;i<port_total;++i) {
+			if (FD_ISSET(listen_sock[i],&readmask))
+				accept_connection(listen_sock[i],i);
+			}
 #ifdef NETLINKS
     /* Cycle through client-server connections to other talkers */
-    for(nl=nl_first;nl!=NULL;nl=nl->next) {
-      no_prompt=0;
-      if (nl->type==UNCONNECTED || !FD_ISSET(nl->socket,&readmask)) 
-	continue;
+		for (nl=nl_first;nl!=NULL;nl=nl->next) {
+			no_prompt=0;
+			if (nl->type==UNCONNECTED || !FD_ISSET(nl->socket,&readmask)) continue;
       /* See if remote site has disconnected */
-      if (!(len=read(nl->socket,inpstr,sizeof(inpstr)-3))) {
-	write_syslog(NETLOG,1,"NETLINK: Remote disconnect by %s.\n",(nl->stage==UP)?nl->service:nl->site);
-	vwrite_room(NULL,"~OLSYSTEM:~RS Stratena linka %s v %s.\n",nl->service,nl->connect_room->name);
-	shutdown_netlink(nl);
-	continue;
-        }
-      inpstr[len]='\0'; 
-      exec_netcom(nl,inpstr);
-      }
+			if (!(len=read(nl->socket,inpstr,sizeof(inpstr)-3))) {
+				write_syslog(NETLOG,1,"NETLINK: Remote disconnect by %s.\n",
+					(nl->stage==UP)?nl->service:nl->site);
+				vwrite_room(NULL,"~OLSYSTEM:~RS Stratena linka %s v %s.\n",
+					nl->service,nl->connect_room->name);
+				shutdown_netlink(nl);
+				continue;
+				}
+			inpstr[len]='\0'; 
+			exec_netcom(nl,inpstr);
+			}
 #endif
   /* Cycle through users. Use a while loop instead of a for because
      user structure may be destructed during loop in which case we
      may lose the user->next link. */
-  user=user_first;
-  while (user!=NULL) {
-    next=user->next; /* store in case user object is destructed */
+		user=user_first;
+		while (user!=NULL) {
+			next=user->next; /* store in case user object is destructed */
     /* If remote user or clone ignore */
-    if (user->type!=USER_TYPE) {  user=next;  continue; }
+			if (user->type!=USER_TYPE) {  user=next;  continue; }
     /* see if any data on socket else continue */
-    if (!FD_ISSET(user->socket,&readmask)) { user=next;  continue; }    
+			if (!FD_ISSET(user->socket,&readmask)) { user=next;  continue; }    
     /* see if client (eg telnet) has closed socket */
-    inpstr[0]='\0';
-    if (!(len=read(user->socket,inpstr,sizeof(inpstr)))) {
-      disconnect_user(user);  user=next;
-      continue;
-      }
+			inpstr[0]='\0';
+			if (!(len=read(user->socket,inpstr,sizeof(inpstr)))) {
+				disconnect_user(user);
+				user=next;
+				continue;
+				}
     /* ignore control code replies */
-    if ((unsigned char)inpstr[0]==255) { user=next;  continue; }
+			if ((unsigned char)inpstr[0]==255) { user=next;  continue; }
     /* Deal with input chars. If the following if test succeeds we
        are dealing with a character mode client so call function. */
-    if (inpstr[len-1]>=32 || user->buffpos) {
-      if (get_charclient_line(user,inpstr,len)) goto GOT_LINE;
-      user=next;  continue;
-      }
-    else terminate(inpstr);
+			if (inpstr[len-1]>=32 || user->buffpos) {
+				if (get_charclient_line(user,inpstr,len)) goto GOT_LINE;
+				user=next;
+				continue;
+				}
+			else terminate(inpstr);
 
-  GOT_LINE:
-    no_prompt=0;  
-    com_num=-1;
-    force_listen=0; 
-    destructed=0;
-    user->buff[0]='\0';  
-    user->buffpos=0;
-    user->last_input=time(0);
-    if (user->login>0) {
-      login(user,inpstr);
-      user=next;
-      continue;  
-      }
+GOT_LINE:
+			no_prompt=0;  
+			com_num=-1;
+			force_listen=0; 
+			destructed=0;
+			user->buff[0]='\0';  
+			user->buffpos=0;
+			user->last_input=time(0);
+			if (user->login>0) {
+				login(user,inpstr);
+				user=next;
+				continue;
+				}
     
     /* If a dot on its own then execute last inpstr unless its a misc
        op or the user is on a remote site */
-    if (!user->misc_op) {
-      if (!strcmp(inpstr,".") && user->inpstr_old[0]) {
-	strcpy(inpstr,user->inpstr_old);
-	vwrite_user(user,"%s\n",inpstr);
-        }
+			if (!user->misc_op) {
+				if (!strcmp(inpstr,".") && user->inpstr_old[0]) {
+					strcpy(inpstr,user->inpstr_old);
+					vwrite_user(user,"%s\n",inpstr);
+					}
       /* else save current one for next time */
-      else {
-	if (inpstr[0]) strncpy(user->inpstr_old,inpstr,REVIEW_LEN);
-        }
-      }
+				else {
+					if (inpstr[0]) strncpy(user->inpstr_old,inpstr,REVIEW_LEN);
+					}
+				}
     
     /* Main input check */
-    clear_words();
-    if (!check_macros(user,inpstr)) {
-    	prompt(user);
-    	user=next;
-    	continue;
-    	}
-    clear_words();
-    word_count=wordfind(inpstr);
-    if (user->afk) {
-      if (user->afk==2) {
-	if (!word_count) {  
-	  if (user->command_mode) prompt(user);
-	  user=next;  continue;  
-	  }
-	if (strcmp((char *)crypt(word[0],crypt_salt),user->pass)) {
-	  write_user(user, password_bad); 
-	  prompt(user);
-	  user=next;
-	  continue;
-	  }
-	echo_on(user);
-	cls(user);
-	write_user(user,"Session unlocked, you are no longer AFK.\n");
-        }	
-      else write_user(user,"You are no longer AFK.\n");  
-      user->afk_mesg[0]='\0';
-      if (user->afkbuff[0][0]) revafk(user);
-      if (user->vis) vwrite_room_except(user->room,user,"%s~RS comes back from being AFK.\n",user->recap);
-      if (user->afk==2) {
-	user->afk=0;
-	prompt(user);
-	user=next;
-	continue;
-        }
-      user->afk=0;
-      }
-    if (!word_count) {
-      if (misc_ops(user,inpstr))  {  user=next;  continue;  }
+			clear_words();
+			if (!check_macros(user,inpstr)) {
+				prompt(user);
+				user=next;
+				continue;
+				}
+			clear_words();
+			word_count=wordfind(inpstr);
+			if (user->afk) {
+				if (user->afk==2) {
+					if (!word_count) {  
+						if (user->command_mode) prompt(user);
+						user=next;
+						continue;  
+						}
+					if (strcmp((char *)crypt(word[0],crypt_salt),user->pass)) {
+						write_user(user, password_bad); 
+						prompt(user);
+						user=next;
+						continue;
+						}
+					echo_on(user);
+					cls(user);
+					write_user(user,"Session unlocked, you are no longer AFK.\n");
+					}
+				else write_user(user,"You are no longer AFK.\n");  
+				user->afk_mesg[0]='\0';
+				if (user->afkbuff[0][0]) revafk(user);
+				if (user->vis) vwrite_room_except(user->room,user,"%s~RS comes back from being AFK.\n",user->recap);
+				if (user->afk==2) {
+					user->afk=0;
+					prompt(user);
+					user=next;
+					continue;
+					}
+				user->afk=0;
+				}
+			if (!word_count) {
+				if (misc_ops(user,inpstr))  {  user=next;  continue;  }
 #ifdef NETLINKS
-        if (user->room==NULL) {
-	  sprintf(text,"ACT %s NL\n",user->name);
-	  write_sock(user->netlink->socket,text);
-          }
+				if (user->room==NULL) {
+					sprintf(text,"ACT %s NL\n",user->name);
+					write_sock(user->netlink->socket,text);
+					}
 #endif
-      if (user->command_mode) prompt(user);
-      user=next;  continue;
-      }
-    if (misc_ops(user,inpstr))  {  user=next;  continue;  }
-    com_num=-1;
-    if (user->command_mode || strchr(".>;:</&![@'*+-,?#",inpstr[0])) 
-      exec_com(user,inpstr);
-    else if (!(chk_pblo(user, inpstr))) say(user,inpstr);
-    if (!destructed) {
-      if (user->room!=NULL && !destructed) prompt(user); 
-      else {
-	switch(com_num) {
+				if (user->command_mode) prompt(user);
+				user=next;  continue;
+				}
+			if (misc_ops(user,inpstr))  {  user=next;  continue;  }
+			com_num=-1;
+			if (user->command_mode || strchr(".>;:</&![@'*+-,?#",inpstr[0]))
+				exec_com(user,inpstr);
+			else if (!(chk_pblo(user, inpstr))) say(user,inpstr);
+			if (!destructed) {
+				if (user->room!=NULL && !destructed) prompt(user); 
+				else {
+					switch (com_num) {
 	  /* case -1  :  Not in enumerated values - Unknown command */
 #ifdef NETLINKS
-	  case HOME:
+						case HOME:
 #endif
-	  case QUIT:
-	  case MODE:
-	  case PROMPT: 
-	  case SUICIDE:
-	  case REBOOT:
-	  case SHUTDOWN: prompt(user);
-  	  default: break;
-	  }
-        }
-      }
-    user=next;
-    } /* end while(user) */
-  } /* end while(1) */
+						case QUIT:
+						case MODE:
+						case PROMPT: 
+						case SUICIDE:
+						case REBOOT:
+						case SHUTDOWN: prompt(user);
+						default: break;
+						}
+					}
+				}
+			user=next;
+			} /* end while(user) */
+		} /* end while(1) */
 } /* main */
-
 
 
 /******************************************************************************
  String functions - comparisons, convertions, etc
  *****************************************************************************/
 
-
-
 /*** Attempt to get '\n' terminated line of input from a character
      mode client else store data read so far in user buffer. ***/
-int get_charclient_line(UR_OBJECT user,char *inpstr,int len)
+int get_charclient_line(UR_OBJECT user, char *inpstr, int len)
 {
-int l;
+	int l;
 
-for(l=0;l<len;++l) {
+	for(l=0;l<len;++l) {
   /* see if delete entered */
-  if (inpstr[l]==8 || inpstr[l]==127) {
-    if (user->buffpos) {
-      user->buffpos--;
-      if (user->charmode_echo) write_user(user,"\b \b");
-      }
-    continue;
-    }
-  user->buff[user->buffpos]=inpstr[l];
+		if (inpstr[l]==8 || inpstr[l]==127) {
+			if (user->buffpos) {
+				user->buffpos--;
+				if (user->charmode_echo) write_user(user,"\b \b");
+				}
+			continue;
+			}
+		user->buff[user->buffpos]=inpstr[l];
   /* See if end of line */
-  if (inpstr[l]<32 || user->buffpos+2==ARR_SIZE) {
-    terminate(user->buff);
-    strcpy(inpstr,user->buff);
-    if (user->charmode_echo) write_user(user,"\n");
-    return 1;
-    }
-  user->buffpos++;
-  }
-if (user->charmode_echo
-    && ((user->login!=LOGIN_PASSWD && user->login!=LOGIN_CONFIRM) || (amsys->password_echo || user->show_pass))) 
-  write(user->socket,inpstr,len);
-return 0;
+		if (inpstr[l]<32 || user->buffpos+2==ARR_SIZE) {
+			terminate(user->buff);
+			strcpy(inpstr,user->buff);
+			if (user->charmode_echo) write_user(user,"\n");
+			return 1;
+			}
+		user->buffpos++;
+		}
+	if (user->charmode_echo
+	    && ((user->login!=LOGIN_PASSWD && user->login!=LOGIN_CONFIRM)
+		    || (amsys->password_echo || user->show_pass)
+			)
+		)
+		write(user->socket,inpstr,len);
+	return 0;
 }
 
 
 /*** Put string terminate char. at first char < 32 ***/
 void terminate(char *str)
 {
-int i;
-for (i=0;i<ARR_SIZE;++i) if (*(str+i)<32) {  *(str+i)=0;  return;  } 
-str[i-1]=0;
+	int i;
+
+	for (i=0;i<ARR_SIZE;++i) if (*(str+i)<32) {  *(str+i)=0;  return;  } 
+	str[i-1]=0;
 }
 
 
@@ -378,98 +380,101 @@ str[i-1]=0;
      difficult to do with sscanf() hence I use this function instead. ***/
 int wordfind(char *inpstr)
 {
-int wn,wpos;
+	int wn,wpos;
 
-wn=0; wpos=0;
-do {
-  while(*inpstr<33) if (!*inpstr++) return wn;
-  while(*inpstr>32 && wpos<WORD_LEN-1) {
-    word[wn][wpos]=*inpstr++;  wpos++;
-    }
-  word[wn][wpos]='\0';
-  wn++;  wpos=0;
-  } while (wn<MAX_WORDS);
-return wn-1;
+	wn=0; wpos=0;
+	do {
+		while(*inpstr<33) if (!*inpstr++) return wn;
+		while(*inpstr>32 && wpos<WORD_LEN-1) {
+			word[wn][wpos]=*inpstr++; 
+			wpos++;
+			}
+		word[wn][wpos]='\0';
+		wn++;
+		wpos=0;
+		} while (wn<MAX_WORDS);
+	return wn-1;
 }
 
 
 /*** clear word array etc. ***/
 void clear_words()
 {
-int w;
-for(w=0;w<MAX_WORDS;++w) word[w][0]='\0';
-word_count=0;
+	int w;
+
+	for(w=0;w<MAX_WORDS;++w) word[w][0]='\0';
+	word_count=0;
 }
 
 
 /** check to see if string given is YES or NO **/
 int yn_check(char *wd)
 {
-if (!strcmp(wd,"YES")) return 1;
-if (!strcmp(wd,"NO")) return 0;
-if (!strcmp(wd, "ANO")) return 1;
-if (!strcmp(wd, "NIE")) return 0;
-return -1;
+	if (!strcmp(wd,"YES")) return 1;
+	if (!strcmp(wd,"NO")) return 0;
+	if (!strcmp(wd, "ANO")) return 1;
+	if (!strcmp(wd, "NIE")) return 0;
+	return -1;
 }
 
 
 /** check to see if string given is ON or OFF **/
 int onoff_check(char *wd)
 {
-if (!strcmp(wd,"ON")) return 1;
-if (!strcmp(wd,"OFF")) return 0;
-if (!strcmp(wd, "ZAP")) return 1;
-if (!strcmp(wd, "VYP")) return 0;
-return -1;
+	if (!strcmp(wd,"ON")) return 1;
+	if (!strcmp(wd,"OFF")) return 0;
+	if (!strcmp(wd, "ZAP")) return 1;
+	if (!strcmp(wd, "VYP")) return 0;
+	return -1;
 }
 
 
 /** check to see if string given is OFF, MIN or MAX **/
 int minmax_check(char *wd)
 {
-if (!strcmp(wd,"OFF")) return SBOFF;
-if (!strcmp(wd,"MIN")) return SBMIN;
-if (!strcmp(wd,"MAX")) return SBMAX;
-if (!strcmp(wd, "VYP")) return SBOFF;
-return -1;
+	if (!strcmp(wd,"OFF")) return SBOFF;
+	if (!strcmp(wd,"MIN")) return SBMIN;
+	if (!strcmp(wd,"MAX")) return SBMAX;
+	if (!strcmp(wd, "VYP")) return SBOFF;
+	return -1;
 }
 
 
 /** check to see if string given is OFF, AUTO, MANUAL **/
 int resolve_check(char *wd)
 {
-if (!strcmp(wd,"OFF")) return 0;
-if (!strcmp(wd,"AUTO")) return 1;
-if (!strcmp(wd,"MANUAL")) return 2;
-if (!strcmp(wd, "VYP")) return 0;
-return -1;
+	if (!strcmp(wd,"OFF")) return 0;
+	if (!strcmp(wd,"AUTO")) return 1;
+	if (!strcmp(wd,"MANUAL")) return 2;
+	if (!strcmp(wd, "VYP")) return 0;
+	return -1;
 }
 
 
 /*** Tell telnet not to echo characters - for password entry ***/
 void echo_off(UR_OBJECT user)
 {
-if (amsys->password_echo || user->show_pass) return;
-vwrite_user(user,"%c%c%c",255,251,1);
+	if (amsys->password_echo || user->show_pass) return;
+	vwrite_user(user,"%c%c%c",255,251,1);
 }
 
 
 /*** Tell telnet to echo characters ***/
 void echo_on(UR_OBJECT user)
 {
-if (amsys->password_echo || user->show_pass) return;
-vwrite_user(user,"%c%c%c",255,252,1);
+	if (amsys->password_echo || user->show_pass) return;
+	vwrite_user(user,"%c%c%c",255,252,1);
 }
 
 
 /*** Return pos. of second word in inpstr ***/
 char *remove_first(char *inpstr)
 {
-char *pos=inpstr;
-while(*pos<33 && *pos) ++pos;
-while(*pos>32) ++pos;
-while(*pos<33 && *pos) ++pos;
-return pos;
+	char *pos=inpstr;
+	while(*pos<33 && *pos) ++pos;
+	while(*pos>32) ++pos;
+	while(*pos<33 && *pos) ++pos;
+	return pos;
 }
 
 
@@ -533,21 +538,25 @@ char *censor_swear_words(char *has_swears)
 /*** Count the number of colour commands in a string ***/
 int colour_com_count(char *str)
 {
-char *s;
-int i,cnt;
+	char *s;
+	int i,cnt;
 
-s=str;  cnt=0;
-while(*s) {
-  if (*s=='~') {
-    ++s;
-    for(i=0;i<NUM_COLS;++i) {
-      if (!strncmp(s,colour_codes[i].txt_code,2)) { cnt++;  s++;  break; }
-      }
-    continue;
-    }
-  ++s;
-  }
-return cnt;
+	s=str;  cnt=0;
+	while(*s) {
+		if (*s=='~') {
+			++s;
+			for(i=0;i<NUM_COLS;++i) {
+				if (!strncmp(s,colour_codes[i].txt_code,2)) {
+					cnt++;
+					s++;
+					break;
+					}
+				}
+			continue;
+			}
+		++s;
+		}
+	return cnt;
 }
 
 
@@ -555,49 +564,52 @@ return cnt;
      over a netlink to a talker that doesn't support them ***/
 char *colour_com_strip(char *str)
 {
-char *s,*t;
-static char text2[ARR_SIZE];
-int i;
+	char *s,*t;
+	static char text2[ARR_SIZE];
+	int i;
 
-s=str;  t=text2;
-while(*s) {
-  if (*s=='~') {
-    ++s;
-    for(i=0;i<NUM_COLS;++i) {
-      if (!strncmp(s,colour_codes[i].txt_code,2)) {  s++;  goto CONT;  }
-      }
-    --s;  *t++=*s;
-    }
-  else *t++=*s;
+	s=str;  t=text2;
+	while(*s) {
+		if (*s=='~') {
+			++s;
+			for(i=0;i<NUM_COLS;++i) {
+				if (!strncmp(s,colour_codes[i].txt_code,2)) {
+					s++;
+					goto CONT;
+					}
+				}
+			--s;
+			*t++=*s;
+			}
+		else *t++=*s;
 CONT:
-  s++;
-  }
-*t='\0';
-return text2;
+		s++;
+		}
+	*t='\0';
+	return text2;
 }
 
 
 /*** Convert string to upper case ***/
 void strtoupper(char *str)
 {
-while(*str) {  *str=toupper(*str);  str++; }
+	while(*str) {  *str=toupper(*str);  str++; }
 }
 
 
 /*** Convert string to lower case ***/
 void strtolower(char *str)
 {
-while(*str) {  *str=tolower(*str);  str++; }
+	while(*str) {  *str=tolower(*str);  str++; }
 }
 
 
 /*** Returns 1 if string is a positive number ***/
 int is_number(char *str)
 {
-while(*str) if (!isdigit(*str++)) return 0;
-return 1;
+	while(*str) if (!isdigit(*str++)) return 0;
+	return 1;
 }
-
 
 
 /*** Peforms the same as strstr, in that it returns a pointer to the first occurence
@@ -605,27 +617,27 @@ return 1;
      ***/
 char *istrstr(char *str, char *pat)
 {
-char *pptr, *sptr, *start;
-int  slen, plen;
+	char *pptr, *sptr, *start;
+	int  slen, plen;
 
-slen=strlen(str);
-plen=strlen(pat);
-for (start=(char *)str,pptr=(char *)pat;slen>=plen;start++,slen--) {
+	slen=strlen(str);
+	plen=strlen(pat);
+	for (start=(char *)str,pptr=(char *)pat;slen>=plen;start++,slen--) {
   /* find start of pattern in string */
-  while (toupper(*start)!=toupper(*pat)) {
-    start++;  slen--;
+		while (toupper(*start)!=toupper(*pat)) {
+			start++;  slen--;
     /* if pattern longer than string */
-    if (slen<plen) return(NULL);
-    }
-  sptr=start;
-  pptr=(char *)pat;
-  while (toupper(*sptr)==toupper(*pptr)) {
-    sptr++;  pptr++;
+			if (slen<plen) return(NULL);
+			}
+		sptr=start;
+		pptr=(char *)pat;
+		while (toupper(*sptr)==toupper(*pptr)) {
+			sptr++;  pptr++;
     /* if end of pattern then pattern was found */
-    if (*pptr=='\0') return (start);
-    } /* end while */
-  } /* end for */
-return(NULL);
+			if (*pptr=='\0') return (start);
+			} /* end while */
+		} /* end for */
+	return(NULL);
 }
 
 
@@ -634,51 +646,53 @@ return(NULL);
      ***/
 char *replace_string(char *inpstr, char *old, char *new)
 {
-int old_len,new_len;
-char *x,*y;
+	int old_len,new_len;
+	char *x,*y;
 
-if (NULL==(x=(char *)istrstr(inpstr,old))) return x;
-old_len=strlen(old);
-new_len=strlen(new);
-memmove(y=x+new_len,x+old_len,strlen(x+old_len)+1);
-memcpy(x,new,new_len);
-return inpstr;
+	if (NULL==(x=(char *)istrstr(inpstr,old))) return x;
+	old_len=strlen(old);
+	new_len=strlen(new);
+	memmove(y=x+new_len,x+old_len,strlen(x+old_len)+1);
+	memcpy(x,new,new_len);
+	return inpstr;
 }
 
 
 /*** Searches string s1 for string s2 ***/
 int instr(char *s1, char *s2)
 {
-int f,g;
-for (f=0;*(s1+f);++f) {
-  for (g=0;;++g) {
-    if (*(s2+g)=='\0' && g>0) return f;
-    if (*(s2+g)!=*(s1+f+g)) break;
-    }
-  }
-return -1;
+	int f,g;
+
+	for (f=0;*(s1+f);++f) {
+		for (g=0;;++g) {
+			if (*(s2+g)=='\0' && g>0) return f;
+			if (*(s2+g)!=*(s1+f+g)) break;
+			}
+		}
+	return -1;
 }
 
 
 /* used to copy out a chuck of text in macros */
 void midcpy(char *strf, char *strt, int fr, int to)
 {
-int f;
-for (f=fr;f<=to;++f) {
-   if (!strf[f]) { strt[f-fr]='\0';  return; }
-   strt[f-fr]=strf[f];
-   }
-strt[f-fr]='\0';
+	int f;
+
+	for (f=fr;f<=to;++f) {
+		if (!strf[f]) { strt[f-fr]='\0';  return; }
+		strt[f-fr]=strf[f];
+		}
+	strt[f-fr]='\0';
 }
 
 
 /*** Get ordinal value of a date and return the string ***/
 char *ordinal_text(int num)
 {
-char *ords[]={"th","st","nd","rd"};
+	char *ords[]={"th","st","nd","rd"};
 
-if (((num%=100)>9 && num<20) || (num%=10)>3) num=0;
-return ords[num];
+	if (((num%=100)>9 && num<20) || (num%=10)>3) num=0;
+	return ords[num];
 }
 
 
@@ -1379,7 +1393,7 @@ return(0);
 /*** See if users site is banned ***/
 int site_banned(char *sbanned, int new) {
 FILE *fp;
-char line[82],filename[100];
+char line[82],filename[200];
 
 if (new) sprintf(filename,"%s/%s/%s", ROOTDIR, DATAFILES, NEWBAN);
 else sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
@@ -1416,7 +1430,7 @@ return 0;
 /*** See if user is banned ***/
 int user_banned(char *name) {
 FILE *fp;
-char line[82],filename[100];
+char line[82],filename[200];
 
 sprintf(filename,"%s/%s/%s", ROOTDIR, DATAFILES, USERBAN);
 if (!(fp=fopen(filename,"r"))) return 0;
@@ -1659,7 +1673,7 @@ return cnt;
 /*** See if user is banned ***/
 int has_room_key(char *visitor,RM_OBJECT rm) {
 FILE *fp;
-char line[82],filename[100],rmname[USER_NAME_LEN];
+char line[82],filename[200],rmname[USER_NAME_LEN];
 
 /* get user's name from room name */
 midcpy(rm->name,rmname,1,strlen(rm->name)-2);
@@ -2012,8 +2026,8 @@ switch(code) {
     exit(101);
 
   case 102:
-    perror("OS Star: nemozem vytvorit tempfajl v TMPFILES");
-    write_syslog(SYSLOG, 1, "BOOT FAILURE: nemozem vytvorit tempfajl v TMPFILES.\n");
+    perror("OS Star: nemozem vytvorit tempfajl v TEMPFILES");
+    write_syslog(SYSLOG, 1, "BOOT FAILURE: nemozem vytvorit tempfajl v TEMPFILES.\n");
     exit(102);
 
   case 103:
@@ -2170,13 +2184,13 @@ int
 load_user_details(UR_OBJECT user)
 {
 FILE *fp;
-char user_words[14][20]; /* must be at least 1 longer than max words in the _options */
-char line[ARR_SIZE],filename[100],*str;
+char user_words[15][20]; /* must be at least 1 longer than max words in the _options */
+char line[ARR_SIZE],filename[200],*str;
 int  wn,wpos,wcnt,op,found,i,damaged,version_found;
 char *userfile_options[]={
   "version","password","promote_date","times","levels","general","user_set",
   "user_ignores","fighting","purging","last_site","mail_verify","description",
-  "in_phrase","out_phrase","email","homepage","recap_name", "icq",
+  "in_phrase","out_phrase","email","homepage","recap_name",
   "prompt", "nick_grm", "pueblo", "restrict", "ign_word", "*" /* KEEP HERE! */
   };
 
@@ -2185,7 +2199,7 @@ if (!(fp=fopen(filename,"r"))) return 0;
 
 damaged=version_found=0;
 fgets(line,ARR_SIZE-1,fp);
-line[strlen(line)-1]=0;
+line[strlen(line)-1]='\0';
 
 while(!feof(fp)) {
   /* make this into the functions own word array.  This allows this array to
@@ -2197,7 +2211,7 @@ while(!feof(fp)) {
     while(*str>32 && wpos<20) user_words[wn][wpos++]=*str++;
     user_words[wn++][wpos]='\0';
     wpos=0;
-  } while (wn<14);
+  } while (wn<15);
   wn--;
  LUOUT:
   wcnt=wn;
@@ -2268,7 +2282,7 @@ while(!feof(fp)) {
 	    case 10: user->show_pass=atoi(user_words[i]);  break;
 	    case 11: user->show_rdesc=atoi(user_words[i]);  break;
 	    case 12: user->cmd_type=atoi(user_words[i]);  break;
-	    case 13: strcpy(user->icq,user_words[i]);  break;
+	    case 13: strcpy(user->icq, user_words[i]);  break;
 	    }
 	break;
       case 7:
@@ -2333,16 +2347,13 @@ while(!feof(fp)) {
 	if (wcnt>=2) strcpy(user->recap,remove_first(line));
 	break;
       case 18:
-      	if (wcnt>=2) strcpy(user->icq, remove_first(line));
-      	break;
-      case 19:
         for (i=1; i<wcnt; i++)
           switch(i) {
             case 1: user->prompt_typ=atoi(user_words[i]); break;
             case 2: strcpy(user->prompt_str, user_words[i]); break;
             }
         break;
-      case 20:
+      case 19:
         for (i=1; i<wcnt; i++)
           switch(i) {
             case 1: strcpy(user->nameg, user_words[i]); break;
@@ -2352,7 +2363,7 @@ while(!feof(fp)) {
             case 5: strcpy(user->namei, user_words[i]); break;
             }
         break;
-      case 21:
+      case 20:
         for (i=1; i<wcnt; i++)
           switch(i) {
             case 1: user->pueblo_mm=atoi(user_words[i]); break;
@@ -2360,11 +2371,11 @@ while(!feof(fp)) {
             case 3: user->voiceprompt=atoi(user_words[i]); break;
             }
         break;
-      case 22:
+      case 21:
         if (wcnt>=2) strcpy(user->restrict, remove_first(line));
         else strcpy(user->restrict, RESTRICT_MASK);
         break;
-      case 23:
+      case 22:
         if (wcnt>=2) user->ign_word=strdup(remove_first(line));
 	break;
       default: damaged++; break;
@@ -2510,7 +2521,7 @@ int i;
 
 /* first zero out all level counts */
 amsys->user_count=0;
-for (i=JAILED;i<=GOD;i++) amsys->level_count[i]=0;
+for (i=JAILED;i<=ROOT;i++) amsys->level_count[i]=0;
 /* count up users */
 for (entry=first_dir_entry;entry!=NULL;entry=entry->next) {
   amsys->level_count[entry->level]++;
@@ -2578,31 +2589,45 @@ return (!num) ? 1:num;
 /* wipes ALL the files belonging to the user with name given */
 void clean_files(char *name)
 {
-char filename[100];
+	DIR *dirp;
+	struct dirent *dp;
+	char filename[200];
 
-name[0]=toupper(name[0]);
-sprintf(filename,"%s/%s/%s.D", ROOTDIR, USERFILES, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR, USERFILES, USERMAILS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR, USERFILES, USERPROFILES, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.H", ROOTDIR, USERFILES, USERHISTORYS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR, USERFILES, USERCOMMANDS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.MAC", ROOTDIR, USERFILES, USERMACROS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.F", ROOTDIR, USERFILES, USERFRIENDS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR, USERFILES, USERROOMS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR, USERFILES, USERROOMS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR, USERFILES, USERROOMS, name);
-unlink(filename);
-sprintf(filename,"%s/%s/%s/%s.REM", ROOTDIR, USERFILES, USERREMINDERS, name);
-unlink(filename);
+	name[0]=toupper(name[0]);
+	sprintf(filename,"%s/%s/%s.D", ROOTDIR, USERFILES, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR, USERFILES, USERMAILS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR, USERFILES, USERPROFILES, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.H", ROOTDIR, USERFILES, USERHISTORYS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR, USERFILES, USERCOMMANDS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.MAC", ROOTDIR, USERFILES, USERMACROS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.F", ROOTDIR, USERFILES, USERFRIENDS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR, USERFILES, USERROOMS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR, USERFILES, USERROOMS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR, USERFILES, USERROOMS, name);
+	unlink(filename);
+	sprintf(filename,"%s/%s/%s/%s.REM", ROOTDIR, USERFILES, USERREMINDERS, name);
+	unlink(filename);
+	sprintf(filename, "%s/%s/%s", ROOTDIR, USERFILES, USERPLDATAS);
+	if ((dirp=opendir(filename))==NULL) {
+		write_syslog(ERRLOG, 1, "Chyba pri otvarani adresara v clean_files()\n");
+		return;
+		}
+	sprintf(filename, "%s.", name);
+	while ((dp=readdir(dirp))!=NULL)
+		if (!strncmp(dp->d_name, filename, strlen(filename))) {
+			sprintf(text, "%s/%s/%s/%s", ROOTDIR, USERFILES, USERPLDATAS, dp->d_name);
+			unlink(text);
+			}
+	(void) closedir(dirp);
 }
 
 
@@ -2612,12 +2637,13 @@ unlink(filename);
  */
 int remove_top_bottom(char *filename, int where)
 {
-char line[ARR_SIZE];
+char line[ARR_SIZE], tempfile[200];
 FILE *fpi, *fpo;
 int i,cnt;
 
 if (!(fpi=fopen(filename,"r"))) return 0;
-if (!(fpo=fopen("temp_file","w"))) {
+sprintf(tempfile, "%s/%s/temp_file", ROOTDIR, TEMPFILES);
+if (!(fpo=fopen(tempfile,"w"))) {
   fclose(fpi);  return 0;
   }
 /* remove from top */
@@ -2959,7 +2985,7 @@ void write_syslog(int type, int write_time, char *str, ...)
 FILE *fp;
 int i=0;
 va_list args;
-char filename[100];
+char filename[200];
 
 fp=NULL;  vtext[0]='\0';
 switch(type) {
@@ -3016,7 +3042,7 @@ amsys->last_cmd_cnt++;
 /* write the commands to the files */
 void dump_commands(int foo) {
 FILE *fp;
-char filename[100];
+char filename[200];
 
 sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,LAST_CMD,amsys->pid);
 if((fp=fopen(filename, "w"))) {
@@ -3320,7 +3346,7 @@ return retval;
 void add_history(char *name, int showtime, char *str)
 {
 FILE *fp;
-char filename[100];
+char filename[200];
 
 name[0]=toupper(name[0]);
 /* add to actual history listing */
@@ -3355,37 +3381,33 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
 				if (!strncmp(inpstr,"PUEBLOCLIENT",12)) {
 					user->pueblo = -1; /* Set to -1 so we don't keep repeating the welcome screen */
 					cls(user);
-					sprintf(text,"</xch_mudtext><center><img src=\"%s%s%s\"></center><xch_mudtext>",reg_sysinfo[TALKERHTTP],reg_sysinfo[PUEBLOWEB],reg_sysinfo[PUEBLOPIC]);
-					write_user(user,text);
-					sprintf(text,"</xch_mudtext><br><br><center><b><font size=+3>Welcome to %s v%s !</font></b><br><font size=+1>OS Star verzia %s</font></center><br><xch_mudtext>\n",reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
-					write_user(user,text);
+					vwrite_user(user, "</xch_mudtext><center><img src=\"%s%s%s\"></center><xch_mudtext>",reg_sysinfo[TALKERHTTP],reg_sysinfo[PUEBLOWEB],reg_sysinfo[PUEBLOPIC]);
+					vwrite_user(user, "</xch_mudtext><br><br><center><b><font size=+3>Welcome to %s v%s !</font></b><br><font size=+1>OS Star verzia %s</font></center><br><xch_mudtext>\n",reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
 					sprintf(text,"%s<>~RS %sMultimedia client has been Auto-detected.\n",colors[CWARNING],colors[CSYSBOLD]);
 					write_duty(ARCH,text,NULL,NULL,2);
-					user->login=LOGIN_NAME;
+//					user->login=LOGIN_NAME;
 					name[0]='\0';
 					write_user(user, login_prompt);
 					return; 
 					}
  				}
-  
 			sscanf(inpstr,"%s",name);
-
-    if(name[0]<33) {
-      write_user(user, login_prompt);
-      return;
-      }
-    if (!strcmp(name,"quit")) {
-      write_user(user, login_quit);
-      disconnect_user(user);
-      return;
-      }
-    if (!strcmp(name,"who")) {
+			if(name[0]<33) {
+				write_user(user, login_prompt);
+				return;
+				}
+			if (!strcmp(name,"quit")) {
+				write_user(user, login_quit);
+				disconnect_user(user);
+				return;
+				}
+			if (!strcmp(name,"who")) {
       /* if you don't like this logon who, then replace it with the normal
 	 one of who(user,0); */
-      login_who(user);
-      write_user(user, login_prompt);
-      return;
-      }
+				login_who(user);
+				write_user(user, login_prompt);
+				return;
+				}
     if (!strcasecmp(name,"version")) {
       vwrite_user(user,"\ntalker %s v%s (OS Star v%s (AmNUTS v%s (NUTS v%s)))\n",
 		reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION, AMNUTSVER, NUTSVER);
@@ -3751,7 +3773,7 @@ for(u=user_first;u!=NULL;u=u->next) {
     return;
     }
   }
-alert_friends(user);
+alert_friends(user, 1);
 logon_flag=1;
 if (!user->vis && user->level<command_table[INVIS].level) user->vis=1;
 if (user->level==JAILED) {
@@ -4980,14 +5002,15 @@ return(retval);
 int wipe_messages(char *filename, int from, int to, int type)
 {
 FILE *fpi,*fpo;
-char line[ARR_SIZE];
+char line[ARR_SIZE], tempfile[200];
 int rem,i,tmp1,tmp2;
 
 rem=0;  line[0]='\0';
 if (!(fpi=fopen(filename,"r"))) {
   return 0; /* return on no messages to delete */
   }
-if (!(fpo=fopen("tempfile","w"))) {
+sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+if (!(fpo=fopen(tempfile ,"w"))) {
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in wipe_message().\n");
   fclose(fpo);
   return -1; /* return on error */
@@ -5025,7 +5048,7 @@ SKIP_WIPE:
 fclose(fpi);
 fclose(fpo);
 unlink(filename);
-rename("tempfile",filename);
+rename(tempfile, filename);
 return rem;
 }
 
@@ -5038,7 +5061,7 @@ return rem;
 void auto_ban_site(char *asite)
 {
 FILE *fp;
-char filename[100];
+char filename[200];
 UR_OBJECT u,next;
 
 sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
@@ -5068,7 +5091,7 @@ write_syslog(SYSLOG,1,"BANNED site/domain '%s' due to attempted flood.\n",asite)
 void ban_site(UR_OBJECT user)
 {
 FILE *fp;
-char filename[100],host[81],bsite[80],check[81];
+char filename[200],host[81],bsite[80],check[81];
 
 gethostname(host,80);
 /* check if full name matches the host's name */
@@ -5131,7 +5154,7 @@ void ban_user(UR_OBJECT user)
 {
 UR_OBJECT u;
 FILE *fp;
-char filename[100],name[USER_NAME_LEN+1];
+char filename[200],name[USER_NAME_LEN+1];
 struct user_dir_struct *entry;
 
 word[2][0]=toupper(word[2][0]);
@@ -5193,7 +5216,7 @@ if (u!=NULL) {
 void ban_new(UR_OBJECT user)
 {
 FILE *fp;
-char filename[100],host[81],bsite[80],*check;
+char filename[200],host[81],bsite[80],*check;
 
 gethostname(host,80);
 /* check if full name matches the host's name */
@@ -5255,7 +5278,7 @@ write_syslog(SYSLOG,1,"%s BANNED new users from site/domain %s.\n",user->name,wo
 void unban_site(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[100],ubsite[80];
+char filename[200],ubsite[80], tempfile[200];
 int found,cnt;
 
 sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
@@ -5263,7 +5286,8 @@ if (!(infp=fopen(filename,"r"))) {
   write_user(user,"Tato sajta/domena neni teraz zabanovana.\n");
   return;
   }
-if (!(outfp=fopen("tempfile","w"))) {
+sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+if (!(outfp=fopen(tempfile ,"w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_site().\n");
   fclose(infp);
@@ -5282,13 +5306,13 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"Tato sajta/domena neni teraz zabanovana.\n");
-  unlink("tempfile");
+  unlink(tempfile);
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink("tempfile");
+  unlink(filename);  unlink(tempfile);
   }
-else rename("tempfile",filename);
+else rename(tempfile, filename);
 write_user(user,"Sajta odbanovana.\n");
 write_syslog(SYSLOG,1,"%s UNBANNED site %s.\n",user->name,word[2]);
 }
@@ -5298,7 +5322,7 @@ write_syslog(SYSLOG,1,"%s UNBANNED site %s.\n",user->name,word[2]);
 void unban_user(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[100],name[USER_NAME_LEN+1];
+char filename[200],name[USER_NAME_LEN+1], tempfile[200];
 int found,cnt;
 
 sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,USERBAN);
@@ -5306,7 +5330,8 @@ if (!(infp=fopen(filename,"r"))) {
   write_user(user,"Tento user neni teraz zabanovany.\n");
   return;
   }
-if (!(outfp=fopen("tempfile","w"))) {
+sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+if (!(outfp=fopen(tempfile,"w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_user().\n");
   fclose(infp);
@@ -5326,13 +5351,13 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"Tento user neni momentalne zabanovany.\n");
-  unlink("tempfile");
+  unlink(tempfile);
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink("tempfile");
+  unlink(filename);  unlink(tempfile);
   }
-else rename("tempfile",filename);
+else rename(tempfile,filename);
 vwrite_user(user,"User '%s' odbanovany.\n",word[2]);
 write_syslog(SYSLOG,1,"%s UNBANNED user %s.\n",user->name,word[2]);
 sprintf(text,"User's name was ~FGunbanned~RS by %s.\n",user->name);
@@ -5344,7 +5369,7 @@ add_history(word[2],0,text);
 void unban_new(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[100],ubsite[80];
+char filename[200],ubsite[80], tempfile[200];
 int found,cnt;
 
 sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,NEWBAN);
@@ -5352,7 +5377,8 @@ if (!(infp=fopen(filename,"r"))) {
   write_user(user,"New users from that site/domain are not currently banned.\n");
   return;
   }
-if (!(outfp=fopen("tempfile","w"))) {
+sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
+if (!(outfp=fopen(tempfile,"w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_new().\n");
   fclose(infp);
@@ -5371,13 +5397,13 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"New users from that site/domain are not currently banned.\n");
-  unlink("tempfile");
+  unlink(tempfile);
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink("tempfile");
+  unlink(filename);  unlink(tempfile);
   }
-else rename("tempfile",filename);
+else rename(tempfile,filename);
 write_user(user,"New users from site ban removed.\n");
 write_syslog(SYSLOG,1,"%s UNBANNED new users from site %s.\n",user->name,word[2]);
 }
@@ -6436,7 +6462,7 @@ void display_colour(UR_OBJECT user)
 /*** checks a name to see if it's in the retire list ***/
 int in_retire_list(char *name)
 {
-	char filename[100], check[USER_NAME_LEN+1];
+	char filename[200], check[USER_NAME_LEN+1];
 	FILE *fp;
 
 	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
@@ -6460,7 +6486,7 @@ int in_retire_list(char *name)
 void add_retire_list(char *name)
 {
 	FILE *fp;
-	char filename[100];
+	char filename[200];
 
 	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
 	if ((fp=fopen(filename,"a"))) {
@@ -6473,13 +6499,14 @@ void add_retire_list(char *name)
 /*** removes a user from the retired list ***/
 void clean_retire_list(char *name)
 {
-	char filename[100], line[82], check[USER_NAME_LEN];
+	char filename[200], line[82], check[USER_NAME_LEN], templist[200];
 	FILE *fpi,*fpo;
 	int cnt=0;
 
 	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
 	if (!(fpi=fopen(filename,"r"))) return;
-	if (!(fpo=fopen("templist","w"))) { fclose(fpi);  return; }
+	sprintf(templist, "%s/%s/templist", ROOTDIR, TEMPFILES);
+	if (!(fpo=fopen(templist,"w"))) { fclose(fpi);  return; }
 
 	name[0]=toupper(name[0]);
 	fgets(line,82,fpi);
@@ -6492,7 +6519,7 @@ void clean_retire_list(char *name)
 		}
 	fclose(fpi);  fclose(fpo);
 	unlink(filename);
-	rename("templist",filename);
+	rename(templist,filename);
 	if (!cnt) unlink(filename);
 	return;
 }
@@ -6507,7 +6534,7 @@ int set_xgcom(UR_OBJECT user, UR_OBJECT u, int id, int banned, int set)
 {
 int cnt,i;
 FILE *fp;
-char filename[100];
+char filename[200];
 
 /* if banning a command with .xcom */
 if (banned) {
@@ -6584,7 +6611,7 @@ int get_xgcoms(UR_OBJECT user)
 {
 	int i,type,tmp;
 	FILE *fp;
-	char filename[180];
+	char filename[200];
 
 	sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR,USERFILES,USERCOMMANDS,user->name);
 	if (!(fp=fopen(filename,"r"))) return 0;
@@ -6620,15 +6647,19 @@ int user_is_friend(UR_OBJECT user, UR_OBJECT u)
 
 /* Alert anyone logged on who has user in their friends 
    list that the user has just loged on */ 
-void alert_friends(UR_OBJECT user)
+void alert_friends(UR_OBJECT user, int mode)
 {
 	UR_OBJECT u;
 
 	for (u=user_first;u!=NULL;u=u->next) {
 		if (!u->alert || u->login) continue;
 		if ((user_is_friend(u,user)) && user->vis)
-			vwrite_user(u,"\n\07~FG~OL~LIHEY!~RS~OL~FG  tvoj%s kamos%s  ~FT%s~FG sa prilogoval%s\n\n",
-				gnd_grm(3, user->gender), gnd_grm(2, user->gender), user->name, gnd_grm(4, user->gender));
+			if (mode)
+				vwrite_user(u,"\n\07~FG~OL~LIHEY!~RS~OL~FG  tvoj%s kamos%s ~RS%s~FG~OL sa prilogoval%s\n",
+					gnd_grm(3, user->gender), gnd_grm(2, user->gender), user->recap, gnd_grm(4, user->gender));
+			else 
+				vwrite_user(u,"\n\07~FR~OL~LIHEY!~RS~OL~FR  tvoj%s kamos%s ~RS%s~FR~OL sa odlogoval%s\n",
+					gnd_grm(3, user->gender), gnd_grm(2, user->gender), user->recap, gnd_grm(4, user->gender));
 		}
 }
 
@@ -6636,7 +6667,7 @@ void alert_friends(UR_OBJECT user)
 /* Read from the friends file into the user structure */
 void get_friends(UR_OBJECT user)
 {
-	char filename[100],name[USER_NAME_LEN];
+	char filename[200],name[USER_NAME_LEN];
 	FILE *fp;
 	int i;
 
@@ -6784,7 +6815,7 @@ int remove_old_reminders(UR_OBJECT user)
 int read_user_reminders(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[100],line[REMINDER_LEN+1];
+	char filename[200],line[REMINDER_LEN+1];
 	int ln,i;
 
 	ln=i=0;
@@ -6818,7 +6849,7 @@ int read_user_reminders(UR_OBJECT user)
 int write_user_reminders(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[100];
+	char filename[200];
 	int i,cnt;
 
 	sprintf(filename,"%s/%s/%s/%s.REM",
@@ -6850,7 +6881,7 @@ int write_user_reminders(UR_OBJECT user)
    */
 int personal_room_store(char *name, int store, RM_OBJECT rm) {
 FILE *fp;
-char filename[100],line[TOPIC_LEN+1],c;
+char filename[200],line[TOPIC_LEN+1],c;
 int i;
 
 if (rm==NULL) return 0;
@@ -6907,7 +6938,7 @@ return 1;
 int personal_key_add(UR_OBJECT user,char *name)
 {
 	FILE *fp;
-	char filename[100];
+	char filename[200];
 
 	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
 	if ((fp=fopen(filename,"a"))) {
@@ -6922,13 +6953,14 @@ int personal_key_add(UR_OBJECT user,char *name)
 /*** remove a name from the user's personal room key list ***/
 int personal_key_remove(UR_OBJECT user,char *name)
 {
-	char filename[100], line[USER_NAME_LEN+2];
+	char filename[200], line[USER_NAME_LEN+2], tempkeylist[200];
 	FILE *fpi,*fpo;
 	int cnt=0;
 
 	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
 	if (!(fpi=fopen(filename,"r"))) return 0;
-	if (!(fpo=fopen("tempkeylist","w"))) {
+	sprintf(tempkeylist, "%s/%s/tempkeylist", ROOTDIR, TEMPFILES);
+	if (!(fpo=fopen(tempkeylist,"w"))) {
 		fclose(fpi);
 		return 0;
 		}
@@ -6944,7 +6976,7 @@ int personal_key_remove(UR_OBJECT user,char *name)
 	fclose(fpi);
 	fclose(fpo);
 	unlink(filename);
-	rename("tempkeylist",filename);
+	rename(tempkeylist,filename);
 	if (!cnt) unlink(filename);
 	return 1;
 }

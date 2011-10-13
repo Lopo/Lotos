@@ -1,6 +1,6 @@
 /*****************************************************************************
-                     Struktura system v OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                     Struktura system v OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -13,7 +13,7 @@ struct system_struct {
   int wizport_level,minlogin_level,gatecrash_level,ignore_mp_level,rem_user_maxlevel,rem_user_deflevel;
   int password_echo,auto_promote,ban_swearing,personal_rooms,startup_room_parse,auto_connect;
   int allow_recaps,suggestion_count,random_motds,motd1_cnt,motd2_cnt,forwarding,sbuffline;
-  int resolve_ip,rs_countdown,level_count[GOD+1],last_cmd_cnt,flood_protect;
+  int resolve_ip,rs_countdown,level_count[ROOT+1],last_cmd_cnt,flood_protect;
   unsigned short logging;
   unsigned int pid;
   char sysname[64],sysmachine[64],sysrelease[64],sysversion[64],sysnodename[256],shoutbuff[REVIEW_LINES][REVIEW_LEN+2];

@@ -1,7 +1,7 @@
-t a l k r o v y   O S  Star   ver 1.0.0b
+t a l k r o v y   O S  Star   v1.0.0
 ================================================================================
 User file format
-UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.0.0b.
+UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.0.0 !
 ================================================================================
 
 Kazdy riadok zacina slovom oznacujucim obsah riadka.

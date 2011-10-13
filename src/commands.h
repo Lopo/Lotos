@@ -1,7 +1,7 @@
 /*****************************************************************************
-                      prikazy pre OS Star v1.0.0b
-          Copyright (C) Pavol Hluchy - Posledny update: 28.3.2000
-             OS Star v1.0.0b | http://star.sjf.stuba.sk/osstar
+                      prikazy pre OS Star v1.0.0
+          Copyright (C) Pavol Hluchy - Posledny update: 2.5.2000
+             OS Star v1.0.0 | http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
 /* These are the general function names of the commands */

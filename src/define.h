@@ -1,14 +1,14 @@
 /*****************************************************************************
-                     Hlavne definicie pre OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                     Hlavne definicie pre OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
 /* cislo verzie - TVERSION moze mat akekolvek cislo,
    ostatne musia byt nezmenene */
 
-#define TVERSION "1.0.0"
-#define OSSVERSION "1.0.0b"
+#define TVERSION "2.0.1"
+#define OSSVERSION "1.0.0"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
 #define USERVER "0.1"
@@ -17,7 +17,7 @@
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/usr/talker/osstar"
+#define ROOTDIR "/osstar100"
 #define DATAFILES "datafiles"
 #define CONFFILES "conffiles"
 #define MAPFILES "mapfiles"
@@ -51,7 +51,6 @@
 #define USERROOMS "rooms"
 #define USERREMINDERS "reminders"
 #define USERPLDATAS "pldatas"
-#define USERBANKFILES "bank"
 
 /* files */
 #define CONFIGFILE "config"
@@ -317,7 +316,7 @@
 #define RESTRICT_HELP  	7		/* access .help */
 #define RESTRICT_SUIC  	8		/* .suicide */
 #define RESTRICT_WHO   	9		/* .who */
-#define RESTRICT_RUN  	10		/* .run commands */
+#define RESTRICT_RUN  	10		/* .run commands  - nepouzite*/
 #define RESTRICT_CLON 	11		/* .create, .destroy clones */
 #define RESTRICT_VIEW 	12		/* .review, .revtell */
 #define RESTRICT_EXEC	13		/* execution of commands */

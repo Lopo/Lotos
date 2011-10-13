@@ -1,6 +1,6 @@
 /*****************************************************************************
-                   Funkcie OS Star v1.0.0b pre start systemu
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                   Funkcie OS Star v1.0.0 pre start systemu
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -282,6 +282,8 @@ if (!port[1]) {
 	    || port[1]==port[2]
 	    || port[0]==port[2]
 	    ) {
+#else
+	if (port[0]==port[1]) {
 #endif
   fprintf(stderr,"OS Star: Port numbers must be unique.\n");
   boot_exit(1);

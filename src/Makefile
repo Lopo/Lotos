@@ -1,7 +1,7 @@
-###############################################################################
-#              Makefile subor na kompilaciu OS Star po castiach               #
-#        Copyright (C) 2000 Pavol Hluchy - posledny update: 28.3.2000         #
-#         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar          #
+################################################################################
+#              Makefile subor na kompilaciu OS Star po castiach                #
+#        Copyright (C) 2000 Pavol Hluchy - posledny update: 2.5.2000           #
+#         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar           #
 ################################################################################
 
 #umiestnenie vysledneho spustitelneho suboru
@@ -18,9 +18,9 @@ CC      		= gcc
 CFLAGS  		= -O2
 HDRS          		= 
 #definicie
-DEFS			= -DNETLINKS
+DEFS			=
 #kniznice
-LIBS    		= -lcrypt
+LIBS    		=
 #
 # You'll need these libs for a Solaris build
 #
@@ -29,7 +29,6 @@ LIBS    		= -lcrypt
 
 
 OBJS          = $(OBJECT-DIR)/star.o \
-		$(OBJECT-DIR)/netlinks.o \
 		$(OBJECT-DIR)/globals.o \
 		$(OBJECT-DIR)/prompts.o \
 		$(OBJECT-DIR)/plugin.o \
@@ -51,20 +50,21 @@ OBJS          = $(OBJECT-DIR)/star.o \
 		$(OBJECT-DIR)/pueblo.o \
 		$(OBJECT-DIR)/fonts.o \
 		$(OBJECT-DIR)/poc_zoz.o \
+		$(OBJECT-DIR)/netlinks.o \
 
 
 all:   			$(BIN)/$(BINARY)
 		@echo 'Hotovo'
 
 $(BIN)/$(BINARY):   	$(OBJS) Makefile
-		@$(CC) $(CFLAGS) -o $(BIN)/$(BINARY) $(DEFS) $(OBJS) $(LIBS)
+		$(CC) $(CFLAGS) -o $(BIN)/$(BINARY) $(DEFS) $(OBJS) $(LIBS)
 		@strip $(BIN)/$(BINARY)
 
 $(OBJECT-DIR)/%.o:	prototypes.h define.h *_obj.h commands.h
 		$(CC) $(CFLAGS) $(DEFS) -c $*.c -o $(OBJECT-DIR)/$*.o
 
 clean:
-		@echo -f 'Mazem binarky'
+		@echo 'Mazem binarky'
 		@rm $(OBJECT-DIR)/*
 
 reall:
@@ -73,7 +73,6 @@ reall:
 
 ###
 $(OBJECT-DIR)/star.o: star.c star.h
-$(OBJECT-DIR)/netlinks.o: netlinks.c netlinks.h
 $(OBJECT-DIR)/globals.o: globals.c commands.h
 $(OBJECT-DIR)/prompts.o: prompts.c
 $(OBJECT-DIR)/plugin.o: plugin.c plugin.h ./plugins/*.c ./plugins/*.h
@@ -95,3 +94,4 @@ $(OBJECT-DIR)/macros.o: macros.c macros.h
 $(OBJECT-DIR)/pueblo.o: pueblo.c pueblo.h
 $(OBJECT-DIR)/fonts.o: fonts.c fonts.h
 $(OBJECT-DIR)/poc_zoz.o: poc_zoz.c poc_zoz.h
+$(OBJECT-DIR)/netlinks.o: netlinks.c netlinks.h

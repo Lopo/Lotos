@@ -1,8 +1,14 @@
-1/ Pochadza uz z Amnuts 2.2.1. Ide o blbnutie vypisov vo funkcii
+t a l k r o v y  O S  S t a r v1.0.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Informacie o chybach
+--------------------
+V tomto dokumente su spisane vsetky chyby o ktorych vyskyte v OS Star viem.
+
+1) Pochadza uz z Amnuts 2.2.1. Ide o blbnutie vypisov vo funkcii
   write_user_except() v situacii, ked user je v jednej miestnosti zo svojim
   klonom. Vtedy klon vypisuje same blbosti. Pritom je mozne, ze sa prejavuje
-  len na systemoch RedHat.
-2/ Nepripaja do miestnosti z ktorej sa user odlogoval - aj ked si to zapne.
+  len na systemoch RedHat (na inych som zatial neskusal).
+2) Nepripaja do miestnosti z ktorej sa user odlogoval - aj ked si to zapne.
   Takisto je uz v AmNUTS 2.2.1.
 
 Takze prosim kazdeho, kto pouzije OS Star, nech sa ozve

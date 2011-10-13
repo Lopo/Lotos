@@ -1,6 +1,6 @@
 /*****************************************************************************
-          Funkcie OS Star v1.0.0b suvisiace s podporou Pueblo klienta
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+          Funkcie OS Star v1.0.0 suvisiace s podporou Pueblo klienta
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 /*****************************************************************************
@@ -13,7 +13,9 @@
 #include "define.h"
 #include "ur_obj.h"
 #include "rm_obj.h"
-#include "nl_obj.h"
+#ifdef NETLINKS
+	#include "nl_obj.h"
+#endif
 #include "sys_obj.h"
 #include "pueblo.h"
 #include "music.h"

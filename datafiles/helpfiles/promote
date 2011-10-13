@@ -1,6 +1,7 @@
 ~OLPouzitie :~RS promote <user> [<level>] [<dovod>]
 
 Povysi usera na zadany vyssi level nez prave ma. Ak sa nezada level, bude
-povyseny len o jeden stupen. Pripadne mozes este pridat aj dovod.
+povyseny len o jeden stupen. Maximalne vsak mozes promotovat na level o jeden
+stupen mensi nez mas ty. Pripadne mozes este pridat aj dovod.
 
 ~OLPozri:~RS demote, tpromote

@@ -1,6 +1,6 @@
 /*****************************************************************************
-                    Globalne konstanty OS Star v1.0.0b
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                    Globalne konstanty OS Star v1.0.0
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -85,12 +85,12 @@ char *crypt_salt="NU";
    to have a sig file attached at the end of emails */
 char *talker_signature=
 "\n\n+--------------------------------------------------------------------------+\n\
-|  This message has been smailed to you on The Amnuts Talker, and this is  |\n\
+|  This message has been smailed to you on   OS Star  Talker, and this is  |\n\
 |      your auto-forward.  Please do not reply directly to this email.     |\n\
 |                                                                          |\n\
-|               Amnuts - A talker running at foo.bar.com 666               |\n\
-|         email 'me@my.place' if you have any questions/comments           |\n\
-+--------------------------------------------------------------------------+\n";
+|                     OS Star - star.sjf.stuba.sk 7000                     |\n\
+|   email 'osstar@star.sjf.stuba.sk' if you have any questions/comments    |\n\
++--------------------------------------------------------------------------+\n\n";
 
 
 char *vrf_fwd_email=

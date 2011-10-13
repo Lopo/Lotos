@@ -1,6 +1,6 @@
 /*****************************************************************************
-                  Funkcie OS Star v1.0.0b pre administratorov
-            Copyright (C) Pavol Hluchy - posledny update: 28.3.2000
+                  Funkcie OS Star v1.0.0 pre administratorov
+            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -216,6 +216,10 @@ if (word_count>2) {
   else if (word_count>3) msg=remove_first(remove_first(inpstr));
   free(tmp);
   }
+if (level>=user->level-1) {
+	write_user(user, "Nemozes promotnut usera na tvoj alebo vyssi level\n");
+	return;
+	}
 if (level>GOD) {
 	vwrite_user(user, "Nemozes promotnut usera na level %s a vyssi\n", user_level[GOD+1].name);
 	return;
@@ -230,8 +234,8 @@ if ((u=get_user(word[1]))!=NULL) {
     write_user(user,"You cannot promote a user to a level less than or equal to what they are now.\n");
     return;
     }
-  if (word_count>2 && level>user->level) {
-    write_user(user,"You cannot promote a user to a level higher than your own.\n");
+  if (word_count>2 && level>=user->level) {
+    write_user(user,"You cannot promote a user to a level higher than or equal to your own.\n");
     return;
     }
   /* now normal checks */
@@ -247,9 +251,8 @@ if ((u=get_user(word[1]))!=NULL) {
   	vwrite_user(user, "Nemozes promotnut usera s levelom %s a vyssim\n",user_level[u->level].name);
   	return;
   	}
-  if (u->restrict[RESTRICT_PROM]==restrict_string[RESTRICT_PROM]
-      && user->level<ROOT) {
-	write_user(user,">>>Tento user nemoze byt promotnuty !\n");
+  if (u->restrict[RESTRICT_PROM]==restrict_string[RESTRICT_PROM]) {
+	write_user(user,">>>Tento user nemoze byt promotnuty ! (restrict)\n");
 	return;
 	}
   if (user->vis) name=user->bw_recap;
@@ -294,8 +297,7 @@ if (!load_user_details(u)) {
   destructed=0;
   return;
   }
-	if (u->restrict[RESTRICT_PROM]==restrict_string[RESTRICT_PROM]
-	    && user->level<ROOT) {
+	if (u->restrict[RESTRICT_PROM]==restrict_string[RESTRICT_PROM]) {
 		write_user(user,">>>This user cannot be promoted !\n");
 		destruct_user(u);
 		destructed=0;
@@ -308,8 +310,8 @@ if (word_count>2 && level<=u->level) {
   destructed=0;
   return;
   }
-if (word_count>2 && level>user->level) {
-  write_user(user,"You cannot promote a user to a level higher than your own.\n");
+if (word_count>2 && level>=user->level) {
+  write_user(user,"You cannot promote a user to a level higher than or equal to your own.\n");
   destruct_user(u);
   destructed=0;
   return;
@@ -410,9 +412,8 @@ void demote(UR_OBJECT user, char *inpstr)
 			write_user(user,"You cannot demote a user of an equal or higher level than yourself.\n");
 			return;
 			}
-		if (u->restrict[RESTRICT_DEMO]==restrict_string[RESTRICT_DEMO]
-		    && user->level<ROOT) {
-			write_user(user,">>>This user cannot be demoted !\n");
+		if (u->restrict[RESTRICT_DEMO]==restrict_string[RESTRICT_DEMO]) {
+			write_user(user,">>>This user cannot be demoted ! (restrict)\n");
 			return;
 			}
 		if (user->vis) name=user->bw_recap;
@@ -478,8 +479,7 @@ if (u->level<=NEW) {
   destructed=0;
   return;
   }
-	if (u->restrict[RESTRICT_DEMO]==restrict_string[RESTRICT_DEMO]
-	    && user->level<ROOT) {
+	if (u->restrict[RESTRICT_DEMO]==restrict_string[RESTRICT_DEMO]) {
 		write_user(user,">>>Tento user nemoze byt demotnuty !\n");
 		destruct_user(u);
 		destructed=0;
@@ -1181,7 +1181,7 @@ no_prompt=0;
 void viewlog(UR_OBJECT user)
 {
 FILE *fp;
-char logfile[100],c,*emp="This log file is empty.\n\n";
+char logfile[200],c,*emp="This log file is empty.\n\n";
 int lines,cnt,cnt2,type,level;
 
 if (word_count<2) {
@@ -1738,6 +1738,7 @@ if ((u=get_user(word[1]))) {
   write_syslog(SYSLOG,1,"%s ARRESTED %s (at level %s)\n",user->name,u->name,user_level[u->arrestby].name);
   sprintf(text,"Was ~FRarrested~RS by %s (at level ~OL%s~RS).\n",user->name,user_level[u->arrestby].name);
   add_history(u->name,1,text);
+  save_user_details(u, 1);
   return;
   }
 /* Create a temp session, load details, alter , then save. This is inefficient
@@ -2347,7 +2348,7 @@ write_user(user,"+--------------------------------------------------------------
 void recount_users(UR_OBJECT user, int ok)
 {
 int level,incorrect,correct,inlist,notin,added,removed;
-char dirname[100],name[USER_NAME_LEN+3],filename[100];
+char dirname[200],name[USER_NAME_LEN+3],filename[200];
 DIR *dirp;
 struct dirent *dp;
 struct user_dir_struct *entry;
@@ -2704,7 +2705,7 @@ void reload_room_description(UR_OBJECT user, int w)
 {
 int i,error;
 RM_OBJECT rm;
-char c,filename[100],pat[4];
+char c,filename[200],pat[4];
 FILE *fp;
 
 /* if reload all of the rooms */
@@ -2925,7 +2926,7 @@ vwrite_usage(user,"%s -l / -m / -u <name> / -d <name>", command_table[RMADMIN].n
 
 /*** Allows you to dump certain things to files as a record ***/
 void dump_to_file(UR_OBJECT user) {
-char filename[150],bstr[40];
+char filename[250],bstr[40];
 FILE *fp;
 int ssize,usize,rsize,nsize,dsize,csize,lsize,wsize,total,i,j;
 int tusize,trsize,tnsize,tdsize,tcsize,tlsize,twsize,lev,cnt;
@@ -3664,7 +3665,7 @@ void swear_com(UR_OBJECT user)
 			write_user(user,">>>Swear file not found.\n");
 			return;
 			}
-		sprintf(filename2, "%s/%s/%s/swears.tmp", ROOTDIR, DATAFILES, TEMPFILES);
+		sprintf(filename2, "%s/%s/swears.tmp", ROOTDIR, TEMPFILES);
 		if(!(fpout=fopen(filename2, "w"))) {
 			vwrite_user(user, "%s: Couldn't open tempfile.\n", syserror);
 			write_syslog(ERRLOG, 1, "ERROR: Couldn't open tempfile to write in swear_com().\n");
@@ -4030,10 +4031,10 @@ void force_backup(UR_OBJECT user)
 void restart_com(UR_OBJECT user)
 {
 	if (amsys->rs_countdown) {
-		write_user(user, "~OL%s ~FWodpocitavanie je momentalne aktivne, najprv ho vypni !\n", amsys->rs_which?"~FYreboot":"~FRshutdown");
+		vwrite_user(user, "~OL%s ~FWodpocitavanie je momentalne aktivne, najprv ho vypni !\n", amsys->rs_which?"~FYreboot":"~FRshutdown");
 		return;
 		}
-	write_user(user, "\n\007~FR~OL~LI *** Pozor, toto restartne talker ! ***\n\nNaozaj to chces ? (y/n)\n");
+	write_user(user, "\n\007~FM~OL~LI*** Pozor, toto restartne talker ! ***\nNaozaj to chces ? (y/n)\n");
 	user->misc_op=101;
 	no_prompt=1;
 }
