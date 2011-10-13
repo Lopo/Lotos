@@ -2,8 +2,8 @@
 /*
  * ct_clone.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -34,5 +34,5 @@ extern char *clone_room_destroy1, *clone_room_destroy2;
 extern char *clone_switch_prompt;
 extern char *clone_desc;
 
-#endif /* ct_clone.h */
+#endif /* __CT_CLONE_H__ */
 

@@ -2,8 +2,8 @@
 /*
  * s_events.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "define.h"
 #include "prototypes.h"
@@ -40,6 +42,7 @@ void do_events(int sig)
 	if (syspp->auto_save!=(-1))
 		check_autosave();
 	check_credit_updates();
+	check_lynx();
 }
 
 
@@ -137,7 +140,9 @@ void check_idle_and_timeout(void)
 		    && !user->login 
 		    && !user->warned
 		    && tm>=amsys->user_idle_time-60) {
+#ifdef PUEBLO
 			audioprompt(user, 4, 0);
+#endif
 			vwrite_user(user,"\n\07~FY~OL~LI*** POZOR - Mas 1 minutu aby si nieco napisal%s lebo ta vydrbkam !***\n\n", grm_gnd(4, user->gender));
 			user->warned=1;
 			}
@@ -183,6 +188,34 @@ void check_autosave(void)
 		}
 }
 
+void check_lynx(void)
+{
+	UR_OBJECT user=user_first, next;
+	pid_t pid;
+	char fname[FNAME_LEN];
 
-#endif /* s_events.c */
+	set_crash();
+	while (user) {
+		next=user->next;
+		if (user->lynx) {
+			sprintf(fname, "%s/%s.lynx", TEMPFILES, user->name);
+			pid=waitpid(user->lynx, (int *) NULL, WNOHANG);
+			if (pid==user->lynx) {
+				user->lynx=0;
+				write_user(user, "~CTpozadovana www stranka:\n");
+				switch (more(user, user->socket, fname)) {
+					case 0: write_user(user, "nemozem najst nacitanu stranku"); break;
+					case 1: user->misc_op=2; break;
+					}
+				}
+			else if (pid==-1) {
+				write_user(user, "chyba pri nacitavani dokumentu\n");
+				}
+			}
+		user=next;
+		}
+}
+
+
+#endif /* __S_EVENTS_C__ */
 

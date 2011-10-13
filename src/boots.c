@@ -2,8 +2,8 @@
 /*
  * boots.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -37,8 +37,8 @@
 #include "obj_pl.h"
 #include "obj_mc.h"
 #include "obj_syspp.h"
-#include "boots.h"
 #include "prototypes.h"
+#include "boots.h"
 
 
 #ifndef NUM_LEVELS
@@ -52,116 +52,117 @@ void create_system(void)
 	struct utsname uts;
 
 	set_crash();
-if ((amsys=(SYS_OBJECT)malloc(sizeof(struct system_struct)))==NULL) {
-  fprintf(stderr,"Lotos: Failed to create system object in create_system().\n");
-  boot_exit(21);
-  }
+	if ((amsys=(SYS_OBJECT)malloc(sizeof(struct system_struct)))==NULL) {
+		fprintf(stderr,"Lotos: Failed to create system object in create_system().\n");
+		boot_exit(21);
+		}
 
-amsys->auto_connect=1;
-amsys->max_users=50;
-amsys->max_clones=1;
-amsys->ban_swearing=0;
-amsys->heartbeat=2;
-amsys->keepalive_interval=60; /* DO NOT TOUCH!!! */
-amsys->net_idle_time=300; /* Must be > than the above */
-amsys->login_idle_time=180;
-amsys->user_idle_time=300;
-amsys->time_out_afks=0;
-amsys->wizport_level=WIZ;
-amsys->minlogin_level=-1;
-amsys->mesg_life=1;
-amsys->num_of_logins=0;
-amsys->logging=BIT_SET(amsys->logging,SYSLOG);
-amsys->logging=BIT_SET(amsys->logging,REQLOG);
-amsys->logging=BIT_SET(amsys->logging,NETLOG);
+	amsys->auto_connect=1;
+	amsys->max_users=50;
+	amsys->max_clones=1;
+	amsys->ban_swearing=0;
+	amsys->heartbeat=2;
+	amsys->keepalive_interval=60; /* DO NOT TOUCH!!! */
+	amsys->net_idle_time=300; /* Must be > than the above */
+	amsys->login_idle_time=180;
+	amsys->user_idle_time=300;
+	amsys->time_out_afks=0;
+	amsys->wizport_level=WIZ;
+	amsys->minlogin_level=-1;
+	amsys->mesg_life=1;
+	amsys->num_of_logins=0;
+	amsys->logging=BIT_SET(amsys->logging,SYSLOG);
+	amsys->logging=BIT_SET(amsys->logging,REQLOG);
+#ifdef NETLOG
+	amsys->logging=BIT_SET(amsys->logging,NETLOG);
+#endif
 #ifdef DEBUG
 	amsys->logging=BIT_SET(amsys->logging,DEBLOG);
 #endif
-amsys->logging=BIT_SET(amsys->logging,ERRLOG);
-amsys->password_echo=0;
-amsys->ignore_sigterm=0;
-amsys->crash_action=2;
-amsys->prompt_def=1;
-amsys->colour_def=1;
-amsys->charecho_def=0;
-amsys->time_out_maxlevel=USER;
-amsys->mesg_check_hour=0;
-amsys->mesg_check_min=0;
-amsys->rs_countdown=0;
-amsys->rs_announce=0;
-amsys->rs_which=-1;
-amsys->rs_user=NULL;
-amsys->gatecrash_level=GOD+1; /* minimum user level which can enter private rooms */
-amsys->min_private_users=2; /* minimum num. of users in room before can set to priv */
-amsys->ignore_mp_level=GOD; /* User level which can ignore the above var. */
-amsys->rem_user_maxlevel=USER;
-amsys->rem_user_deflevel=USER;
-amsys->logons_old=0;
-amsys->logons_new=0;
-amsys->purge_count=0;
-amsys->purge_skip=0;
-amsys->users_purged=0;
-amsys->purge_date=1;
-amsys->suggestion_count=0;
-amsys->forwarding=1;
-amsys->auto_purge=0;
-amsys->user_count=0;
-amsys->allow_recaps=1;
-amsys->auto_promote=1;
-amsys->personal_rooms=1;
-amsys->startup_room_parse=1;
-amsys->motd1_cnt=0;
-amsys->motd2_cnt=0;
-amsys->random_motds=1;
-amsys->last_cmd_cnt=0;
-amsys->resolve_ip=1; /* auto resolve ip */
-amsys->flood_protect=1;
-amsys->pid=(unsigned int)getpid();
-time(&amsys->boot_time);
-if ((uname(&uts))<0) {
-  strcpy(amsys->sysname,"[undetermined]");
-  strcpy(amsys->sysmachine,"[undetermined]");
-  strcpy(amsys->sysrelease,"[undetermined]");
-  strcpy(amsys->sysversion,"[undetermined]");
-  strcpy(amsys->sysnodename,"[undetermined]");
-  }
-else {
-  strncpy(amsys->sysname,uts.sysname,63);
-  strncpy(amsys->sysmachine,uts.machine,63);
-  strncpy(amsys->sysrelease,uts.release,63);
-  strncpy(amsys->sysversion,uts.version,63);
-  strncpy(amsys->sysnodename,uts.nodename,63);
-  }
-user_first=NULL;
-user_last=NULL;
-room_first=NULL;
-room_last=NULL; /* This variable isn't used yet */
-transport_first=NULL;
-transport_last=NULL;
-first_dir_entry=NULL;
-first_command=NULL;
-first_wiz_entry=NULL;
-last_wiz_entry=NULL;
-force_listen=0;
-no_prompt=0;
-logon_flag=0;
-for (i=0;i<port_total;i++) {
-  port[i]=0;
-  listen_sock[i]=0;
-  }
-for (i=0;i<LASTLOGON_NUM;i++) {
-  last_login_info[i].name[0]='\0';
-  last_login_info[i].time[0]='\0';
-  last_login_info[i].on=0;
-  }
-for (i=0;i<16;i++) cmd_history[i][0]='\0';
-clear_words();
+	amsys->logging=BIT_SET(amsys->logging,ERRLOG);
+	amsys->password_echo=0;
+	amsys->ignore_sigterm=0;
+	amsys->crash_action=2;
+	amsys->prompt_def=1;
+	amsys->colour_def=1;
+	amsys->charecho_def=0;
+	amsys->time_out_maxlevel=USER;
+	amsys->mesg_check_hour=0;
+	amsys->mesg_check_min=0;
+	amsys->rs_countdown=0;
+	amsys->rs_announce=0;
+	amsys->rs_which=-1;
+	amsys->rs_user=NULL;
+	amsys->gatecrash_level=GOD+1; /* minimum user level which can enter private rooms */
+	amsys->min_private_users=2; /* minimum num. of users in room before can set to priv */
+	amsys->ignore_mp_level=GOD; /* User level which can ignore the above var. */
+	amsys->rem_user_maxlevel=USER;
+	amsys->rem_user_deflevel=USER;
+	amsys->logons_old=0;
+	amsys->logons_new=0;
+	amsys->purge_count=0;
+	amsys->purge_skip=0;
+	amsys->users_purged=0;
+	amsys->purge_date=1;
+	amsys->suggestion_count=0;
+	amsys->forwarding=1;
+	amsys->auto_purge=0;
+	amsys->user_count=0;
+	amsys->auto_promote=1;
+	amsys->personal_rooms=1;
+	amsys->startup_room_parse=1;
+	amsys->motd1_cnt=0;
+	amsys->motd2_cnt=0;
+	amsys->random_motds=1;
+	amsys->last_cmd_cnt=0;
+	amsys->resolve_ip=1; /* auto resolve ip */
+	amsys->flood_protect=1;
+	amsys->pid=(unsigned int)getpid();
+	time(&amsys->boot_time);
+	if ((uname(&uts))<0) {
+		strcpy(amsys->sysname,"[undetermined]");
+		strcpy(amsys->sysmachine,"[undetermined]");
+		strcpy(amsys->sysrelease,"[undetermined]");
+		strcpy(amsys->sysversion,"[undetermined]");
+		strcpy(amsys->sysnodename,"[undetermined]");
+		}
+	else {
+		strncpy(amsys->sysname,uts.sysname,63);
+		strncpy(amsys->sysmachine,uts.machine,63);
+		strncpy(amsys->sysrelease,uts.release,63);
+		strncpy(amsys->sysversion,uts.version,63);
+		strncpy(amsys->sysnodename,uts.nodename,63);
+		}
+	user_first=NULL;
+	user_last=NULL;
+	room_first=NULL;
+	room_last=NULL; /* This variable isn't used yet */
+	transport_first=NULL;
+	transport_last=NULL;
+	first_dir_entry=NULL;
+	first_command=NULL;
+	first_wiz_entry=NULL;
+	last_wiz_entry=NULL;
+	force_listen=0;
+	no_prompt=0;
+	logon_flag=0;
+	for (i=0;i<port_total;i++) {
+		port[i]=0;
+		listen_sock[i]=0;
+		}
+	for (i=0;i<LASTLOGON_NUM;i++) {
+		last_login_info[i].name[0]='\0';
+		last_login_info[i].time[0]='\0';
+		last_login_info[i].on=0;
+		}
+	for (i=0;i<16;i++) cmd_history[i][0]='\0';
+	clear_words();
 #ifdef NETLINKS
- verification[0]='\0';
- nl_first=NULL;
- nl_last=NULL;
+	verification[0]='\0';
+	nl_first=NULL;
+	nl_last=NULL;
 #endif
-strcpy(susers_restrict, RESTRICT_MASK);
+	strcpy(susers_restrict, RESTRICT_MASK);
 }
 
 
@@ -177,7 +178,7 @@ void init_signals(void)
 	SIGNAL(SIGIOT,SIG_IGN);
 	SIGNAL(SIGTSTP,SIG_IGN);
 	SIGNAL(SIGCONT,SIG_IGN);
-	SIGNAL(SIGHUP,SIG_IGN);
+	SIGNAL(SIGHUP,sig_handler);
 	SIGNAL(SIGINT,SIG_IGN);
 	SIGNAL(SIGQUIT,SIG_IGN);
 	SIGNAL(SIGABRT,SIG_IGN);
@@ -191,33 +192,26 @@ void init_signals(void)
 /******************************************************************************
  The loading up and parsing of the configuration file
  *****************************************************************************/
-
-
-
 void load_and_parse_config(void) {
-FILE *fp;
-char line[81]; /* Should be long enough */
-char filename[500], c;
-int i,section_in,got_init,got_rooms,got_topics, got_transport;
-RM_OBJECT rm1,rm2;
+	FILE *fp;
+	char line[256+1]; /* Should be long enough */
+	char fname[FNAME_LEN], c;
+	int i,section_in=0,got_init=0,got_rooms=0,got_topics=0, got_transport=0;
+	RM_OBJECT rm1,rm2;
 #ifdef NETLINKS
-  NL_OBJECT nl;
+	NL_OBJECT nl;
 #endif
 
-section_in=0;
-got_init=0;
-got_rooms=0;
-got_topics=0;
-got_transport=0;
-
-printf("Parsing config file \"%s\"...\n", confile);
-if (!(fp=fopen(confile,"r"))) {
-  perror("Lotos: Can't open config file\n");  boot_exit(1);
-  }
+	set_crash();
+	printf("Parsing config file \"%s\"...\n", confile);
+	if (!(fp=fopen(confile,"r"))) {
+		perror("Lotos: Can't open config file\n");
+		boot_exit(1);
+		}
 /* Main reading loop */
 config_line=0;
 fgets(line,81,fp);
-while(!feof(fp)) {
+while (!feof(fp)) {
   config_line++;
   for(i=0;i<8;++i) wrd[i][0]='\0';
   sscanf(line,"%s %s %s %s %s %s %s %s",wrd[0],wrd[1],wrd[2],wrd[3],wrd[4],wrd[5],wrd[6],wrd[7]);
@@ -232,11 +226,11 @@ while(!feof(fp)) {
     else if (!strcmp(wrd[0],"SITES:")) section_in=4;
     else if (!strcmp(wrd[0],"TRANSPORTS:")) section_in=5;
     else {
-      fprintf(stderr,"Lotos: Unknown section header on line %d.\n",config_line);
+      fprintf(stderr, "Lotos: Unknown section header on line %d.\n",config_line);
       fclose(fp);  boot_exit(1);
       }
     }
-  switch(section_in) {
+  switch (section_in) {
     case 1: parse_init_section();  got_init=1; break;
     case 2: parse_rooms_section(); got_rooms=1; break;
     case 3: parse_topics_section(remove_first(line)); got_topics=1; break;
@@ -327,7 +321,7 @@ for (rm1=room_first; rm1!=NULL; rm1=rm1->next) {
 		rm1->name);
 		boot_exit(1);
 		}
-  for(i=0;i<MAX_LINKS;++i) {
+  for (i=0;i<MAX_LINKS;++i) {
     if (!rm1->link_label[i][0]) break;
     if ((!strcmp(rm1->link_label[i], no_leave)) && (rm1->transp==NULL)) break;
     if ((!strcmp(rm1->link_label[i], no_leave)) && rm1->transp!=NULL) {
@@ -335,7 +329,7 @@ for (rm1=room_first; rm1!=NULL; rm1=rm1->next) {
     		rm1->name);
     	boot_exit(1);
     	}
-    for(rm2=room_first;rm2!=NULL;rm2=rm2->next) {
+    for (rm2=room_first;rm2!=NULL;rm2=rm2->next) {
       if (rm1==rm2) continue;
       if (!strcmp(rm1->link_label[i],rm2->label)) {
         if (rm2->transp!=NULL) {
@@ -356,13 +350,13 @@ for (rm1=room_first; rm1!=NULL; rm1=rm1->next) {
 
 #ifdef NETLINKS
 /* Check external links */
-for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
+for (rm1=room_first;rm1!=NULL;rm1=rm1->next) {
   if (rm1->netlink_name[0] && rm1->transp!=NULL) {
   	fprintf(stderr, "Rooma %s je nadefinovana ako transport a preto nemoze mat netlink\n",
   	rm1->name);
   	boot_exit(1);
   	}
-  for(nl=nl_first;nl!=NULL;nl=nl->next) {
+  for (nl=nl_first;nl!=NULL;nl=nl->next) {
     if (!strcmp(nl->service,rm1->name)) {
       fprintf(stderr,"Lotos: Service name %s is also the name of a room.\n",nl->service);
       boot_exit(1);
@@ -380,17 +374,17 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
 #endif
 
 /* Load room descriptions */
-for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
- if (rm1->transp!=NULL) sprintf(filename,"%s/%s.R", TRFILES, rm1->name);
- else sprintf(filename,"%s/%s.R", ROOMFILES, rm1->name);
-  if (!(fp=fopen(filename,"r"))) {
+for (rm1=room_first;rm1!=NULL;rm1=rm1->next) {
+ if (rm1->transp!=NULL) sprintf(fname,"%s/%s.R", TRFILES, rm1->name);
+ else sprintf(fname,"%s/%s.R", ROOMFILES, rm1->name);
+  if (!(fp=fopen(fname,"r"))) {
     fprintf(stderr,"Lotos: Can't open description file for room %s.\n",rm1->name);
     write_syslog(ERRLOG,1,"Couldn't open description file for room %s.\n",rm1->name);
     continue;
     }
   i=0;
   c=getc(fp);
-  while(!feof(fp)) {
+  while (!feof(fp)) {
     if (i==ROOM_DESC_LEN) {
       fprintf(stderr,"Lotos: Description too long for room %s.\n",rm1->name);
       write_syslog(ERRLOG,1,"Description too long for room %s.\n",rm1->name);
@@ -418,7 +412,7 @@ if (!(dirp=opendir(USERROOMS))) {
   boot_exit(19);
   }
 /* parse the names of the files but don't include . and .. */
-while((dp=readdir(dirp))!=NULL) {
+while ((dp=readdir(dirp))!=NULL) {
   if (!strcmp(dp->d_name,".") || !strcmp(dp->d_name,"..")) continue;
   if (strstr(dp->d_name,".R")) {
     strcpy(name,dp->d_name);
@@ -431,7 +425,7 @@ while((dp=readdir(dirp))!=NULL) {
     sprintf(rm->name,"(%s)",name);
     }
   }
-(void) closedir(dirp);
+	closedir(dirp);
 }
 
 
@@ -440,8 +434,8 @@ while((dp=readdir(dirp))!=NULL) {
      Also, check if level names are unique.
      ***/
 void check_directories(void) {
-struct stat stbuf;
-int levels,found,i,j;
+	struct stat stbuf;
+	int levels,found,i,j;
 
 levels=found=0;
 /* Check for unique directory names */
@@ -497,8 +491,8 @@ if (stat(USERROOMS,&stbuf)==-1) {
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 return;
 SKIP:
-fprintf(stderr,"Lotos: Directory structure is incorrect.\n");
-boot_exit(16);
+	fprintf(stderr,"Lotos: Directory structure is incorrect.\n");
+	boot_exit(16);
 }
 
 
@@ -544,8 +538,8 @@ while((dp=readdir(dirp))!=NULL) {
     } /* end if */
   reset_user(u);
   } /* end while */
-destruct_user(u);
-(void) closedir(dirp);
+	destruct_user(u);
+	closedir(dirp);
 }
 
 
@@ -591,8 +585,8 @@ void count_suggestions(void)
 
 /*** Initialise sockets on ports ***/
 void init_sockets(void) {
-struct sockaddr_in bind_addr;
-int i,on,size;
+	struct sockaddr_in bind_addr;
+	int i,on,size;
 
 #ifdef NETLINKS
 	printf("Initialising sockets on ports: %d, %d, %d\n",port[0],port[1],port[2]);
@@ -600,22 +594,22 @@ int i,on,size;
 	printf("Initialising sockets on ports: %d, %d\n",port[0],port[1]);
 #endif
 
-on=1;
-size=sizeof(struct sockaddr_in);
-bind_addr.sin_family=AF_INET;
-bind_addr.sin_addr.s_addr=INADDR_ANY;
-for(i=0;i<port_total;++i) {
-  /* create sockets */
-  if ((listen_sock[i]=socket(AF_INET,SOCK_STREAM,0))==-1) boot_exit(i+2);
-  /* allow reboots on port even with TIME_WAITS */
-  setsockopt(listen_sock[i],SOL_SOCKET,SO_REUSEADDR,(char *)&on,sizeof(on));
-  /* bind sockets and set up listen queues */
-  bind_addr.sin_port=htons(port[i]);
-  if (bind(listen_sock[i],(struct sockaddr *)&bind_addr,size)==-1) boot_exit(i+5);
-  if (listen(listen_sock[i],10)==-1) boot_exit(i+8);
-  /* Set to non-blocking */
-  fcntl(listen_sock[i],F_SETFL,O_NDELAY);
-  }
+	on=1;
+	size=sizeof(struct sockaddr_in);
+	bind_addr.sin_family=AF_INET;
+	bind_addr.sin_addr.s_addr=INADDR_ANY;
+	for (i=0; i<port_total; ++i) {
+		/* create sockets */
+		if ((listen_sock[i]=socket(AF_INET,SOCK_STREAM,0))==-1) boot_exit(i+2);
+		/* allow reboots on port even with TIME_WAITS */
+		setsockopt(listen_sock[i],SOL_SOCKET,SO_REUSEADDR,(char *)&on,sizeof(on));
+		/* bind sockets and set up listen queues */
+		bind_addr.sin_port=htons(port[i]);
+		if (bind(listen_sock[i],(struct sockaddr *)&bind_addr,size)==-1) boot_exit(i+5);
+		if (listen(listen_sock[i],10)==-1) boot_exit(i+8);
+		/* Set to non-blocking */
+		fcntl(listen_sock[i],F_SETFL,O_NDELAY);
+		}
 }
 
 
@@ -625,8 +619,8 @@ int get_level(char *name)
 	int i;
 
 	set_crash();
-	for (i=0;i<NUM_LEVELS;i++) {
-		if (!strcasecmp(user_level[i].name,name))
+	for (i=0; i<NUM_LEVELS; i++) {
+		if (!strcasecmp(user_level[i].name, name))
 			return i;
 		}
 	return -1;
@@ -634,19 +628,19 @@ int get_level(char *name)
 
 /*** Parse init section ***/
 void parse_init_section(void) {
-static int in_section=0;
-int op,val,tmp;
-char *options[]={ 
-  "mainport","wizport","linkport","system_logging","minlogin_level","mesg_life",
-  "wizport_level","prompt_def","gatecrash_level","min_private","ignore_mp_level",
-  "rem_user_maxlevel","rem_user_deflevel","verification","mesg_check_time",
-  "max_users","heartbeat","login_idle_time","user_idle_time","password_echo",
-  "ignore_sigterm","auto_connect","max_clones","ban_swearing","crash_action",
-  "colour_def","time_out_afks","charecho_def","time_out_maxlevel","auto_purge",
-  "allow_recaps","auto_promote","personal_rooms","random_motds","startup_room_parse",
-  "resolve_ip","flood_protect", "pueblo_enh", "auto_save", "susers_restrict",
-  "auto_afk", "use_hosts_file", "*"
-  };
+	static int in_section=0;
+	int op,val,tmp;
+	char *options[]={ 
+		"mainport","wizport","linkport","system_logging","minlogin_level","mesg_life",
+		"wizport_level","prompt_def","gatecrash_level","min_private","ignore_mp_level",
+		"rem_user_maxlevel","rem_user_deflevel","verification","mesg_check_time",
+		"max_users","heartbeat","login_idle_time","user_idle_time","password_echo",
+		"ignore_sigterm","auto_connect","max_clones","ban_swearing","crash_action",
+		"colour_def","time_out_afks","charecho_def","time_out_maxlevel","auto_purge",
+		"auto_promote","personal_rooms","random_motds","startup_room_parse",
+		"resolve_ip","flood_protect", "pueblo_enh", "auto_save", "susers_restrict",
+		"auto_afk", "use_hosts_file", "*"
+		};
 
 if (!strcmp(wrd[0],"INIT:")) { 
   if (++in_section>1) {
@@ -693,7 +687,9 @@ switch (op) {
     if (tmp) {
       amsys->logging=BIT_SET(amsys->logging,SYSLOG);
       amsys->logging=BIT_SET(amsys->logging,REQLOG);
+#ifdef NETLINKS
       amsys->logging=BIT_SET(amsys->logging,NETLOG);
+#endif
 #ifdef DEBUG
       amsys->logging=BIT_SET(amsys->logging,DEBLOG);
 #endif
@@ -774,15 +770,15 @@ switch (op) {
       }
     return;
 
-#ifdef NETLINKS
   case 13:
+#ifdef NETLINKS
     if (strlen(wrd[1])>VERIFY_LEN) {
       fprintf(stderr,"Lotos: Verification too long on line %d.\n",config_line);
       boot_exit(1);	
       }
     strcpy(verification,wrd[1]);
-    return;
 #endif
+    return;
 
   case 14: /* mesg_check_time */
     if (wrd[1][2]!=':'
@@ -909,63 +905,58 @@ switch (op) {
       }
     return;
 
-  case 30: /* allow recapping of names */
-    if ((amsys->allow_recaps=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"Lotos: Allow_recaps must be YES or NO on line %d.\n",config_line);
-      boot_exit(1);
-      }
-    return;
-
-  case 31: /* define whether auto promotes are on or off */
+  case 30: /* define whether auto promotes are on or off */
     if ((amsys->auto_promote=yn_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: auto_promote must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       } 
     return;
 
-  case 32:
+  case 31:
     if ((amsys->personal_rooms=yn_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: Personal_rooms must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
-  case 33:
+  case 32:
     if ((amsys->random_motds=yn_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: Random_motds must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
-  case 34:
+  case 33:
     if ((amsys->startup_room_parse=yn_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: Startup_room_parse must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
-  case 35: 
+  case 34: 
     if ((amsys->resolve_ip=resolve_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: Resolve_ip must be OFF, AUTO or MANUAL on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
-  case 36: /* turns flood protection and auto-baning on and off */
+  case 35: /* turns flood protection and auto-baning on and off */
     if ((amsys->flood_protect=onoff_check(wrd[1]))==-1) {
       fprintf(stderr,"Lotos: Flood_protect must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
   
-  case 37: /* povoli rozsirenie pre Pueblo */
+  case 36: /* povoli rozsirenie pre Pueblo */
+#ifdef PUEBLO
     if ((syspp->pueblo_enh=onoff_check(wrd[1]))==-1) {
       fprintf(stderr, "Lotos: Pueblo_enh musi byt ON alebo OFF na riadku %d.\n", config_line);
       boot_exit(1);
       }
+#endif
     return;
 
-  case 38: /* perioda ukladania userfajlov v minutach */
+  case 37: /* perioda ukladania userfajlov v minutach */
     if (!is_inumber(wrd[1])) {
       fprintf(stderr, "Lotos: Auto_save na riadku %d musi byt cele kladne cislo alebo -1.\n", config_line);
       boot_exit(1);
@@ -976,10 +967,10 @@ switch (op) {
       boot_exit(1);
       }
     return;
-  case 39: /* default restrictions mask for superior users */
+  case 38: /* default restrictions mask for superior users */
     strcpy(susers_restrict, wrd[1]);
     return;
-  case 40: /* auto_afk */
+  case 39: /* auto_afk */
     if (!is_number(wrd[1])) {
       	fprintf(stderr, "Lotos: Auto_afk na riadku %d musi byt cele kladne cislo\n", config_line);
       	boot_exit(1);
@@ -988,7 +979,7 @@ switch (op) {
     if (syspp->auto_afk_time>0) syspp->auto_afk=1;
     else syspp->auto_afk=0;
     return;
-  case 41: /* use_hosts_file */
+  case 40: /* use_hosts_file */
     if ((use_hostsfile=yn_check(wrd[1]))==-1) {
       fprintf(stderr, "Lotos: use_hosts_file musi byt YES alebo NO na riadku %d.\n", config_line);
       boot_exit(1);
@@ -1002,10 +993,10 @@ switch (op) {
 
 /*** Parse rooms section ***/
 void parse_rooms_section(void) {
-static int in_section=0;
-int i;
-char *ptr1,*ptr2,c;
-RM_OBJECT room;
+	static int in_section=0;
+	int i;
+	char *ptr1,*ptr2,c;
+	RM_OBJECT room;
 
 if (!strcmp(wrd[0],"ROOMS:")) {
   if (++in_section>1) {
@@ -1051,8 +1042,8 @@ strcpy(room->name,wrd[2]);
 i=0;
 ptr1=wrd[3];
 ptr2=wrd[3];
-while(1) {
-  while(*ptr2!=',' && *ptr2!='\0') ++ptr2;
+while (1) {
+  while (*ptr2!=',' && *ptr2!='\0') ++ptr2;
   if (*ptr2==',' && *(ptr2+1)=='\0') {
     fprintf(stderr,"Lotos: Missing link label on line %d.\n",config_line);
     boot_exit(1);
@@ -1116,9 +1107,9 @@ else {
 
 /*** Parse rooms desc (topic) section ***/
 void parse_topics_section(char *topic) {
-static int in_section=0;
-int exists;
-RM_OBJECT room;
+	static int in_section=0;
+	int exists;
+	RM_OBJECT room;
 
 if (!strcmp(wrd[0],"TOPICS:")) {
   if (++in_section>1) {
@@ -1133,7 +1124,7 @@ if (!wrd[1][0]) {
   }
 /* Check to see if room exists */
 exists=0;
-for(room=room_first;room!=NULL;room=room->next)
+for (room=room_first;room!=NULL;room=room->next)
   if (!strcmp(room->name,wrd[0])) {  ++exists;  break;  }
 if (!exists) {
   fprintf(stderr,"Lotos: Room does not exist on line %d.\n",config_line);
@@ -1145,11 +1136,10 @@ strncpy(room->topic,topic,TOPIC_LEN);
 
 
 #ifdef NETLINKS
-
 /*** Parse sites section ***/
 void parse_sites_section(void) {
-NL_OBJECT nl;
-static int in_section=0;
+	NL_OBJECT nl;
+	static int in_section=0;
 
 if (!strcmp(wrd[0],"SITES:")) { 
   if (++in_section>1) {
@@ -1190,16 +1180,15 @@ strtolower(wrd[1]);
 strcpy(nl->site,wrd[1]);
 strcpy(nl->verification,wrd[3]);
 }
-
 #endif
 
 
 /*** Parse transports section ***/
 void parse_transports_section(void) {
-static int in_section=0;
-int i;
-char *ptr1,*ptr2,c;
-RM_OBJECT room;
+	static int in_section=0;
+	int i;
+	char *ptr1,*ptr2,c;
+	RM_OBJECT room;
 
 if (!strcmp(wrd[0],"TRANSPORTS:")) {
   if (++in_section>1) {
@@ -1251,8 +1240,8 @@ room->access=FIXED_PUBLIC;
 i=0;
 ptr1=wrd[3];
 ptr2=wrd[3];
-while(1) {
-  while(*ptr2!=',' && *ptr2!='\0') ++ptr2;
+while (1) {
+  while (*ptr2!=',' && *ptr2!='\0') ++ptr2;
   if (*ptr2==',' && *(ptr2+1)=='\0') {
     fprintf(stderr,"Lotos: Missing link label on line %d.\n",config_line);
     boot_exit(1);
@@ -1276,7 +1265,7 @@ while(1) {
 
 void clear_temps(void)
 {
-	char filename[250];
+	char fname[FNAME_LEN];
 	DIR *dirp;
 	struct dirent *dp;
 
@@ -1288,12 +1277,11 @@ void clear_temps(void)
 		}
 	while ((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name,".") || !strcmp(dp->d_name,"..")) continue;
-		sprintf(filename, "%s/%s", TEMPFILES, dp->d_name);
-		unlink(filename);
-		printf(".");
+		sprintf(fname, "%s/%s", TEMPFILES, dp->d_name);
+		unlink(fname);
 		}
-	(void) closedir(dirp);
-	printf(" hotovo\n");
+	closedir(dirp);
+	printf(" done\n");
 }
 
 
@@ -1325,9 +1313,9 @@ void create_kill_file(void)
 		i++;
 		}
 	fclose(fp);
-	sprintf(text, "chmod 500 %s", KILLFILE);
+	sprintf(text, "chmod 700 %s", KILLFILE);
 	system(text);
 }
 
-#endif /* boots.c */
+#endif /* __BOOTS_C__ */
 

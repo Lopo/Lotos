@@ -2,8 +2,8 @@
 /*
  * boots.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -15,10 +15,9 @@
 extern UR_OBJECT user_first, user_last;
 
 extern struct {
-  char name[USER_NAME_LEN+1],time[80];
-  short int on;
-  } 
-last_login_info[];
+	char name[USER_NAME_LEN+1],time[80];
+	short int on;
+	} last_login_info[];
 
 extern RM_OBJECT room_first, room_last;
 extern TR_OBJECT transport_first, transport_last;
@@ -73,5 +72,5 @@ extern struct {
 	char *name,*alias; int level,function;
 	} command_table[];
 
-#endif /* boots.h */
+#endif /* __BOOTS_H__ */
 

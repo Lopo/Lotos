@@ -1,3 +1,30 @@
+13.5.2002 v1.2.2
+----------------
+prikaz .icqpage - odosle kratku ICQ spravu juzrovi alebo priamo na zadane ICQ#
+zalohovanie casu spustenia talkra pri restarte + adekvatne info pri .time
+obsluzeny signal SIGHUP - urobi restart talkra
+novy prikaz .color - zapne schemu nastavenia terminalu
+doplneny test pri .follow - musia byt v jednej ruume
+pridany patch z 'AmNUTS221-patched' na overenie spravnosti zapisu email adresy
+novy prikaz .roomowners - zoznam osobnych ruum
+novy prikaz .myname - moznost premenovat si osobnu ruumu
+novy prikaz .lynx - asi netreba vysvetlovat
+doplnena podpora Pueblo clienta vo vsetkych typoch .who a v .look
+zruseny prikaz .recap + obj_sys->allow_recap
+opravena chyba v .pbloenh RoomConfig_setOpt - fix/unfix
+pridana moznost zmazania topicu len v urcitej ruume aj ked v nej user nie je
+trochu upraveny Makefile
+zvacsena dlzka line v load_and_parse_config()
+zobrazenie uptime v system_details() aj v sekundach
+test na pristupnost prikazu prehodeny z user_xcom() do user_gcom()
+doplneny test na osobne roomy v set_room_access()
+opravena chyba tykajuca sa transportu v go()
+zmazanie userfajlu .MAC v save_macros() ak user nema ziadne makro
+v get_user_name() pouzije najprv get_user()
+doplnene mazanie binarneho userfajlu .D v clean_files()
+subor MISCFILES/credits_oss premenovany na MISCFILES/credits_lotos
+kopec kozmetickych uprav a drobnych bugfixov
+
 26.12.2001 v1.2.1
 -----------------
 asi uz uplne prejdene z nazvu `OS Star' na `Lotos'

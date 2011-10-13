@@ -2,8 +2,8 @@
 /*
  * plugin.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -91,10 +91,10 @@ int call_plugin_exec(UR_OBJECT user, char *str, PL_OBJECT plugin, int comnum)
 	set_crash();
 /* ---------------------------------------------------
    Put third-party plugin command calls here!
-   example:  if (!strcmp(plugin->registration,"00-000")) { plugin_00x000_main(user,str,comnum); return 1; }
+   example:  if (!strcmp(plugin->registration,"00-000")) { pl00x000_main(user,str,comnum); return 1; }
    --------------------------------------------------- */
-	if (!strcmp(plugin->registration,"00-000")) { plugin_00x000_main(user,str,comnum); return 1; }
-	if (!strcmp(plugin->registration,"02-100")) { plugin_02x100_main(user,str,comnum); return 1; }
+	if (!strcmp(plugin->registration,"00-100")) { pl00x100_main(user,str,comnum); return 1; }
+	if (!strcmp(plugin->registration,"02-100")) { pl02x100_main(user,str,comnum); return 1; }
 /* ---------------------------------------------------
    End third-party plugin comand calls here.
    --------------------------------------------------- */
@@ -377,14 +377,14 @@ void load_plugins(void)
 	set_crash();
 /* --------------------------------------------------
    Place third-party plugin initialization calls HERE
-   Ex: if ((tmp=plugin_00x000_init(cmd))) cmd=cmd+tmp;
+   Ex: if ((tmp=pl00x000_init(cmd))) cmd=cmd+tmp;
    -------------------------------------------------- */
-	if ((tmp=plugin_00x000_init(cmd))) cmd=cmd+tmp;
-	if ((tmp=plugin_02x100_init(cmd))) cmd=cmd+tmp;
+	if ((tmp=pl00x100_init(cmd))) cmd=cmd+tmp;
+	if ((tmp=pl02x100_init(cmd))) cmd=cmd+tmp;
 /* ------------------------------------------------
    End third-party plugin initialization calls HERE
    ------------------------------------------------ */
 }
 
-#endif /* plugin.c */
+#endif /* __PLUGIN_C__ */
 

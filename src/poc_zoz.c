@@ -2,8 +2,8 @@
 /*
  * poc_zoz.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -222,7 +222,7 @@ void list_txt_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char filename[500];
+	char fname[FNAME_LEN];
 	int cnt=0, tcnt=0;
 
 	set_crash();
@@ -239,8 +239,8 @@ void list_txt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
-	if ((ofp=fopen(filename, "w"))==NULL) {
+	sprintf(fname, "%s/showfiles.tmp", TEMPFILES);
+	if ((ofp=fopen(fname, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
 			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
@@ -259,8 +259,8 @@ void list_txt_files(UR_OBJECT user)
 		    || !strcmp(dp->d_name, "..")
 		    || !strcmp(dp->d_name, "adminsfiles")
 		    ) continue;
-		sprintf(filename, "%s/%s", TEXTFILES, dp->d_name);
-		if ((ifp=fopen(filename, "r"))==NULL) {
+		sprintf(fname, "%s/%s", TEXTFILES, dp->d_name);
+		if ((ifp=fopen(fname, "r"))==NULL) {
 			(void) closedir(dirp);
 			if (!user) {
 				fprintf(stderr, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
@@ -281,9 +281,9 @@ void list_txt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne subory\n");
 	fprintf(ofp, "+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
+	sprintf(fname, "%s/showfiles.tmp", TEMPFILES);
 	unlink(SHOWFILES);
-	rename(filename, SHOWFILES);
+	rename(fname, SHOWFILES);
 	tcnt=cnt;
 
 	cnt=0;
@@ -297,9 +297,9 @@ void list_txt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
-	if ((ofp=fopen(filename, "w"))==NULL) {
-		(void) closedir(dirp);
+	sprintf(fname, "%s/showfiles.tmp", TEMPFILES);
+	if ((ofp=fopen(fname, "w"))==NULL) {
+		closedir(dirp);
 		if (!user) {
 			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
 			boot_exit(102);
@@ -316,9 +316,9 @@ void list_txt_files(UR_OBJECT user)
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
 		    ) continue;
-		sprintf(filename, "%s/%s", ADMINFILES, dp->d_name);
-		if ((ifp=fopen(filename, "r"))==NULL) {
-			(void) closedir(dirp);
+		sprintf(fname, "%s/%s", ADMINFILES, dp->d_name);
+		if ((ifp=fopen(fname, "r"))==NULL) {
+			closedir(dirp);
 			fclose(ofp);
 			if (!user) {
 				fprintf(stderr, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
@@ -339,9 +339,9 @@ void list_txt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne subory\n");
 	fprintf(ofp, "+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
+	sprintf(fname, "%s/showfiles.tmp", TEMPFILES);
 	unlink(SHOWAFILES);
-	rename(filename, SHOWAFILES);
+	rename(fname, SHOWAFILES);
 	tcnt+=cnt;
 	if (!user) printf(" spolu %d\n", tcnt);
 	else vwrite_user(user, " spolu %d\n", tcnt);
@@ -353,7 +353,7 @@ void list_pic_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ofp;
 	struct dirent *dp;
-	char filename[500];
+	char fname[FNAME_LEN];
 	char fntname[50];
 	int cnt=0, cl, pc;
 
@@ -371,8 +371,8 @@ void list_pic_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/pictfiles.tmp", TEMPFILES);
-	if ((ofp=fopen(filename, "w"))==NULL) {
+	sprintf(fname, "%s/pictfiles.tmp", TEMPFILES);
+	if ((ofp=fopen(fname, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
 			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_pic_files().\n");
@@ -386,13 +386,13 @@ void list_pic_files(UR_OBJECT user)
 	fprintf(ofp, "\n+----- ~FG~OLZoznam obrazkov~RS ------------------------------------------------------+\n\n");
 
 	pc=0;
-	while((dp=readdir(dirp))!=NULL) {
+	while ((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
 		    || !strncmp(dp->d_name, ".pic", 4)
 		    ) continue;
-		sprintf(filename, "%s/%s", PICTFILES, dp->d_name);
-		if ((cl=count_lines(filename))==0) continue;
+		sprintf(fname, "%s/%s", PICTFILES, dp->d_name);
+		if ((cl=count_lines(fname))==0) continue;
 		strcpy(fntname, dp->d_name);
 		fntname[strlen(fntname)-4]='\0';
 		if (cl>23) fprintf(ofp, "~OL~FR%-19.19s~RS", fntname);
@@ -405,13 +405,13 @@ void list_pic_files(UR_OBJECT user)
 		if (user) write_user(user, ".");
 		cnt++;
 		}
-	(void) closedir(dirp);
+	closedir(dirp);
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne obrazky\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/pictfiles.tmp", TEMPFILES);
+	sprintf(fname, "%s/pictfiles.tmp", TEMPFILES);
 	unlink(PICTLIST);
-	rename(filename, PICTLIST);
+	rename(fname, PICTLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
@@ -422,7 +422,7 @@ void list_fnt_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ofp;
 	struct dirent *dp;
-	char filename[500];
+	char fname[FNAME_LEN];
 	char name[ARR_SIZE];
 	int cnt=0, pc;
 
@@ -440,9 +440,9 @@ void list_fnt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/fntfiles.tmp", TEMPFILES);
-	if ((ofp=fopen(filename, "w"))==NULL) {
-		(void) closedir(dirp);
+	sprintf(fname, "%s/fntfiles.tmp", TEMPFILES);
+	if ((ofp=fopen(fname, "w"))==NULL) {
+		closedir(dirp);
 		if (!user) {
 			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_fnt_files().\n");
 			boot_exit(102);
@@ -455,7 +455,7 @@ void list_fnt_files(UR_OBJECT user)
 	fprintf(ofp, "\n+----- ~FG~OLZoznam fontov~RS ------------------------------------------------------+\n\n");
 
 	pc=0;
-	while((dp=readdir(dirp))!=NULL) {
+	while ((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
 		    || !strncmp(dp->d_name, ".flf", 4)
@@ -475,9 +475,9 @@ void list_fnt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne fonty\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/fntfiles.tmp", TEMPFILES);
+	sprintf(fname, "%s/fntfiles.tmp", TEMPFILES);
 	unlink(FONTLIST);
-	rename(filename, FONTLIST);
+	rename(fname, FONTLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
@@ -488,7 +488,7 @@ void list_kill_msgs(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char filename[500];
+	char fname[FNAME_LEN];
 	char *pp, line[82];
 	int cnt=0, pc;
 
@@ -506,9 +506,9 @@ void list_kill_msgs(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/killmsgs.tmp", TEMPFILES);
-	if ((ofp=fopen(filename, "w"))==NULL) {
-		(void) closedir(dirp);
+	sprintf(fname, "%s/killmsgs.tmp", TEMPFILES);
+	if ((ofp=fopen(fname, "w"))==NULL) {
+		closedir(dirp);
 		if (!user) {
 			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_kill_msgs().\n");
 			boot_exit(102);
@@ -522,13 +522,13 @@ void list_kill_msgs(UR_OBJECT user)
 
 	pc=0;
 	cnt=0;
-	while((dp=readdir(dirp))!=NULL) {
+	while ((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
 		    || strncmp(dp->d_name, "kill.", 5)
 		    ) continue;
-		sprintf(filename, "%s/%s", KILLMSGS, dp->d_name);
-		if (!(ifp=fopen(filename, "r"))) continue;
+		sprintf(fname, "%s/%s", KILLMSGS, dp->d_name);
+		if (!(ifp=fopen(fname, "r"))) continue;
 		else {
 			fgets(line, 81, ifp);
 			pp=strchr(line, '\n');
@@ -542,16 +542,16 @@ void list_kill_msgs(UR_OBJECT user)
 		if (user) write_user(user, ".");
 		cnt++;
 		}
-	(void) closedir(dirp);
+	closedir(dirp);
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne 'kill hlasky'\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/killmsgs.tmp", TEMPFILES);
+	sprintf(fname, "%s/killmsgs.tmp", TEMPFILES);
 	unlink(KILLLIST);
-	rename(filename, KILLLIST);
+	rename(fname, KILLLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
 
-#endif /* poc_zoz.c */
+#endif /* __POC_ZOZ_C__ */
 

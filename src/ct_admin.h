@@ -2,8 +2,8 @@
 /*
  * ct_admin.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -23,10 +23,10 @@ extern PL_OBJECT plugin_first;
 extern CM_OBJECT cmds_first;
 
 struct user_dir_struct {
-  char name[USER_NAME_LEN+1],date[80];
-  short int level;
-  struct user_dir_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1], date[80];
+	short int level;
+	struct user_dir_struct *next, *prev;
+	};
 extern struct user_dir_struct *first_dir_entry;
 
 extern char *sex[];
@@ -59,34 +59,34 @@ extern char *offon[];
 extern char *minmax[];
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 struct command_struct {
-  char name[15],alias[5]; /* 15 and 5 characters should be long enough */
-  short int id,min_lev,function;
-  int count;
-  struct command_struct *next,*prev;
-  };
+	char name[15],alias[5]; /* 15 and 5 characters should be long enough */
+	short int id,min_lev,function;
+	int count;
+	struct command_struct *next,*prev;
+	};
 extern struct command_struct *first_command;
 
 struct wiz_list_struct {
-  char name[USER_NAME_LEN+1];
-  short int level;
-  struct wiz_list_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1];
+	short int level;
+	struct wiz_list_struct *next,*prev;
+	};
 struct wiz_list_struct *first_wiz_entry;
 
 struct {
-  char name[USER_NAME_LEN+1],time[80];
-  short int on;
-  } 
-last_login_info[LASTLOGON_NUM+1];
+	char name[USER_NAME_LEN+1],time[80];
+	short int on;
+	} last_login_info[LASTLOGON_NUM+1];
 
 extern struct {
-  char *name,*alias; int level,function;
-  } command_table[];
+	char *name, *alias;
+	int level, function;
+	} command_table[];
 
 
 extern char *restrict_string;
@@ -99,5 +99,5 @@ extern char *muzzle_user_prompt, *muzzle_victim_prompt;
 extern char *unmuzzle_user_prompt, *unmuzzle_victim_prompt;
 extern char *suicide_prompt;
 
-#endif /* ct_admin.h */
+#endif /* __CT_ADMIN_H__ */
 

@@ -2,8 +2,8 @@
 /*
  * restart.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -31,7 +31,7 @@
 int reinit_save_user_malloc(UR_OBJECT user)
 {
 	FILE *fp;
-	char fname[500], *p=user->malloc_start;
+	char fname[FNAME_LEN], *p=user->malloc_start;
 
 	set_crash();
 	sprintf(fname, "%s/%s.ri_urm", TEMPFILES, user->name);
@@ -50,11 +50,14 @@ int reinit_save_user(UR_OBJECT user)
 	UR_OBJECT u;
 	PL_OBJECT pl;
 	FILE *fp;
-	char fname[500];
+	char fname[FNAME_LEN];
 	int i;
 
 	set_crash();
-	if (user->type==REMOTE_TYPE || user->type==CLONE_TYPE) return 0;
+#ifdef NETLINKS
+	if (user->type==REMOTE_TYPE) return 0;
+#endif
+	if (user->type==CLONE_TYPE) return 0;
 	sprintf(fname, "%s/%s.ri_ur", TEMPFILES, user->name);
 	if ((fp=fopen(fname, "w"))==NULL) {
 		vwrite_user(user, "%s: chyba pri ukladani tvojich detailov\n", syserror);
@@ -71,7 +74,9 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "xcoms ");
 	for (i=0; i<MAX_XCOMS; i++) fprintf(fp, "%d ", user->xcoms[i]);
 	fprintf(fp, "\n");
+#ifdef PUEBLO
 	fprintf(fp, "pueblo     %d %d\n", user->pueblo, user->pblodetect);
+#endif
 	fprintf(fp, "alarm      %d %d\n", user->atime, user->alarm);
 	fprintf(fp, "ltell      %s\n", user->ltell);
 	fprintf(fp, "count      %ld %ld\n", user->tcount, user->bcount);
@@ -129,7 +134,7 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "wrap_rm    %s\n", user->wrap_room!=NULL?user->wrap_room->name:"");
 	fprintf(fp, "remind     %d %d %d %d %s\n", user->temp_remind.day, user->temp_remind.month, user->temp_remind.year, strlen(user->temp_remind.msg), user->temp_remind.msg!='\0'?user->temp_remind.msg:"");
 	fprintf(fp, "p_tmp_ch   %s\n", user->p_tmp_ch!=NULL?user->p_tmp_ch:"");
-	fprintf(fp, "follow     %s\n", user->follow!=NULL?user->follow->name:"");
+	fprintf(fp, "follow     %s\n", user->follow[0]!='\0'?user->follow:"");
 	fprintf(fp, "clones\n");
 		for (u=user_first; u!=NULL; u=u->next) {
 			if (u->type!=CLONE_TYPE) continue;
@@ -152,7 +157,7 @@ int reinit_save_user(UR_OBJECT user)
 int reinit_save_room(RM_OBJECT room)
 {
 	FILE *fp;
-	char fname[500];
+	char fname[FNAME_LEN];
 	int i;
 
 	set_crash();
@@ -191,15 +196,18 @@ void restart(UR_OBJECT user)
 	char name[ROOM_NAME_LEN+1];
 	char *argy[]={progname, confile, "-reinit", NULL };
 	int p;
+	char uname[USER_NAME_LEN+1];
 
 	set_crash();
+	if (user) strcpy(uname, user->name);
+	else strcpy(uname, "SIGHUP signal");
 	clear_temps();
 	write_room_except(NULL, restart_prompt, user);
 	save_counters();
-	write_syslog(SYSLOG, 1, "%s robi ~OL~FTrestart~RS talkra\n", user->name);
+	write_syslog(SYSLOG, 1, "%s robi ~OL~FTrestart~RS talkra\n", uname);
 
 	if ((fp=fopen(RESTARTFILE, "w"))==NULL) {
-		write_user(user, "Nemozem otvorit subor pre zoznam, nerestartujem ...\n");
+		if (user) write_user(user, "Nemozem otvorit subor pre zoznam, nerestartujem ...\n");
 		write_syslog(ERRLOG, 1, "Nemozem otvorit RESTARTFILE na zapis v restart()\n");
 		write_syslog(SYSLOG, 1, "Restart zruseny - pozri errlog\n");
 		return;
@@ -208,7 +216,8 @@ void restart(UR_OBJECT user)
 #ifdef NETLINKS
 	for (nl=nl_first; nl!=NULL; nl=nl->next) shutdown_netlink(nl);
 #endif
-	fprintf(fp,"%d %d %d %d\n",port[0], port[1], listen_sock[0],listen_sock[1]);
+	fprintf(fp, "%d %d %d %d\n",port[0], port[1], listen_sock[0],listen_sock[1]);
+	fprintf(fp, "%d\n", (int)amsys->boot_time);
 
 	for (rm=room_first; rm!=NULL; rm=rm->next) {
 		p=is_personal_room(rm);
@@ -255,7 +264,7 @@ void restart(UR_OBJECT user)
 int reinit_load_user_malloc(UR_OBJECT user)
 {
 	FILE *fp;
-	char fname[500], c;
+	char fname[FNAME_LEN], c;
 	int i=0;
 
 	set_crash();
@@ -279,7 +288,7 @@ int reinit_load_user(UR_OBJECT user, int stage)
 	UR_OBJECT ur;
 	PL_OBJECT pl;
 	FILE *fp;
-	char fname[500], line[ARR_SIZE*5], *str, s[50];
+	char fname[FNAME_LEN], line[ARR_SIZE*5], *str, s[50];
 	char ur_words[10][ARR_SIZE];
 	int i, wn, wpos, wcnt, op, found, c, damaged=0;
 	char *options[]={
@@ -359,12 +368,14 @@ RLUOUT:
 						user->xcoms[i-1]=atoi(ur_words[i]);
 					break;
 				case  6: /* pueblo */
+#ifdef PUEBLO
 					for (i=1; i<wcnt; i++) {
 						switch (i) {
 							case 1: user->pueblo=atoi(ur_words[i]); break;
 							case 2: user->pblodetect=atoi(ur_words[i]); break;
 							}
 						}
+#endif
 					break;
 				case  7: /* alarm */
 					for (i=1; i<wcnt; i++) {
@@ -593,7 +604,7 @@ RLUOUT:
 					case 35: /* follow */
 						if (wcnt>=2) {
 							ur=get_user(ur_words[2]);
-							if (ur!=NULL) user->follow=ur;
+							if (ur!=NULL) strcpy(user->follow, ur->name);
 							}
 						break;
 					case 36: /* clones */
@@ -643,7 +654,7 @@ RLUOUT:
 int reinit_load_room(RM_OBJECT room)
 {
 	FILE *fp;
-	char fname[500], line[ARR_SIZE*5], *str;
+	char fname[FNAME_LEN], line[ARR_SIZE*5], *str;
 	char rm_words[10][ARR_SIZE];
 	int i, found, wn, wpos, wcnt, c, op, damaged=0;
 	char *options[]={
@@ -778,6 +789,9 @@ void restore_structs(void)
 	fgets(line, 199, fp); /* prvy riadok s portami */
 
 	fgets(line, 199, fp);
+	amsys->boot_time=(time_t)atoi(line);
+	time(&syspp->reboot_time);
+	fgets(line, 199, fp);
 	while (!feof(fp)) {
 		if (!strcmp(line, "_users\n")) break;
 		sscanf(line, "%s %d\n", meno, &siz);
@@ -810,7 +824,7 @@ void restore_structs(void)
 		u=create_user();
 		strcpy(u->name,meno);
 		load_user_details(u);
-		if (u->level==L_0) {
+		if (u->level==JAILED) {
 			u->room=get_room_full(default_jail);
 			if (u->room==NULL) u->room=room_first;
 			}
@@ -838,5 +852,5 @@ void restore_structs(void)
 }
 
 
-#endif /* restart.c */
+#endif /* __RESTART_C__ */
 

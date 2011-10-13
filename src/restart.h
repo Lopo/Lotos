@@ -2,8 +2,8 @@
 /*
  * restart.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -30,5 +30,5 @@ extern char *default_jail;
 extern char *clone_desc;
 extern char *restart_prompt, *restart_ok;
 
-#endif /* restart.h */
+#endif /* __RESTART_H__ */
 

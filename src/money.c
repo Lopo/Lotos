@@ -2,8 +2,8 @@
 /*
  * money.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -17,9 +17,9 @@
 #include <ctype.h>
 
 #include "define.h"
+#include "prototypes.h"
 #include "obj_ur.h"
 #include "obj_sys.h"
-#include "prototypes.h"
 #include "money.h"
 
 
@@ -226,5 +226,5 @@ if (!strcasecmp(word[1],"-t")) {
 write_usage(user,"money -l/-g/-t [<user> <amount>]");
 }
 
-#endif /* money.c */
+#endif /* __MONEY_C__ */
 

@@ -2,8 +2,8 @@
 /*
  * define.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -16,16 +16,16 @@
    ostatne musia byt nezmenene */
 
 #define TVERSION "1.0.0"
-#define OSSVERSION "1.2.1"
+#define OSSVERSION "1.2.2"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
 #define USERVER "0.12"
-#define RUN_VER "121"
+#define RUN_VER "122"
 
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/home/lotos/lotos121"
+#define ROOTDIR "/home/lotos/lotos122"
 #define DATAFILES ROOTDIR"/datafiles"
 #define CONFFILES DATAFILES"/conffiles"
 #define MAPFILES DATAFILES"/mapfiles"
@@ -107,7 +107,9 @@
 #define ERRSYSLOG  "errlog"
 #define SYSLOG 0
 #define REQLOG 1
-#define NETLOG 2
+#ifdef NETLINKS
+	#define NETLOG 2
+#endif
 #ifdef DEBUG
 	#define DEBLOG 3
 #endif
@@ -124,6 +126,7 @@
 #define REVIEW_LEN      400	/* review conversation buffer line capacity */
 #define BUFSIZE        1000
 #define ROOM_NAME_LEN    20	/* room name length */
+#define PERSONAL_ROOMNAME_LEN 80
 #define ROOM_LABEL_LEN    5	/* room label length */
 #define SBOFF             0
 #define SBMIN             1
@@ -131,6 +134,7 @@
 #define LASTLOGON_NUM     5
 #define LOGIN_FLOOD_CNT  20
 #define MAX_SWEARS       20	/* max. size of swears list */
+#define FNAME_LEN		500
 
 /* netlink defines */
 #define SITE_NAME_LEN    80	/* site name length */
@@ -217,7 +221,9 @@
 /* user and clone types */
 #define USER_TYPE 0
 #define CLONE_TYPE 1
-#define REMOTE_TYPE 2
+#ifdef NETLINKS
+#	define REMOTE_TYPE 2
+#endif
 #define BOT_TYPE 3
 #define CLONE_HEAR_NOTHING 0
 #define CLONE_HEAR_SWEARS 1
@@ -386,9 +392,6 @@
 #define ID_BUFFLEN    196 /* max. buffer length for reads and writes in identify() */
 #define ID_READTIMEOUT 30 /* number of seconds after a socket read operation is timed out. */
 
-/* objekty */
-//#define OBJECT_NAME_LEN 20
-
 /* money */
 #define DEFAULT_MONEY 1000
 #define DEFAULT_BANK 3000
@@ -404,5 +407,5 @@
 #	define set_crash() ((void)0)
 #endif //DEBUG
 
-#endif /* define.h */
+#endif /* __DEFINE_H__ */
 

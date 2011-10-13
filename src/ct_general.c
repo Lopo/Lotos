@@ -2,8 +2,8 @@
 /*
  * ct_general.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -22,6 +22,7 @@
 #include <ctype.h>
 
 #include "define.h"
+#include "prototypes.h"
 #include "obj_ur.h"
 #include "obj_rm.h"
 #ifdef NETLINKS
@@ -32,7 +33,6 @@
 #include "obj_pl.h"
 #include "obj_mc.h"
 #include "ct_general.h"
-#include "prototypes.h"
 #include "comvals.h"
 
 
@@ -49,14 +49,24 @@ void disconnect_user(UR_OBJECT user)
 
 	set_crash();
 	for (ur=user_first; ur!=NULL; ur=ur->next)
-		if (ur->follow==user) ur->follow=NULL;
+		if (!strcmp(ur->follow, user->name)) ur->follow[0]='\0';
 	if (user->login) {
 		close(user->socket);  
 		destruct_user(user);
 		amsys->num_of_logins--;  
 		return;
 		}
-	if (user->type!=REMOTE_TYPE) {
+#ifdef NETLINKS
+	if (user->type=REMOTE_TYPE) {
+		save_plugin_data(user);
+		write_user(user,"\n~FR~OLYou are pulled back in disgrace to your own domain...\n");
+		sprintf(text,"REMVD %s\n",user->name);
+		write_sock(user->netlink->socket,text);
+		vwrite_room_except(rm,user,"~FR~OL%s is banished from here!\n",user->name);
+		write_syslog(NETLOG,1,"NETLINK: Remote user %s removed.\n",user->name);
+		}
+	else {
+#endif
 		onfor=(int)(time(0)-user->last_login);
 		hours=(onfor%86400)/3600;
 		mins=(onfor%3600)/60;
@@ -85,16 +95,6 @@ void disconnect_user(UR_OBJECT user)
 					break;
 					}
 				}
-#endif
-		}
-#ifdef NETLINKS
-	else {
-		save_plugin_data(user);
-		write_user(user,"\n~FR~OLYou are pulled back in disgrace to your own domain...\n");
-		sprintf(text,"REMVD %s\n",user->name);
-		write_sock(user->netlink->socket,text);
-		vwrite_room_except(rm,user,"~FR~OL%s is banished from here!\n",user->name);
-		write_syslog(NETLOG,1,"NETLINK: Remote user %s removed.\n",user->name);
 		}
 #endif
 	if (user->malloc_start!=NULL) free(user->malloc_start);
@@ -118,80 +118,100 @@ void look(UR_OBJECT user)
 	int i,exits=0,users;
 
 	set_crash();
-if (rm->access & PRIVATE) vwrite_user(user,"\n~FTRuuma: ~FR%s\n\n",rm->name);
-else vwrite_user(user,"\n~FTRuuma: ~FG%s\n\n",rm->name);
-if (user->show_rdesc) write_user(user,user->room->desc);
-null[0]='\0';
-strcpy(text,"\n~FTVychody:~RS");
-for(i=0;i<MAX_LINKS;++i) {
-  if (rm->link[i]==NULL) break;
-  if (rm->link[i]->access & PRIVATE) sprintf(temp,"  ~FR%s",rm->link[i]->name);
-  else {
-  	if (user->pueblo && rm->link[i]->access!=ROOT_CONSOLE)
-  		sprintf(temp,"  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">%s</a></b><xch_mudtext>",
-  			rm->link[i]->name, rm->link[i]->name);
-  	else sprintf(temp, "  ~FG%s", rm->link[i]->name);
-  	}
-  strcat(text,temp);
-  ++exits;
-  }
-for (rm2=room_first; rm2!=NULL; rm2=rm2->next) {
-	if (rm2->transp==NULL) continue;
-	if (rm2->transp->go) continue;
-	if (rm2->link[rm2->transp->out]!=rm) continue;
-	if (rm2->access & PRIVATE) sprintf(temp,"  ~RS~OL*~RS~FR%s",rm2->name);
-	else {
-		if (user->pueblo) sprintf(temp, "  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">*%s</a></b><xch_mudtext>",
-  			rm2->name, rm2->name);
-		else sprintf(temp, "  ~RS~OL*~RS~FG%s",rm2->name);
-		}
-	strcat(text,temp);
-	++exits;
-	break;
-	}
-#ifdef NETLINKS
-if (rm->netlink!=NULL && rm->netlink->stage==UP) {
-  if (rm->netlink->allow==IN) sprintf(temp,"  ~FR%s@",rm->netlink->service);
-  else sprintf(temp,"  ~FG%s@",rm->netlink->service);
-  strcat(text,temp);
-  }
-else 
+	if (rm->access & PERSONAL_UNLOCKED) vwrite_user(user, "\n~FTRuuma: ~FG%s\n\n", rm->real_name);
+	else if (rm->access & PERSONAL_LOCKED) vwrite_user(user, "\n~FTRuuma: ~FR%s\n\n", rm->real_name);
+	else if (rm->access & PRIVATE) vwrite_user(user,"\n~FTRuuma: ~FR%s\n\n",rm->name);
+	else vwrite_user(user,"\n~FTRuuma: ~FG%s\n\n",rm->name);
+	if (user->show_rdesc) write_user(user,user->room->desc);
+	null[0]='\0';
+	strcpy(text,"\n~FTVychody:~RS");
+	for (i=0;i<MAX_LINKS;++i) {
+		if (rm->link[i]==NULL) break;
+		if (rm->link[i]->access & PRIVATE) sprintf(temp,"  ~FR%s~RS",rm->link[i]->name);
+		else {
+#ifdef PUEBLO
+			if (user->pueblo && ((rm->link[i]->access==ROOT_CONSOLE && user->level==ROOT) || rm->link[i]->access!=ROOT_CONSOLE)) sprintf(temp, "  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">~FG%s~RS</a></b></xch_mudtext>", rm->link[i]->name, rm->link[i]->name);
+			else
 #endif
-  if (!exits) strcpy(text, no_exits);
+				sprintf(temp, "  ~FG%s~RS", rm->link[i]->name);
+			}
+		strcat(text,temp);
+		++exits;
+		}
+	for (rm2=room_first; rm2!=NULL; rm2=rm2->next) {
+		if (rm2->transp==NULL) continue;
+		if (rm2->transp->go) continue;
+		if (rm2->link[rm2->transp->out]!=rm) continue;
+		if (rm2->access & PRIVATE) sprintf(temp,"  ~RS~OL*~RS~FR%s",rm2->name);
+		else {
+#ifdef PUEBLO
+			if (user->pueblo) sprintf(temp, "  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">*%s</a></b><xch_mudtext>", rm2->name, rm2->name);
+			else
+#endif
+				sprintf(temp, "  ~RS~OL*~RS~FG%s",rm2->name);
+			}
+		strcat(text,temp);
+		++exits;
+		break;
+		}
+#ifdef NETLINKS
+	if (rm->netlink!=NULL && rm->netlink->stage==UP) {
+		if (rm->netlink->allow==IN) sprintf(temp,"  ~FR%s@",rm->netlink->service);
+		else sprintf(temp,"  ~FG%s@",rm->netlink->service);
+		strcat(text,temp);
+		}
+	else 
+#endif
+	if (!exits) strcpy(text, no_exits);
 if (rm->transp!=NULL) {
 	if (rm->transp->go) strcpy(text, no_exits);
 	else {
 		if (rm->link[rm->transp->out]->access & PRIVATE) sprintf(text,"\n~FTExit:  ~RS~OL*~RS~FR%s",rm->link[rm->transp->out]->name);
 		else {
+#ifdef PUEBLO
 			if (user->pueblo)
-				sprintf(text,"\n~FTExit:  ~RS~OL*~RS</xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">%s</a></b><xch_mudtext>",
+				sprintf(text,"\n~FTVyxod:  ~RS~OL*~RS</xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">%s</a></b><xch_mudtext>",
 		  			rm->link[rm->transp->out]->name,rm->link[rm->transp->out]->name);
 			else
-				sprintf(text,"\n~FTExit:  ~RS~OL*~RS~FG%s",
-					rm->link[rm->transp->out]->name);
+#endif
+				sprintf(text,"\n~FTVyxod:  ~RS~OL*~RS~FG%s", rm->link[rm->transp->out]->name);
 			}
 		}
 	}
 strcat(text,"\n\n");
 write_user(user,text);
 users=0;
-for(u=user_first;u!=NULL;u=u->next) {
+for (u=user_first;u!=NULL;u=u->next) {
   if (u->room!=rm || u==user || (!u->vis && u->level>user->level)) continue;
   if (!users++) write_user(user,"~FG~OLVisia tu:\n");
-  if (u->afk) ptr=uafk; else ptr=null;
-  if (!u->vis) vwrite_user(user,"     ~FR*~RS%s~RS %s~RS  %s\n",u->recap,u->desc,ptr);
-  else vwrite_user(user,"      %s~RS %s~RS  %s\n",u->recap,u->desc,ptr);
+  if (u->afk) ptr=uafk;
+  else ptr=null;
+#ifdef PUEBLO
+  if (user->pueblo) {
+	  if (!u->vis) vwrite_user(user,"     ~FR*~RS</xch_mudtext><b><a xch_cmd=\".ex %s\" xch_hint=\"Examine this user.\">%s~RS</a></b></xch_mudtext> %s~RS  %s\n", u->name, u->recap,u->desc,ptr);
+	  else vwrite_user(user,"      </xch_mudtext><b><a xch_cmd=\".ex %s\" xch_hint=\"Examine this user.\">%s~RS</a></b></xch_mudtext> %s~RS  %s\n", u->name, u->recap,u->desc,ptr);
+  	}
+  else {
+#endif
+	  if (!u->vis) vwrite_user(user,"     ~FR*~RS%s~RS %s~RS  %s\n",u->recap,u->desc,ptr);
+	  else vwrite_user(user,"      %s~RS %s~RS  %s\n",u->recap,u->desc,ptr);
+#ifdef PUEBLO
+	  }
+#endif
   }
 if (!users) vwrite_user(user,"~FGSi tu sam%s.\n", grm_gnd(4, user->gender));
 write_user(user,"\n");
 
-if (user->pueblo && rm->access!=ROOT_CONSOLE) strcpy(text, "</xch_mudtext><b><a xch_cmd\".pbloenh RoomConfig_setOpt\" xch_hint=\"Access Options\">Access</a></b><xch_mudtext> is ");
-else strcpy(text,"Pristup je ");
-switch(rm->access) {
-  case PUBLIC:  strcat(text,"nastaveny ~FGPUBLIC~RS");  break;
-  case PRIVATE: strcat(text,"nastaveny ~FRPRIVATE~RS");  break;
-  case FIXED_PUBLIC:  strcat(text,"~FRfixne~RS nastaveny ~FGPUBLIC~RS");  break;
-  case FIXED_PRIVATE: strcat(text,"~FRfixne~RS nastaveny ~FRPRIVATE~RS");  break;
+#ifdef PUEBLO
+if (user->pueblo && rm->access!=ROOT_CONSOLE) strcpy(text, "</xch_mudtext><b><a xch_cmd\".pbloenh RoomConfig_setOpt\" xch_hint=\"Access Options\">Pristup</a></b><xch_mudtext> je ");
+else
+#endif
+	strcpy(text,"Pristup je ");
+switch (rm->access) {
+  case PUBLIC:  strcat(text,"~FGPUBLIC~RS");  break;
+  case PRIVATE: strcat(text,"~FRPRIVATE~RS");  break;
+  case FIXED_PUBLIC:  strcat(text,"~FRfixne~RS ~FGPUBLIC~RS");  break;
+  case FIXED_PRIVATE: strcat(text,"~FRfixne~RS ~FRPRIVATE~RS");  break;
   case PERSONAL_UNLOCKED: strcat(text,"osobny ~FG(verejny)~RS");  break;
   case PERSONAL_LOCKED: strcat(text,"osobny ~FR(zamknuty)~RS");  break;
   case ROOT_CONSOLE: strcat(text, "~CRroot console~RS"); break;
@@ -229,6 +249,10 @@ else {
     write_user(user,nosuchroom);  return;
     }
   }
+if (rm->access==PERSONAL_UNLOCKED || rm->access==PERSONAL_LOCKED) {
+	write_user(user, priv_room_fix);
+	return;
+	}
 if (rm->access>PRIVATE) {
   if (rm==user->room) write_user(user,"This room's access is fixed.\n"); 
   else write_user(user,"That room's access is fixed.\n");
@@ -475,11 +499,14 @@ for(u=user_first;u!=NULL;u=u->next) {
     vwrite_user(user,"%-15s : %s   %s   %s   %s %s %4d %s %s\n",u->name,user_level[u->level].alias,sockstr,noyes1[u->ignore.all],noyes1[u->vis],idlestr,mins,portstr,u->site);
     continue;
     }
+#ifdef PUEBLO
   /* Pueblo enhanced to examine users by clicking their name */
 	if (user->pueblo && !user->login)
 		sprintf(line, "  </xch_mudtext><b><a xch_cmd=\".examine %s\" xch_hint=\"Examine this user.\">[]</a></b><xch_mudtext> %s%s %s~RS",
 			u->name, colors[CWHOUSER], u->recap, u->desc);
-	else sprintf(line,"  %s%s~RS %s~RS",colors[CWHOUSER],u->recap,u->desc);
+	else
+#endif
+		sprintf(line,"  %s%s~RS %s~RS",colors[CWHOUSER],u->recap,u->desc);
 	wholen=152-(12-strlen(u->name));
   if (!u->vis) line[0]='*';
 #ifdef NETLINKS
@@ -494,8 +521,13 @@ for(u=user_first;u!=NULL;u=u->next) {
   else if (u->editing) strcpy(idlestr,"~FTEDIT~RS");
   else if (idle>=30) strcpy(idlestr,"~FYIDLE~RS");
   else sprintf(idlestr,"%ld/%ld",mins,idle);
-	if (!user->pueblo) sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",44+cnt*3,44+cnt*3,line,user_level[u->level].alias,rname,idlestr);
+#ifdef PUEBLO
+	if (!user->pueblo)
+#endif
+		sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",44+cnt*3,44+cnt*3,line,user_level[u->level].alias,rname,idlestr);
+#ifdef PUEBLO
 	else sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",wholen+cnt*3,wholen+cnt*3,line,user_level[u->level].alias,rname,idlestr);
+#endif
   if ((strlen(word[1]) && strstr(text, word[1])) || !strlen(word[1]))
           write_user(user, text);
   }
@@ -529,32 +561,32 @@ void search_boards(UR_OBJECT user)
 {
 	RM_OBJECT rm;
 	FILE *fp;
-	char filename[500],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[USER_NAME_LEN];
+	char fname[FNAME_LEN],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[ROOM_NAME_LEN+1];
 	int w,cnt=0,message,yes,room_given;
 
 	set_crash();
-if (word_count<2) {
-  write_usage(user,"%s <word list>\n", command_table[SEARCH].name);
-  return;
-  }
+	if (word_count<2) {
+		write_usage(user,"%s <word list>\n", command_table[SEARCH].name);
+		return;
+		}
 /* Go through rooms */
 for (rm=room_first;rm!=NULL;rm=rm->next) {
   if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
     sscanf(rm->name,"%s",rmname);
     rmname[0]=toupper(rmname[0]);
-    sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+    sprintf(fname,"%s/%s.B", USERROOMS,rmname);
     }
   else {
-  	if (rm->transp==NULL) sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
-	else sprintf(filename,"%s/%s.B", TRFILES, rm->name);
+  	if (rm->transp==NULL) sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+	else sprintf(fname,"%s/%s.B", TRFILES, rm->name);
 	}
-  if (!(fp=fopen(filename,"r"))) continue;
+  if (!(fp=fopen(fname,"r"))) continue;
   if (!has_room_access(user,rm)) {  fclose(fp);  continue;  }
   /* Go through file */
   fgets(line,81,fp);
   yes=0;  message=0;  
   room_given=0;  buff[0]='\0';
-  while(!feof(fp)) {
+  while (!feof(fp)) {
     if (*line=='\n') {
       if (yes) {  strcat(buff,"\n");  write_user(user,buff);  }
       message=0;  yes=0;  buff[0]='\0';
@@ -568,7 +600,7 @@ for (rm=room_first;rm!=NULL;rm=rm->next) {
         }
       }
     else strcat(buff,line);
-    for(w=1;w<word_count;++w) {
+    for (w=1;w<word_count;++w) {
       if (!yes && strstr(line,word[w])) {  
 	if (!room_given) {
 	  vwrite_user(user,"~BB*** %s ***\n\n",rm->name);
@@ -582,8 +614,8 @@ for (rm=room_first;rm!=NULL;rm=rm->next) {
   if (yes) {  strcat(buff,"\n");  write_user(user,buff);  }
   fclose(fp);
   }
-if (cnt) vwrite_user(user,"Total of %d matching message%s.\n\n",cnt,PLTEXT_S(cnt));
-else write_user(user,"No occurences found.\n");
+	if (cnt) vwrite_user(user,"Total of %d matching message%s.\n\n",cnt,PLTEXT_S(cnt));
+	else write_user(user,"No occurences found.\n");
 }
 
 
@@ -633,13 +665,13 @@ void show_version(UR_OBJECT user)
 	write_user(user,".----------------------------------------------------------------------------.\n");
 	sprintf(text, "(C) %s", reg_sysinfo[SYSOPUNAME]);
 	vwrite_user(user,"| ~FT~OLStar talker verzia %-8.8s                           %20.20s~RS |\n", TVERSION, text);
-	vwrite_user(user,"| ~FT~OLLotos verzia %-8.8s                         (C) Pavol Hluchy, Januar 2002~RS |\n", OSSVERSION);
+	vwrite_user(user,"| ~FT~OLLotos verzia %-8.8s                            (C) Pavol Hluchy, Maj 2002~RS |\n", OSSVERSION);
 	vwrite_user(user,"| ~FT~OLAmnuts version %-5s                 (C) Andrew Collington, September 1999~RS |\n", AMNUTSVER);
 	vwrite_user(user,"| NUTS version %5s                       (C) Neil Robertson, November 1996 |\n", NUTSVER);
 	if (user->level>=ARCH) {
 	write_user(user,"+----------------------------------------------------------------------------+\n");
 	vwrite_user(user,"| Total number of users    : ~OL%-4d~RS  Maximum online users     : ~OL%-3d~RS            |\n",amsys->user_count,amsys->max_users);
-	vwrite_user(user,"| Maximum smail copies     : ~OL%-3d~RS   Names can be recapped    : ~OL%s~RS            |\n",MAX_COPIES,noyes2[amsys->allow_recaps]);
+	vwrite_user(user,"| Maximum smail copies     : ~OL%-3d~RS                                             |\n",MAX_COPIES);
 	vwrite_user(user,"| Personal rooms active    : ~OL%-3s~RS   Maximum user idle time   : ~OL%-3d~RS mins~RS       |\n",noyes2[amsys->personal_rooms],amsys->user_idle_time/60);
 #ifdef NETLINKS
 	write_user(user,"| Compiled netlinks        : ~OLANO~RS                                             |\n");
@@ -903,7 +935,7 @@ write_user(user,"+--------------------------------------------------------------
 /*** Get current system time ***/
 void get_time(UR_OBJECT user)
 {
-	char bstr[40],temp[80];
+	char bstr[40], rbstr[40], temp[80];
 	int secs,mins,hours,days;
 
 	set_crash();
@@ -921,6 +953,11 @@ void get_time(UR_OBJECT user)
 	vwrite_user(user,"| Aktualny systemovy cas     : ~OL%-45s~RS |\n",temp);
 	if (user->level>=ARCH) {
 		vwrite_user(user,"| Start talkra               : ~OL%-45s~RS |\n",bstr);
+		if (syspp->reboot_time!=0) {
+			strcpy(rbstr, ctime(&syspp->reboot_time));
+			rbstr[strlen(rbstr)-1]='\0';
+			vwrite_user(user,"| Restart talkra             : ~OL%-45s~RS |\n",rbstr);
+			}
 		sprintf(temp,"%d d, %d h, %d min, %d s",days,hours,mins,secs);
 		vwrite_user(user,"| Uptime                     : ~OL%-45s~RS |\n",temp);
 		}
@@ -1409,14 +1446,14 @@ move_user(u,rmto,0);
 ***/
 void display_files(UR_OBJECT user,int admins)
 {
-	char filename[500],*c;
+	char fname[FNAME_LEN],*c;
 	int ret;
 
 	set_crash();
 if (word_count<2) {
-  if (!admins) strcpy(filename, SHOWFILES);
-  else strcpy(filename, SHOWAFILES);
-  if (!(ret=more(user,user->socket,filename))) {
+  if (!admins) strcpy(fname, SHOWFILES);
+  else strcpy(fname, SHOWAFILES);
+  if (!(ret=more(user,user->socket,fname))) {
     if (!admins) write_user(user,"Neni zoznam suborof.\n");
     else write_user(user,"Neni zoznam adminskyx textof.\n");
     return;
@@ -1426,7 +1463,7 @@ if (word_count<2) {
   }
 /* check for any illegal characters */
 c=word[1];
-while(*c) {
+while (*c) {
   if (*c=='.' || *c++=='/') {
     if (!admins) write_user(user,"Neni taky text.\n");
     else write_user(user,"Neni taky adminsky text.\n");
@@ -1434,9 +1471,9 @@ while(*c) {
     }
   }
 /* show the file */
-if (!admins) sprintf(filename,"%s/%s", TEXTFILES,word[1]);
-else sprintf(filename,"%s/%s", ADMINFILES, word[1]);
-if (!(ret=more(user,user->socket,filename))) {
+if (!admins) sprintf(fname,"%s/%s", TEXTFILES,word[1]);
+else sprintf(fname,"%s/%s", ADMINFILES, word[1]);
+if (!(ret=more(user,user->socket,fname))) {
   if (!admins) write_user(user,"Neni taky text.\n");
   else write_user(user,"Neni taky adminsky text.\n");
   return;
@@ -1471,13 +1508,13 @@ void volby(UR_OBJECT user)
 	struct dirent *dp;
 	int ret, i, p1, p2, pm, v=0;
 	int pochlasov;
-	char filename[500], dirname[500];
+	char fname[FNAME_LEN], dirname[FNAME_LEN];
 	char *pn;
 
 	set_crash();
 	if (word_count<2) {
-		sprintf(filename, "%s/mainlist", VOTEFILES);
-		if (!(ret=more(user,user->socket,filename))) {
+		sprintf(fname, "%s/mainlist", VOTEFILES);
+		if (!(ret=more(user,user->socket,fname))) {
 			write_user(user,"Sorrac, momentalne nenisu volby.\n");
 			return;
 			}
@@ -1490,8 +1527,8 @@ void volby(UR_OBJECT user)
 			write_user(user, "Chybny parameter !\n");
 			return;
 			}
-		sprintf(filename,"%s/vote_%s", VOTEFILES, word[1]);
-		if (!more(user,user->socket,filename)) {
+		sprintf(fname,"%s/vote_%s", VOTEFILES, word[1]);
+		if (!more(user,user->socket,fname)) {
 			write_user(user, "Nemozem najst subor s inf. o hlasovani - asi take prave neprebieha ...\n");
 			return;
 			}
@@ -1511,12 +1548,12 @@ void volby(UR_OBJECT user)
 			pn++;
 			if ((i=atoi(pn))>pm) pm=i;
 			}
-		(void)closedir(dirp);
-		for(i=1; i<=pm; i++) {
-			sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1 ,i);
-			if ((fp=fopen(filename,"r"))!=NULL) {
+		closedir(dirp);
+		for (i=1; i<=pm; i++) {
+			sprintf(fname,"%s/%d/v_%d", VOTEFILES, p1 ,i);
+			if ((fp=fopen(fname,"r"))!=NULL) {
 				pochlasov=0;
-				while(!feof(fp)) {
+				while (!feof(fp)) {
 					text[0]='\0';
 					fscanf(fp,"%s\n", text);
 					if (strlen(text)) {
@@ -1550,18 +1587,18 @@ void volby(UR_OBJECT user)
 		pn++;
 		if ((i=atoi(pn))>pm) pm=i;
 		}
-	(void) closedir(dirp);
+	closedir(dirp);
 
-	if(!is_number(word[1]) || !is_number(word[2])) {
+	if (!is_number(word[1]) || !is_number(word[2])) {
 		write_user(user, "Chybny parameter ...\n");
 		return;
 		}
 	p1=atoi(word[1]);
 	p2=atoi(word[2]);
-	for(i=1; i<pm; i++) {
-		sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1 , i);
-		if ((fp=fopen(filename,"r"))!=NULL) {
-			while(!feof(fp)) {
+	for (i=1; i<pm; i++) {
+		sprintf(fname,"%s/%d/v_%d", VOTEFILES, p1 , i);
+		if ((fp=fopen(fname,"r"))!=NULL) {
+			while (!feof(fp)) {
 				fscanf(fp,"%s\n",text);
 				if (!strcmp(user->name, text)) {
 					vwrite_user(user, "Nikto nemoze hlasovat dva krat v tyx istyx volbax.\n");
@@ -1573,13 +1610,13 @@ void volby(UR_OBJECT user)
 		fclose(fp);
 		}
 
-	sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1, p2);
-	if (!(fp=fopen(filename,"r"))) {
+	sprintf(fname,"%s/%d/v_%d", VOTEFILES, p1, p2);
+	if (!(fp=fopen(fname,"r"))) {
 		write_user(user,"Sorry, taka moznost neexisuje.\n");
 		return;
 		}
 	fclose(fp);
-	fp=fopen(filename,"a");
+	fp=fopen(fname,"a");
 	fprintf(fp,"%s\n",user->name);
 	fclose(fp);
 
@@ -1592,24 +1629,18 @@ void quit_user(UR_OBJECT user, char *inpstr)
 {
 	set_crash();
 	if (word_count<2 || user->muzzled) {
+		vwrite_room_except(NULL, user, "\n>>>%s uz odchadza z ~FT~OL%s~RS [ .quit ]\n", user->name, reg_sysinfo[TALKERNAME]);
 		disconnect_user(user);
 		return;
 		}
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
-			case SBMIN:
-				inpstr=censor_swear_words(inpstr);
-				break;
-			case SBMAX:
-				write_user(user,noswearing);
-				return;
+		switch (amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
 			default : break; /* do nothing as ban_swearing is off */
 			}
 		}
-	sprintf(text,"\n>>>%s uz odchadza z ~FT~OL%s~RS [ %s~RS ]\n",
-		user->name, reg_sysinfo[TALKERNAME], inpstr
-		);
-	write_room_except(NULL,text, user);
+	vwrite_room_except(NULL, user, "\n>>>%s uz odchadza z ~FT~OL%s~RS [ %s~RS ]\n", user->name, reg_sysinfo[TALKERNAME], inpstr);
 	disconnect_user(user);
 }
 
@@ -1620,7 +1651,7 @@ void show_map(UR_OBJECT user)
 	DIR *dirp;
 	struct dirent *dp;
 	int i, cnt;
-	char filename[500], mapname[ROOM_NAME_LEN+1];
+	char fname[FNAME_LEN], mapname[ROOM_NAME_LEN+1];
 
 	set_crash();
 	if (word_count<2 || user->level<ARCH) {
@@ -1628,8 +1659,8 @@ void show_map(UR_OBJECT user)
 			write_user(user,"You don't need no map - where you are is where it's at!\n");
 			return;
 			}
-		sprintf(filename, "%s/%s.map", MAPFILES, user->room->map);
-		switch(more(user,user->socket,filename)) {
+		sprintf(fname, "%s/%s.map", MAPFILES, user->room->map);
+		switch (more(user,user->socket,fname)) {
 			case 0:
 				write_user(user,">>> Neni mapa. Sorac...\n");
 				break;
@@ -1639,7 +1670,7 @@ void show_map(UR_OBJECT user)
 		return;	
 		}
 
-	if(!strcmp(word[1],"-l")) {
+	if (!strcmp(word[1],"-l")) {
 		write_user(user,"~BB--->>> Zoznam map <<<---\n");
 		if (!(dirp=opendir(MAPFILES))) {
 			write_user(user, "Nemozem otvorit adresar s mapami - nie su mapy :(\n");
@@ -1670,9 +1701,9 @@ void show_map(UR_OBJECT user)
 		return;
 		}
 
-	sprintf(filename, "%s/%s.map", MAPFILES, word[1]);
+	sprintf(fname, "%s/%s.map", MAPFILES, word[1]);
 	vwrite_user(user, "\nMapa '~FT~OL%s~RS' :\n", word[1]);
-	switch(more(user, user->socket, filename)) {
+	switch (more(user, user->socket, fname)) {
 		case 0:
 			write_user(user, "Neni taka mapa.\n");
 			break;
@@ -1696,5 +1727,30 @@ void list_cmdas(UR_OBJECT user)
 		}
 }
 
-#endif /* ct_general.c */
+void lynx(UR_OBJECT user, char *inpstr)
+{
+	pid_t pid;
+	char fname[FNAME_LEN];
+
+	set_crash();
+	sprintf(fname, "%s/%s.lynx", TEMPFILES, user->name);
+	pid=fork();
+	switch (pid) {
+		case -1: /* fork failure */
+			write_user(user, "error getting data\n");
+			return;
+		case 0: /* child */
+			if (!freopen(fname, "w", stdout)) {
+				write_user(user, "chyba pri nacitavani pozadovanej stranky\n");
+				return;
+				}
+			execlp("lynx", "lynx", "-dump", "-connect_timeout=30", "-anonymous", "-ftp", "-telnet", word[1], NULL);
+			exit(12);
+		default: /* parent */
+			user->lynx=pid;
+		}
+}
+
+
+#endif /* __CT_GENERAL_C__ */
 

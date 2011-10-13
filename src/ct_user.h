@@ -2,8 +2,8 @@
 /*
  * ct_user.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -27,14 +27,19 @@ extern char *crypt_salt;
 extern char *noyes2[], *sex[], *offon[];
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 extern struct {
-  char name[USER_NAME_LEN+1],time[80];
-  short int on;
-  } last_login_info[LASTLOGON_NUM+1];
+	char name[USER_NAME_LEN+1],time[80];
+	short int on;
+	} last_login_info[LASTLOGON_NUM+1];
+
+extern struct {
+	char *name, *alias;
+	int level, function;
+	} command_table[];
 
 extern char *color_mods[];
 
@@ -47,5 +52,5 @@ extern char *disapear_user_prompt, *disapear_prompt;
 extern char *profile_edit_header, *no_profile_prompt;
 extern char *continue1;
 
-#endif /* ct_user.h */
+#endif /* __CT_USER_H__ */
 

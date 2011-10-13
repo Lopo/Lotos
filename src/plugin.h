@@ -2,8 +2,8 @@
 /*
  * plugin.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -15,9 +15,9 @@
 extern SYS_OBJECT amsys;
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 extern char *noyes1[];
 extern char *noyes2[];
@@ -37,14 +37,14 @@ extern char *invisname;
 
 
 extern struct {
-	char *name,*alias; int level,function;
+	char *name,*alias;
+	int level,function;
 	} command_table[];
-
 
 extern PL_OBJECT plugin_first, plugin_last;
 extern CM_OBJECT cmds_first, cmds_last;
 
 extern SYSPP_OBJECT syspp;
 
-#endif /* plugin.h */
+#endif /* __PLUGIN_H__ */
 

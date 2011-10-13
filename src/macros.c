@@ -2,8 +2,8 @@
 /*
  * macros.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
@@ -46,16 +47,18 @@ void save_macros(UR_OBJECT user)
 {
 	MC_OBJECT mc;
 	FILE *fp;
-	char filename[ARR_SIZE];
+	char fname[FNAME_LEN];
 
 	set_crash();
-	if (user->first_macro==NULL) return;
+	sprintf(fname, "%s/%s.MAC", USERMACROS, user->name);
+	if (user->first_macro==NULL) {
+		unlink(fname);
+		return;
+		}
 
-	sprintf(filename, "%s/%s.MAC", USERMACROS, user->name);
-
-	if ((fp=fopen(filename, "w"))==NULL) {
+	if ((fp=fopen(fname, "w"))==NULL) {
 		write_user(user, "SYSTEM: Chyba pri zapise makier do suboru\n");
-		write_syslog(ERRLOG, 1, "Chyba pri zapise makier do suboru %s\n", filename);
+		write_syslog(ERRLOG, 1, "Chyba pri zapise makier do suboru %s\n", fname);
 		return;
 		}
 	for (mc=user->first_macro; mc!=NULL; mc=mc->next) {
@@ -71,13 +74,15 @@ void get_macros(UR_OBJECT user)
 	FILE *fp;
 	int l_len=(MC_NAME_LEN+MC_COM_LEN+2);
 	MC_OBJECT mc;
-	char filename[500], line[ARR_SIZE*2];
+	char fname[FNAME_LEN], line[ARR_SIZE*2];
 
 	set_crash();
+#ifdef NETLINKS
 	if (user->type==REMOTE_TYPE) return;
-	sprintf(filename,"%s/%s.MAC",USERMACROS,user->name);
+#endif
+	sprintf(fname,"%s/%s.MAC",USERMACROS,user->name);
 
-	if ((fp=fopen(filename, "r"))==NULL) return;
+	if ((fp=fopen(fname, "r"))==NULL) return;
 	fgets(line, l_len, fp);
 	
 	while (!feof(fp)) {
@@ -251,7 +256,9 @@ int check_macros(UR_OBJECT user, char *inpstr)
 	char ch[2], *zost=NULL;
 
 	set_crash();
+#ifdef NETLINKS
 	if (user->type==REMOTE_TYPE) return 1;
+#endif
 	if (user->first_macro==NULL) return 1;
 
 	word_count=wordfind(inpstr);
@@ -325,5 +332,5 @@ int check_macros(UR_OBJECT user, char *inpstr)
 	return 1;
 }
 
-#endif /* macros.c */
+#endif /* __MACROS_C__ */
 

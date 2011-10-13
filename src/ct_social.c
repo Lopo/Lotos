@@ -2,8 +2,8 @@
 /*
  * ct_social.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -293,7 +293,7 @@ if (user->muzzled) {
   vwrite_user(user, muzzled_cannot, "kecat");  return;
   }
 if (word_count<2) {
-  write_user(user,"Emote what?\n");  return;
+  write_user(user,"Emote co?\n");  return;
   }
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
   switch (amsys->ban_swearing) {
@@ -567,7 +567,9 @@ strcpy(rm->topic,inpstr);
 /*** Broadcast an important message ***/
 void bcast(UR_OBJECT user, char *inpstr)
 {
+#ifdef PUEBLO
 	UR_OBJECT u;
+#endif
 
 	set_crash();
 	if (word_count<2) {
@@ -576,7 +578,7 @@ void bcast(UR_OBJECT user, char *inpstr)
 		}
 	/* wizzes should be trusted... But they ain't! */
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
+		switch (amsys->ban_swearing) {
 			case SBMIN:
 				inpstr=censor_swear_words(inpstr);
 				break;
@@ -589,9 +591,11 @@ void bcast(UR_OBJECT user, char *inpstr)
 	force_listen=1;
 	write_monitor(user,NULL,0);
 	vwrite_room(NULL,"\007~FR~OL--==<~RS %s ~RS~FR~OL>==--\n", inpstr);
+#ifdef PUEBLO
 	for (u=user_first; u!=NULL; u=u->next)
 		if (u->pueblo && !audioprompt(u,2,1))
 			write_user(u,"</xch_mudtext><img xch_alert><xch_mudtext>");
+#endif
 }
 
 
@@ -649,7 +653,9 @@ void wake(UR_OBJECT user, char *inpstr)
 	else bp=b;
 	vwrite_user(u,"\n%s~BR*** %s krici: ~OL~LIZOBUD SA ~RS~BR(~RS%s~RS~BR) !!! ***\n\n",
 		bp, name, text1);
+#ifdef PUEBLO
 	if (u->pueblo && !audioprompt(u,2,1)) write_user(u,"</xch_mudtext><img xch_alert><xch_mudtext>");
+#endif
 	vwrite_user(user,"Budicek poslany pre %s (%s~RS)\n",
 		u->name, text1);
 }
@@ -750,28 +756,39 @@ void clear_topic(UR_OBJECT user)
 	char *name;
 
 	set_crash();
-strtolower(word[1]);
-if (word_count<2) {
-  rm=user->room;
-  rm->topic[0]='\0';
-  write_user(user,"Topic has been cleared\n");
-  if (user->vis) name=user->name; else name=invisname;
-  vwrite_room_except(rm,user,"~FY~OL%s has cleared the topic.\n",name);
-  return;
-  }
-if (!strcmp(word[1],"all")) {
-  if (user->level>command_table[CTOPIC].level || user->level>=ARCH) {
-    for(rm=room_first;rm!=NULL;rm=rm->next) {
-      rm->topic[0]='\0';
-      write_room_except(rm,"\n~FY~OLThe topic has been cleared.\n",user);
-      }
-    write_user(user,"All room topics have now been cleared\n");
-    return;
-    }
-  write_user(user,"You can only clear the topic of the room you are in.\n");
-  return;
-  }
-write_usage(user,"%s [all]", command_table[CTOPIC].name);
+	strtolower(word[1]);
+	if (word_count<2) {
+		rm=user->room;
+		rm->topic[0]='\0';
+		write_user(user,"Topic has been cleared\n");
+		if (user->vis) name=user->name;
+		else name=invisname;
+		vwrite_room_except(rm,user,"~FY~OL%s has cleared the topic.\n",name);
+		return;
+		}
+	if (!strcmp(word[1],"all")) {
+		if ((user->level>command_table[CTOPIC].level) || user->level==ROOT) {
+			for (rm=room_first; rm!=NULL; rm=rm->next) {
+				rm->topic[0]='\0';
+				write_room_except(rm, room_topic_clrd, user);
+				}
+			write_user(user,"All room topics have now been cleared\n");
+			return;
+			}
+		write_user(user, ctopic_in_room);
+		return;
+		}
+	if ((rm=get_room(word[1]))!=NULL) {
+		if ((user->level>command_table[CTOPIC].level) || user->level==ROOT) {
+			rm->topic[0]='\0';
+			write_room_except(rm, room_topic_clrd, user);
+			write_user(user, "-=- OK -=-\n");
+			return;
+			}
+		write_user(user, ctopic_in_room);
+		return;
+		}
+	write_usage(user,"%s <room>/[all]", command_table[CTOPIC].name);
 }
 
 
@@ -848,7 +865,7 @@ record_tell(user,text);
 void picture_tell(UR_OBJECT user)
 {
 	UR_OBJECT u;
-	char fname[500], *name, *c;
+	char fname[FNAME_LEN], *name, *c;
 
 	set_crash();
 if (word_count<3) {
@@ -921,7 +938,7 @@ vwrite_user(user, "~OLobrazok ~FG%s~FW pre ~FR%s\n",word[2],u->name);
 /* see list of pictures availiable - file dictated in 'go' script */
 void preview(UR_OBJECT user)
 {
-	char fname[500],*c;
+	char fname[FNAME_LEN],*c;
 
 	set_crash();
 	if (word_count<2) {
@@ -935,7 +952,7 @@ void preview(UR_OBJECT user)
 		return;
 		}
 	c=word[1];
-	while(*c) {
+	while (*c) {
 		if (*c=='.' || *c++=='/') {
 			write_user(user,"Sorry, there is no picture with that name.\n");
 			return;
@@ -955,7 +972,7 @@ void preview(UR_OBJECT user)
 void picture_all(UR_OBJECT user)
 {
 	UR_OBJECT u;
-	char filename[500],*name,*c;
+	char fname[FNAME_LEN],*name,*c;
 	FILE *fp;
 
 	set_crash();
@@ -969,14 +986,14 @@ if (user->muzzled) {
   return;
   }
 c=word[1];
-while(*c) {
+while (*c) {
   if (*c=='.' || *c++=='/') {
     write_user(user,"Sorry, there is no picture with that name.\n");
     return;
     }
   }
-sprintf(filename,"%s/%s.pic", PICTFILES,word[1]);
-if (!(fp=fopen(filename,"r"))) {
+sprintf(fname,"%s/%s.pic", PICTFILES,word[1]);
+if (!(fp=fopen(fname,"r"))) {
   write_user(user,"Sorry, there is no picture with that name.\n");
   return;
   }
@@ -997,7 +1014,7 @@ for (u=user_first;u!=NULL;u=u->next) {
        and shemotes since the clones owner will hear them anyway. */
     if (user->room!=u->room) continue;
     vwrite_user(u->owner,"~BG~FK[ %s ]:~RS~FG~OL %s shows the following picture...\n\n",u->room->name,name);
-    show_file(u, filename);
+    show_file(u, fname);
 /*    while(!feof(fp)) {
 	fgets(text,ARR_SIZE,fp);
 	write_user(u,text);
@@ -1006,7 +1023,7 @@ for (u=user_first;u!=NULL;u=u->next) {
     }
   else {
     vwrite_user(u,"~FG~OL%s shows the following picture...\n\n",name);
-    show_file(u, filename);
+    show_file(u, fname);
 /*    while(!feof(fp)) {
 	fgets(text,ARR_SIZE,fp);
 	write_user(u,text);
@@ -1339,7 +1356,7 @@ void clear_edit(UR_OBJECT user)
 void say_to(UR_OBJECT user, char *inpstr)
 {
 	char type[15],*name1,*name2, *pp=inpstr;
-	UR_OBJECT u;
+	UR_OBJECT u=user;
 	int mur=0, i;
 
 	set_crash();
@@ -1349,8 +1366,7 @@ void say_to(UR_OBJECT user, char *inpstr)
 		}
 	if ((i=strlen(command_table[SAYTO].alias))
 	    && strncmp(inpstr, command_table[SAYTO].alias, i)
-	    && word_count<3
-	    ) {
+	    && word_count<3) {
 		write_user(user,"Say what to who?\n");
 		return;
 		}
@@ -1459,7 +1475,7 @@ void say_to(UR_OBJECT user, char *inpstr)
 void friends(UR_OBJECT user)
 {
 	int i,cnt=0,found;
-	char filename[500];
+	char fname[FNAME_LEN];
 	FILE *fp;
 	struct user_dir_struct *entry;
 
@@ -1523,8 +1539,8 @@ for (i=0;i<MAX_FRIENDS;++i) {
 write_user(user,"You have the maximum amount of friends listed already.\n");
 return;
 SKIP:
-sprintf(filename,"%s/%s.F", USERFRIENDS,user->name);
-if (!(fp=fopen(filename,"w"))) {
+sprintf(fname,"%s/%s.F", USERFRIENDS,user->name);
+if (!(fp=fopen(fname,"w"))) {
   write_user(user,"ERROR: Unable to open to friend list file.\n");
   write_syslog(ERRLOG,1,"Unable to open %s's friend list in friends().\n",user->name);
   return;
@@ -1536,7 +1552,7 @@ for (i=0;i<MAX_FRIENDS;++i) {
   cnt++;
   }
 fclose(fp);
-if (!cnt) unlink(filename);
+if (!cnt) unlink(fname);
 }
 
 
@@ -2226,5 +2242,5 @@ void kick(UR_OBJECT user)
 	vwrite_user(user, "~OLVykop%s si ~FG%s~FW odtialto ...\n", grm_gnd(5, user->gender), ur->name);
 }
 
-#endif /* ct_social.c */
+#endif /* __CT_SOCIAL_C__ */
 

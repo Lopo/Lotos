@@ -2,8 +2,8 @@
 /*
  * pueblo.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -185,7 +185,7 @@ if (!strcmp(word[1],"RoomConfig_setOpt")) {
                         }
         sprintf(text,"\n ---- Room Configuration Options : %s ----\n\n",user->room->name);  write_user(user,text);
         if (user->level >= command_table[FIX].level && user->level >= command_table[UNFIX].level) {
-		vwrite_user(user, "        Room Type:  </xch_mudtext><b><a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to FIXED access.\">FIXED</a> / <a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to VARIABLE access.\">VARIABLE</a></b><xch_mudtext>\n", command_table[FIX].name, command_table[UNFIX].name, user->room->name,user->room->name);
+		vwrite_user(user, "        Room Type:  </xch_mudtext><b><a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to FIXED access.\">FIXED</a> / <a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to VARIABLE access.\">VARIABLE</a></b><xch_mudtext>\n", command_table[FIX].name, user->room->name, command_table[UNFIX].name, user->room->name);
 		}
         if (user->level >= command_table[PUBCOM].level && user->level >= command_table[PRIVCOM].level) {
 		vwrite_user(user, "           Access:  </xch_mudtext><b><a xch_cmd=\".pbloenh rmAccess PUBLIC %s\" xch_hint=\"Set this room's access to PUBLIC.\">PUBLIC</a> / <a xch_cmd=\".pbloenh rmAccess PRIVATE %s\" xch_hint=\"Set this room's access to PRIVATE.\">PRIVATE</a></b><xch_mudtext>\n", user->room->name,user->room->name);
@@ -459,5 +459,5 @@ void query_aud(UR_OBJECT user, char *inpstr)
 		}
 }
 
-#endif /* pueblo.c */
+#endif /* __PUEBLO_C__ */
 

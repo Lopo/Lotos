@@ -2,8 +2,8 @@
 /*
  * prototypes.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -254,7 +254,7 @@ int       reset_mail_counts args((UR_OBJECT user));
 void      set_forward_email args((UR_OBJECT user));
 void      verify_email args((UR_OBJECT user));
 void      forward_email args((char *name,char *from,char *message));
-int       send_forward_email args((char *send_to,char *mail_file));
+int       send_email args((char *addr, char *subj, char *fname));
 int       double_fork args((void));
 void      forward_specific_mail args((UR_OBJECT user));
 void      read_board args((UR_OBJECT user));
@@ -545,7 +545,7 @@ void      hug args((UR_OBJECT user, char *inpstr));
 void      kiss args((UR_OBJECT user, char *inpstr));
 void      write_duty args((int level, char *str, RM_OBJECT room, UR_OBJECT user, int cr));
 void      write_usage args((UR_OBJECT user, char *msg, ...));
-int       osstar_load args((void));
+int       lotos_load args((void));
 int       init_ossmain args((void));
 void      create_systempp args((void));
 int       port_connect args((char *host, int port));
@@ -586,6 +586,7 @@ int       file_exists args((char *fname));
 void      restore args((UR_OBJECT user));
 void      build_datetime args((char *str));
 void      create_kill_file args((void));
+void      check_lynx args((void));
 
 /* net */
 void      init_hostsfile args((void));
@@ -596,6 +597,7 @@ int       ident_request args((struct hostent *rhost, int rport, int lport, char 
 int       mail_id_request args((struct hostent *rhost, char *accname, char *email));
 
 /* pluginy */
+CM_OBJECT create_cmd args((void));
 void      destroy_pl_cmd args((CM_OBJECT c));
 void      destroy_plugin args((PL_OBJECT p));
 void      save_plugin_data args((UR_OBJECT user));
@@ -610,6 +612,8 @@ void      oss_debugger args((UR_OBJECT user));
 void      oss_debug_commands args((UR_OBJECT user));
 void      oss_debug_allinput args((UR_OBJECT user));
 void      oss_debug_plugindata args((UR_OBJECT user));
+void      oss_debug_alert args((UR_OBJECT user));
+CM_OBJECT create_cmd args((void));
 void      load_plugins args((void));
 
 /* transport */
@@ -629,6 +633,7 @@ void      show_macros args((UR_OBJECT user));
 void      delete_macro args((UR_OBJECT user, MC_OBJECT mc));
 MC_OBJECT create_macro args((void));
 
+#ifdef PUEBLO
 /* Pueblo */
 int       chck_pblo args((UR_OBJECT user, char *str));
 int       contains_pueblo args((char *str));
@@ -640,6 +645,7 @@ void      pblo_listexits args((UR_OBJECT user));
 int       audioprompt args((UR_OBJECT user, int prmpt, int pager));
 void      query_img args((UR_OBJECT user, char *inpstr));
 void      query_aud args((UR_OBJECT user, char *inpstr));
+#endif
 
 /* figlets - fonty */
 #ifdef __STDC__
@@ -687,5 +693,10 @@ void      s_crash args((char *file, int line));
 void      crash_dump args((void));
 #endif
 
-#endif /* prototypes.h */
+void      lynx args((UR_OBJECT user, char *inpstr));
+void      personal_room_rename args((UR_OBJECT user, char *inpstr));
+void      room_owner args((UR_OBJECT user));
+void      switch_colors args((UR_OBJECT user));
+void      send_icqpage args((UR_OBJECT user, char *inpstr));
 
+#endif /* __PROTOTYPES_H__ */

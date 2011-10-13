@@ -2,8 +2,8 @@
 /*
  * s_string.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -181,7 +181,7 @@ char *remove_first(char *inpstr)
 	char *pos=inpstr;
 
 	set_crash();
-	while(*pos<33 && *pos) ++pos;
+	while (*pos<33 && *pos) ++pos;
 	while(*pos>32) ++pos;
 	while(*pos<33 && *pos) ++pos;
 	return pos;
@@ -196,13 +196,13 @@ int contains_swearing(char *str)
 
 	set_crash();
 	if ((s=(char *)malloc(strlen(str)+1))==NULL) {
-		write_syslog(ERRLOG,0,"CHYBA: Chyba pri alokacii pamate v contains_swearing().\n");
+		write_syslog(ERRLOG,1,"Chyba pri alokacii pamate v contains_swearing().\n");
 		return 0;
 		}
 	strcpy(s,str);
 	strtolower(s); 
 	i=0;
-	while(swear_words[i][0]!='*') {
+	while (swear_words[i][0]!='*') {
 		if (strstr(s,swear_words[i])) {
 			free(s);
 			return 1;
@@ -229,7 +229,7 @@ int contains_swearing(char *str)
 char *censor_swear_words(char *has_swears)
 {
 	int i=0;
-	char *clean;
+	char *clean=has_swears;
 
 	set_crash();
 	while (swear_words[i][0]!='*') {
@@ -392,7 +392,7 @@ return dstr;
 void smiley_type(char *str, char *type)
 {
 	set_crash();
-	switch(str[strlen(str)-1]) {
+	switch (str[strlen(str)-1]) {
 		case '?':
 			strcpy(type,"ask");
 			break;
@@ -1008,5 +1008,5 @@ char stricmp(char *str1, char *str2)
 }
 
       
-#endif /* s_string.c */
+#endif /* __S_STRING_C__ */
 

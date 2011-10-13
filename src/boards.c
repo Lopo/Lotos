@@ -2,8 +2,8 @@
 /*
  * boards.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -36,7 +36,7 @@
 void read_board(UR_OBJECT user)
 {
 	RM_OBJECT rm=NULL;
-	char fname[500],*name,rmname[USER_NAME_LEN];
+	char fname[FNAME_LEN], *name, rmname[ROOM_NAME_LEN+1];
 	int ret;
 
 	set_crash();
@@ -73,14 +73,13 @@ void read_board(UR_OBJECT user)
 		rmname[0]=toupper(rmname[0]);
 		sprintf(fname,"%s/%s.B", USERROOMS, rmname);
 		}
-	else sprintf(fname,"%s/%s.B", ROOMFILES,rm->name);
-	if (!(ret=more(user,user->socket,fname)))
+	else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+	if (!(ret=more(user, user->socket, fname)))
 		vwrite_user(user, read_no_messages, rm->name);
 	else if (ret==1) user->misc_op=2;
 	if (user->vis) name=user->recap;
 	else name=invisname;
-	if (rm==user->room)
-		vwrite_room_except(user->room, user, user_read_board_prompt, name);
+	if (rm==user->room) vwrite_room_except(user->room, user, user_read_board_prompt, name);
 }
 
 
@@ -89,7 +88,7 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 {
 	FILE *fp;
 	int cnt,inp;
-	char *ptr,*name,fname[500],rmname[USER_NAME_LEN];
+	char *ptr,*name,fname[FNAME_LEN],rmname[ROOM_NAME_LEN+1];
 
 	set_crash();
 	if (user->muzzled) {
@@ -135,14 +134,13 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
    makes it easy for this program to check the age of each message and delete 
    as appropriate in check_messages() */
 #ifdef NETLINKS
-	if (user->type==REMOTE_TYPE) 
-		sprintf(text,"PT: %d\r~OLFrom: %s@%s  %s\n",(int)(time(0)),name,user->netlink->service,long_date(0));
+	if (user->type==REMOTE_TYPE) sprintf(text,"PT: %d\r~OLFrom: %s@%s  %s\n",(int)(time(0)),name,user->netlink->service,long_date(0));
 	else 
 #endif
 		sprintf(text,"PT: %d\r~OLFrom: %s  %s\n",(int)(time(0)),name,long_date(0));
 	fputs(text,fp);
 	cnt=0;
-	while(*ptr!='\0') {
+	while (*ptr!='\0') {
 		putc(*ptr,fp);
 		if (*ptr=='\n') cnt=0;
 		else ++cnt;
@@ -152,7 +150,8 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 			}
 		++ptr;
 		}
-	if (inp) fputs("\n\n",fp); else putc('\n',fp);
+	if (inp) fputs("\n\n",fp);
+	else putc('\n',fp);
 	fclose(fp);
 	write_user(user, user_write_end);
 	vwrite_room_except(user->room, user, room_write_end, name);
@@ -164,7 +163,7 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 void wipe_board(UR_OBJECT user)
 {
 	int cnt;
-	char fname[500],*name,rmname[USER_NAME_LEN];
+	char fname[FNAME_LEN],*name,rmname[ROOM_NAME_LEN+1];
 	RM_OBJECT rm=user->room;
 
 	set_crash();
@@ -187,7 +186,7 @@ void wipe_board(UR_OBJECT user)
 		write_usage(user,"wipe <#>");
 		return;
 		}
-	switch(is_personal_room(rm)) {
+	switch (is_personal_room(rm)) {
 		case 0:
 			if (user->level<WIZ && !(check_board_wipe(user))) return;
 			else if (get_wipe_parameters(user)==-1) return;
@@ -202,7 +201,7 @@ void wipe_board(UR_OBJECT user)
 	if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 		midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(fname,"%s/%s.B", USERROOMS,rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS, rmname);
 		}
 	else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
 	if (!rm->mesg_cnt) {
@@ -212,8 +211,7 @@ void wipe_board(UR_OBJECT user)
 	if (user->wipe_from==-1) {
 		unlink(fname);
 		write_user(user, wipe_user_all_deleted);
-		if (user->level<GOD || user->vis)
-			vwrite_room_except(rm, user, wipe_room_all_deleted, name);
+		if (user->level<GOD || user->vis) vwrite_room_except(rm, user, wipe_room_all_deleted, name);
 		write_syslog(SYSLOG,1,"%s wiped all messages from the board in the %s.\n",user->name,rm->name);
 		rm->mesg_cnt=0;
 		return;
@@ -244,7 +242,7 @@ void check_messages(UR_OBJECT user, int chforce)
 {
 	RM_OBJECT rm;
 	FILE *infp=NULL,*outfp=NULL;
-	char id[182],fname[500],line[82],rmname[USER_NAME_LEN];
+	char id[182],fname[FNAME_LEN],line[82],rmname[ROOM_NAME_LEN+1];
 	int valid,pt,write_rest;
 	int board_cnt,old_cnt,bad_cnt,tmp;
 	static int done=0;
@@ -284,7 +282,7 @@ void check_messages(UR_OBJECT user, int chforce)
 	old_cnt=0;
 	bad_cnt=0;
 
-	for(rm=room_first;rm!=NULL;rm=rm->next) {
+	for (rm=room_first; rm!=NULL; rm=rm->next) {
 		tmp=rm->mesg_cnt;  
 		rm->mesg_cnt=0;
 		if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
@@ -310,7 +308,7 @@ void check_messages(UR_OBJECT user, int chforce)
 		valid=1;
 		write_rest=0;
 		fgets(line,82,infp); /* max of 80+newline+terminator = 82 */
-		while(!feof(infp)) {
+		while (!feof(infp)) {
 			if (*line=='\n') valid=1;
 			sscanf(line,"%s %d",id,&pt);
 			if (!write_rest) {
@@ -346,7 +344,7 @@ void check_messages(UR_OBJECT user, int chforce)
 			}
 		if (rm->mesg_cnt!=tmp) bad_cnt++;
 		}
-	switch(chforce) {
+	switch (chforce) {
 		case 0:
 			if (bad_cnt)
 				write_syslog(SYSLOG,1,"CHECK_MESSAGES: %d file%s checked, %d had an incorrect message count, %d message%s deleted.\n",
@@ -374,16 +372,18 @@ void suggestions(UR_OBJECT user, int done_editing)
 	set_crash();
 if (com_num==RSUG) {
   write_user(user,"~BB~FG*** The Suggestions board has the following ideas ***\n\n");
-  switch(more(user,user->socket, SUGBOARD)) {
+  switch (more(user, user->socket, SUGBOARD)) {
     case 0: write_user(user,"There are no suggestions.\n\n");  break;
     case 1: user->misc_op=2;
     }
   return;
   }
+#ifdef NETLINKS
 if (user->type==REMOTE_TYPE) {
   write_user(user,"Remote users cannot use this command, sorry!\n");
   return;
   }
+#endif
 if (!done_editing) {
   write_user(user,"~BB~FG*** Writing a suggestion ***\n\n");
   user->misc_op=8;
@@ -398,15 +398,15 @@ if (!(fp=fopen(SUGBOARD, "a"))) {
 sprintf(text,"~OLFrom: %s  %s\n",user->bw_recap,long_date(0));
 fputs(text,fp);
 c=user->malloc_start;
-while(c!=user->malloc_end) {
+while (c!=user->malloc_end) {
   putc(*c++,fp);
   if (*c=='\n') cnt=0; else ++cnt;
   if (cnt==80) { putc('\n',fp); cnt=0; }
   }
-fprintf(fp,"\n");
-fclose(fp);
-write_user(user,"Suggestion written.  Thank you for your contribution.\n");
-amsys->suggestion_count++;
+	fprintf(fp,"\n");
+	fclose(fp);
+	write_user(user,"Suggestion written.  Thank you for your contribution.\n");
+	amsys->suggestion_count++;
 }
 
 
@@ -458,7 +458,7 @@ void board_from(UR_OBJECT user)
 {
 	FILE *fp;
 	int cnt;
-	char id[ARR_SIZE],line[ARR_SIZE],fname[500],rmname[USER_NAME_LEN];
+	char id[ARR_SIZE],line[ARR_SIZE],fname[FNAME_LEN],rmname[ROOM_NAME_LEN+1];
 	RM_OBJECT rm;
 
 	set_crash();
@@ -492,18 +492,17 @@ void board_from(UR_OBJECT user)
 	cnt=0;
 	line[0]='\0';
 	fgets(line,ARR_SIZE-1,fp);
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		sscanf(line,"%s",id);
 		if (!strcmp(id,"PT:")) {
 			cnt++;
-			vwrite_user(user,"~FT%2d)~RS %s",
-				cnt,remove_first(remove_first(remove_first(line))));
+			vwrite_user(user,"~FT%2d)~RS %s", cnt, remove_first(remove_first(remove_first(line))));
 			}
 		line[0]='\0';
 		fgets(line,ARR_SIZE-1,fp);
 		}
 	fclose(fp);
-	vwrite_user(user,"\nTotal of ~OL%d~RS messages.\n\n",rm->mesg_cnt);
+	vwrite_user(user,"\nTotal of ~OL%d~RS messages.\n\n", rm->mesg_cnt);
 }
 
 
@@ -515,10 +514,10 @@ void suggestions_from(UR_OBJECT user)
 	char id[ARR_SIZE],line[ARR_SIZE], *str;
 
 	set_crash();
-if (!amsys->suggestion_count) {
-  write_user(user,"There are currently no suggestions.\n");
-  return;
-  }
+	if (!amsys->suggestion_count) {
+		write_user(user,"There are currently no suggestions.\n");
+		return;
+		}
 if (!(fp=fopen(SUGBOARD, "r"))) {
   write_user(user,"There was an error trying to read the suggestion board.\n");
   write_syslog(ERRLOG,1,"Unable to open suggestion board in suggestions_from().\n");
@@ -527,7 +526,7 @@ if (!(fp=fopen(SUGBOARD, "r"))) {
 write_user(user,"\n~BB*** Suggestions on the suggestions board from ***\n\n");
 cnt=0;  line[0]='\0';
 fgets(line,ARR_SIZE-1,fp);
-while(!feof(fp)) {
+while (!feof(fp)) {
   sscanf(line,"%s",id);
   str=colour_com_strip(id);
   if (!strcmp(str,"From:")) {
@@ -547,7 +546,7 @@ void read_board_specific(UR_OBJECT user, RM_OBJECT rm, int msg_number)
 {
 	FILE *fp;
 	int valid,cnt,pt;
-	char id[ARR_SIZE],line[ARR_SIZE],fname[500],*name,rmname[USER_NAME_LEN];
+	char id[ARR_SIZE],line[ARR_SIZE],fname[FNAME_LEN],*name,rmname[ROOM_NAME_LEN+1];
 
 	set_crash();
 if (!rm->mesg_cnt) {
@@ -580,7 +579,7 @@ if (!(fp=fopen(fname,"r"))) {
 vwrite_user(user, message_board_header, rm->name);
 valid=1;  cnt=1;  id[0]='\0';
 fgets(line,ARR_SIZE-1,fp);
-while(!feof(fp)) {
+while (!feof(fp)) {
   if (*line=='\n') valid=1;
   sscanf(line,"%s %d",id,&pt);
   if (valid && !strcmp(id,"PT:")) {
@@ -596,11 +595,12 @@ while(!feof(fp)) {
   fgets(line,ARR_SIZE-1,fp);
   }
 SKIP:
-fclose(fp);
-vwrite_user(user,"\nMessage number ~FM~OL%d~RS out of ~FM~OL%d~RS.\n\n",msg_number,rm->mesg_cnt);
-if (user->vis) name=user->recap;  else name=invisname;
-if (rm==user->room)
-  if (user->level<GOD || user->vis) vwrite_room_except(user->room,user,"%s~RS reads the message board.\n",name);
+	fclose(fp);
+	vwrite_user(user,"\nMessage number ~FM~OL%d~RS out of ~FM~OL%d~RS.\n\n",msg_number,rm->mesg_cnt);
+	if (user->vis) name=user->recap;
+	else name=invisname;
+	if (rm==user->room)
+		if (user->level<GOD || user->vis) vwrite_room_except(user->room,user,"%s~RS reads the message board.\n",name);
 }
 
 
@@ -609,7 +609,7 @@ int check_board_wipe(UR_OBJECT user)
 {
 	FILE *fp;
 	int valid,cnt,msg_number,yes,pt;
-	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],fname[500],id[ARR_SIZE],rmname[USER_NAME_LEN];
+	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],fname[FNAME_LEN],id[ARR_SIZE],rmname[ROOM_NAME_LEN+1];
 	RM_OBJECT rm;
 
 	set_crash();
@@ -683,5 +683,5 @@ SKIP:
 	return 1;
 }
 
-#endif /* boards.c */
+#endif /* __BOARDS_C__ */
 

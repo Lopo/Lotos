@@ -2,8 +2,8 @@
 /*
  * obj_sys.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -14,6 +14,7 @@
 
 #include <time.h>
 
+#include "define.h"
 #include "obj_ur.h"
 
 /* system structure */
@@ -24,7 +25,7 @@ struct system_struct {
   int user_count,max_users,max_clones,min_private_users,colour_def,charecho_def,prompt_def;
   int wizport_level,minlogin_level,gatecrash_level,ignore_mp_level,rem_user_maxlevel,rem_user_deflevel;
   int password_echo,auto_promote,ban_swearing,personal_rooms,startup_room_parse,auto_connect;
-  int allow_recaps,suggestion_count,random_motds,motd1_cnt,motd2_cnt,forwarding,sbuffline;
+  int suggestion_count,random_motds,motd1_cnt,motd2_cnt,forwarding,sbuffline;
   int resolve_ip,rs_countdown,level_count[ROOT+1],last_cmd_cnt,flood_protect;
   unsigned short logging;
   unsigned int pid;
@@ -34,5 +35,5 @@ struct system_struct {
   };
 typedef struct system_struct *SYS_OBJECT;
 
-#endif /* obj_sys.h */
+#endif /* __OBJ_SYS_H__ */
 

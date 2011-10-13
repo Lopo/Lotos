@@ -2,8 +2,8 @@
 /*
  * obj_ur.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -13,6 +13,7 @@
 #define __OBJ_UR_H__ 1
 
 #include <time.h>
+#include <sys/types.h>
 
 typedef struct user_ignore_struct {
 	unsigned all		: 1;
@@ -74,12 +75,14 @@ struct user_struct {
     int day,month,year,alert; char msg[REMINDER_LEN];
     } reminder[MAX_REMINDERS],temp_remind;
   time_t last_input,last_login,total_login,read_mail,t_expire;
-  #ifdef NETLINKS
+#ifdef NETLINKS
     struct netlink_struct *netlink,*pot_netlink;
-  #endif
+#endif
 
+#ifdef PUEBLO
 	/* PUEBLO ENHANCET SESSION VARIABLES */
 	int pueblo, pueblo_mm, pueblo_pg, voiceprompt, pblodetect;
+#endif
   
   int tmp_int;
   char *p_tmp_ch;
@@ -101,22 +104,22 @@ struct user_struct {
   char ltell[USER_NAME_LEN+1];
   char restrict[MAX_RESTRICT+1];
   char *ign_word;
-  struct user_struct *follow;
+  char follow[USER_NAME_LEN+1];
   long tcount, bcount;
   unsigned long auth_addr;
   int set_mode, set_op;
   int hwrap_pl;
   int who_type;
   char status;
+  pid_t lynx;
 
 	int money, bank, inctime, kradnutie;
 
-	struct plugin_02x100_player *plugin_02x100;
+	struct pl02x100_player *pl02x100; //hangman
 
 	USER_IGNORE ignore;
 	USER_TERMINAL terminal;
-  };
+	};
 typedef struct user_struct *UR_OBJECT;
 
-#endif /* obj_ur.h */
-
+#endif /* __OBJ_UR_H__ */

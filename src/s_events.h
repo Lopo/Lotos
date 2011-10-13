@@ -2,8 +2,8 @@
 /*
  * s_events.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -22,5 +22,5 @@ extern int tyear, tmonth, tday, tmday, twday, thour, tmin, tsec;
 extern char *login_timeout;
 extern char *auto_afk_mesg;
 
-#endif /* s_events.h */
+#endif /* __S_EVENTS_H__ */
 

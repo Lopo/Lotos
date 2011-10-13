@@ -2,8 +2,8 @@
 /*
  * menus.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -17,19 +17,19 @@
 #include <ctype.h>
 
 #include "define.h"
+#include "prototypes.h"
 #include "val_set_main.h"
 #include "val_set_term.h"
 #include "val_set_bank.h"
 #include "obj_sys.h"
 #include "obj_syspp.h"
-#include "prototypes.h"
 #include "menus.h"
 
 
 /* Prints out the various menus */
 void print_menu(UR_OBJECT user)
 {
-	char fname[500];
+	char fname[FNAME_LEN];
 
 	set_crash();
 	cls(user);
@@ -119,13 +119,19 @@ void show_attributes(UR_OBJECT user)
 				vwrite_user(user,"%-61.61s",offon[user->alert]);
 				break;
 			case SET_AUDIO:
+#ifdef PUEBLO
 				vwrite_user(user,"%-61.61s",offon[user->pueblo_mm]);
+#endif
 				break;
 			case SET_PPA:
+#ifdef PUEBLO
 				vwrite_user(user,"%-61.61s",offon[user->pueblo_pg]);
+#endif
 				break;
 			case SET_VOICE:
+#ifdef PUEBLO
 				vwrite_user(user,"%-61.61s", sex[(!(user->voiceprompt-1))+1]);
+#endif
 				break;
 			case SET_MODE:
 				vwrite_user(user,"%-61.61s", user->command_mode?"PRIKAZOVY":"KECACI");
@@ -251,6 +257,9 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 			else {
 				if (!validate_email(inpstr)) {
 					write_user(user,"That email address format is incorrect.  Correct format: user@network.net\n");
+					sprintf(text,"~FY<WIZ>~RS %s has attempted to set an incorrect e-mail address: %s\n", user->name, inpstr);
+					write_level(WIZ, 1, text, NULL);
+					write_syslog(SYSLOG, 1, "%s tries to set '%s' as an email address.\n",user->name,inpstr);
 					return;
 					}
 				strcpy(user->email,inpstr);
@@ -345,10 +354,6 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 			vwrite_user(user,"Help type now set to: %s\n", help_style[user->cmd_type]);
 			return;
 		case SET_RECAP:
-			if (!amsys->allow_recaps) {
-				write_user(user,"Sorry, names cannot be recapped at this present time.\n");
-				return;
-				}
 			if (word_count<3) {
 				write_usage(user,"set %s <meno ako ho chces mat>", set_tab[SET_RECAP].type);
 				return;
@@ -365,7 +370,7 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 			strcpy(name,recname);
 			strtolower(name);
 			name[0]=toupper(name[0]);
-			if (strcmp(user->name,name)) {
+			if (strcmp(user->name,name) && user->level<ROOT) {
 				write_user(user,"The recapped name still has to match your proper name.\n");
 				return;
 				}
@@ -397,18 +402,24 @@ void set_attributes(UR_OBJECT user, char *inpstr)
 				}
 			return;
 		case SET_AUDIO:
+#ifdef PUEBLO
 			user->pueblo_mm=!user->pueblo_mm;
 			vwrite_user(user, "'Pueblo Audio Prompt' now %s\n", offon[user->pueblo_mm]);
+#endif
 			return;
 		case SET_PPA:
+#ifdef PUEBLO
 			user->pueblo_pg=!user->pueblo_pg;
 			vwrite_user(user, "'Pueblo Pager Audio' now %s\n", offon[user->pueblo_pg]);
+#endif
 			return;
 		case SET_VOICE:
+#ifdef PUEBLO
 			user->voiceprompt=!user->voiceprompt;
 			vwrite_user(user, "'audio prompt voice gender' nastavene na %s\n",
 				sex[(!(user->voiceprompt-1))+1]);
 			if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
+#endif
 			return;
 		case SET_MODE:
 #ifdef NETLINKS
@@ -608,12 +619,6 @@ int setmain_ops(UR_OBJECT user, char *inpstr)
 					user->set_op=8;
 					return 1;
 				case SET_RECAP:
-					if (!amsys->allow_recaps) {
-						write_user(user, "Sorry, names cannot be recapped at this present time");
-						write_user(user,center(continue1,81));
-						user->set_op=-1;
-						return 1;
-						}
 					vwrite_user(user,"~FGName capitalization currently set at~CB: [~RS%s~RS~CB]\n", user->recap);
 					write_user(user,"~CTEnter new capitalization~CB: ");
 					user->set_op=9;
@@ -643,24 +648,30 @@ int setmain_ops(UR_OBJECT user, char *inpstr)
 					user->set_op=-1;
 					return 1;
 				case SET_AUDIO:
+#ifdef PUEBLO
 					user->pueblo_mm=!user->pueblo_mm;
 					vwrite_user(user, "'Pueblo Audio Prompt' now %s\n", offon[user->pueblo_mm]);
 					write_user(user,center(continue1,81));
 					user->set_op=-1;
+#endif
 					return 1;
 				case SET_PPA:
+#ifdef PUEBLO
 					user->pueblo_pg=!user->pueblo_pg;
 					vwrite_user(user, "'Pueblo Pager Audio' now %s\n", offon[user->pueblo_pg]);
 					write_user(user,center(continue1,81));
 					user->set_op=-1;
+#endif
 					return 1;
 				case SET_VOICE:
+#ifdef PUEBLO
 					user->voiceprompt=!user->voiceprompt;
 					vwrite_user(user, "Audio Prompt Voice Gender' nastavene na %s\n",
 						sex[(!(user->voiceprompt-1))+1]);
 					if (!user->pueblo) write_user(user, "This function only works when connected using the Pueblo telnet client.\n");
 					write_user(user,center(continue1,81));
 					user->set_op=-1;
+#endif
 					return 1;
 				case SET_MODE:
 					if (user->room==NULL) {
@@ -1729,5 +1740,5 @@ int setops_bank(UR_OBJECT user, char *inpstr)
 }
 
 
-#endif /* menus.c */
+#endif /* __MENUS_C__ */
 

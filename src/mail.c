@@ -2,8 +2,8 @@
 /*
  * mail.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -36,12 +36,12 @@
 void send_external_mail(NL_OBJECT nl, UR_OBJECT user, char *to, char *ptr)
 {
 	FILE *fp;
-	char filename[500];
+	char fname[FNAME_LEN];
 
 	set_crash();
 /* Write out to spool file first */
-sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,user->name,to,nl->service);
-if (!(fp=fopen(filename,"a"))) {
+sprintf(fname,"%s/OUT_%s_%s@%s",MAILSPOOL,user->name,to,nl->service);
+if (!(fp=fopen(fname,"a"))) {
   sprintf(text,"%s: unable to spool mail.\n",syserror);
   write_user(user,text);
   write_syslog(ERRLOG,1,"Couldn't open file %s to append in send_external_mail().\n",filename);
@@ -66,17 +66,17 @@ int send_mail(UR_OBJECT user, char *to, char *ptr, int iscopy)
 	NL_OBJECT nl;
 #endif
 	FILE *infp,*outfp;
-	char *c=to,d,*service=NULL,filename[500],cc[4],header[ARR_SIZE];
+	char *c=to,d,*service=NULL,fname[FNAME_LEN],cc[4],header[ARR_SIZE];
 	int amount,size,tmp1,tmp2;
 	struct stat stbuf;
 
 	set_crash();
 /* See if remote mail */
-while(*c) {
+while (*c) {
   if (*c=='@') {  
     service=c+1;  *c='\0'; 
 #ifdef NETLINKS
-    for(nl=nl_first;nl!=NULL;nl=nl->next) {
+    for (nl=nl_first;nl!=NULL;nl=nl->next) {
       if (!strcmp(nl->service,service) && nl->stage==UP) {
 	send_external_mail(nl,user,to,ptr);
 	return 1;
@@ -95,22 +95,22 @@ if (!(outfp=fopen(TEMPFILE, "w"))) {
   return 0;
   }
 /* Copy current mail file into tempfile if it exists */
-sprintf(filename,"%s/%s.M", USERMAILS,to);
+sprintf(fname,"%s/%s.M", USERMAILS,to);
 /* but first get the original sizes and write those to the temp file */
 amount=mail_sizes(to,1); /* amount of new mail */
 if (!amount) {
-  if (stat(filename,&stbuf)==-1) size=0;
+  if (stat(fname,&stbuf)==-1) size=0;
   else size=stbuf.st_size;
   }
 else size=mail_sizes(to,2);
 fprintf(outfp,"%d %d\r",++amount,size);
 
-if ((infp=fopen(filename,"r"))) {
+if ((infp=fopen(fname,"r"))) {
   /* Discard first line of mail file. */
   fscanf(infp,"%d %d\r",&tmp1,&tmp2);
   /* Copy rest of file */
   d=getc(infp);  
-  while(!feof(infp)) {  putc(d,outfp);  d=getc(infp);  }
+  while (!feof(infp)) {  putc(d,outfp);  d=getc(infp);  }
   fclose(infp);
   }
 switch(iscopy) {
@@ -133,7 +133,7 @@ fputs(header,outfp);
 fputs(ptr,outfp);
 fputs("\n",outfp);
 fclose(outfp);
-rename(TEMPFILE, filename);
+rename(TEMPFILE, fname);
 switch(iscopy) {
   case 0: vwrite_user(user,"Mail is delivered to %s\n",to); break;
   case 1: vwrite_user(user,"Mail is copied to %s\n",to); break;
@@ -379,7 +379,7 @@ editor(user,NULL);
 int send_broadcast_mail(UR_OBJECT user, char *ptr, int lvl, int type)
 {
 	FILE *infp,*outfp;
-	char d,*cc,header[ARR_SIZE],filename[500];
+	char d,*cc,header[ARR_SIZE],fname[FNAME_LEN];
 	int tmp1,tmp2,amount,size,cnt=0;
 	struct user_dir_struct *entry;
 	struct stat stbuf;
@@ -394,28 +394,28 @@ while (entry!=NULL) {
     }
   /* if type == -2 then do everyone */
   entry->name[0]=toupper(entry->name[0]);
-  if (!(outfp=fopen("tempfile","w"))) {
+  if (!(outfp=fopen(TEMPFILE,"w"))) {
     write_user(user,"Error in mail delivery.\n");
     write_syslog(ERRLOG,1,"Couldn't open tempfile in send_broadcast_mail().\n");
     entry=entry->next;
     continue;
     }
   /* Write current time on first line of tempfile */
-  sprintf(filename,"%s/%s.M", USERMAILS,entry->name);
+  sprintf(fname,"%s/%s.M", USERMAILS,entry->name);
   /* first get old file size if any new mail, and also new mail count */
   amount=mail_sizes(entry->name,1);
   if (!amount) {
-    if (stat(filename,&stbuf)==-1) size=0;
+    if (stat(fname,&stbuf)==-1) size=0;
     else size=stbuf.st_size;
     }
   else size=mail_sizes(entry->name,2);
   fprintf(outfp,"%d %d\r",++amount,size);
-  if ((infp=fopen(filename,"r"))) {
+  if ((infp=fopen(fname,"r"))) {
     /* Discard first line of mail file. */
     fscanf(infp,"%d %d\r",&tmp1,&tmp2);
     /* Copy rest of file */
     d=getc(infp);
-    while(!feof(infp)) {  putc(d,outfp);  d=getc(infp);  }
+    while (!feof(infp)) {  putc(d,outfp);  d=getc(infp);  }
     fclose(infp);
     }
   header[0]='\0';   cc='\0';
@@ -439,7 +439,7 @@ while (entry!=NULL) {
   fputs(ptr,outfp);
   fputs("\n",outfp);
   fclose(outfp);
-  rename("tempfile",filename);
+  rename(TEMPFILE, fname);
   forward_email(entry->name,header,ptr);
   write_user(get_user(entry->name),"\07~FT~OL~LI*** YOU HAVE NEW MAIL ***\n");
   ++cnt;
@@ -457,7 +457,7 @@ return 1;
 void dmail(UR_OBJECT user)
 {
 	int num,cnt;
-	char filename[100];
+	char fname[FNAME_LEN];
 
 	set_crash();
 if (word_count<2) {
@@ -470,9 +470,10 @@ if (word_count<2) {
 if (get_wipe_parameters(user)==-1) return;
 num=mail_sizes(user->name,0);
 if (!num) {
-  write_user(user, dmail_nomail);  return;
+  write_user(user, dmail_nomail);
+  return;
   }
-sprintf(filename,"%s/%s.M", USERMAILS,user->name);
+sprintf(fname,"%s/%s.M", USERMAILS,user->name);
 if (user->wipe_from==-1) {
   write_user(user,"\07~OL~FR~LIDelete all of your mail?~RS (y/n): ");
   user->misc_op=18;
@@ -482,10 +483,10 @@ if (user->wipe_from>num) {
   vwrite_user(user,"You only have %d mail message%s.\n",num,PLTEXT_S(num));
   return;
   }
-cnt=wipe_messages(filename,user->wipe_from,user->wipe_to,1);
+cnt=wipe_messages(fname,user->wipe_from,user->wipe_to,1);
 reset_mail_counts(user);
 if (cnt==num) {
-  unlink(filename);
+  unlink(fname);
   vwrite_user(user, dmail_too_many, cnt, grm_gnd(8, cnt));
   return;
   }
@@ -498,31 +499,37 @@ user->read_mail=time(0)+1;
 void mail_from(UR_OBJECT user)
 {
 	FILE *fp;
-	int valid,cnt,tmp1,tmp2,nmail;
-	char w1[ARR_SIZE],line[ARR_SIZE],filename[500];
+	int valid, cnt, tmp1, tmp2, nmail, fsize;
+	char w1[ARR_SIZE], line[ARR_SIZE], fname[FNAME_LEN];
+	struct stat fb;
 
 	set_crash();
-sprintf(filename,"%s/%s.M", USERMAILS,user->name);
-if (!(fp=fopen(filename,"r"))) {
-  write_user(user,"You have no mail.\n");
-  return;
-  }
-write_user(user,"\n~BB*** Mail from ***\n\n");
-valid=1;  cnt=0;
-fscanf(fp,"%d %d\r",&tmp1,&tmp2); 
-fgets(line,ARR_SIZE-1,fp);
-while(!feof(fp)) {
-  if (*line=='\n') valid=1;
-  sscanf(line,"%s",w1);
-  if (valid && (!strcmp(w1,"~OLFrom:") || !strcmp(w1,"From:"))) {
-    cnt++;  valid=0;
-    vwrite_user(user,"~FT%2d)~RS %s",cnt,remove_first(line));
-    }
-  fgets(line,ARR_SIZE-1,fp);
-  }
-fclose(fp);
-nmail=mail_sizes(user->name,1);
-vwrite_user(user,"\nTotal of ~OL%d~RS message%s, ~OL%d~RS of which %s new.\n\n",cnt,PLTEXT_S(cnt),nmail,PLTEXT_IS(nmail));
+	sprintf(fname,"%s/%s.M", USERMAILS,user->name);
+	if (!(fp=fopen(fname,"r"))) {
+		write_user(user,"You have no mail.\n");
+		return;
+		}
+	write_user(user,"\n~BB*** Mail from ***\n\n");
+	valid=1;
+	cnt=0;
+	fscanf(fp,"%d %d\r",&tmp1,&tmp2); 
+	fgets(line,ARR_SIZE-1,fp);
+	while(!feof(fp)) {
+		if (*line=='\n') valid=1;
+		sscanf(line,"%s",w1);
+		if (valid && (!strcmp(w1,"~OLFrom:") || !strcmp(w1,"From:"))) {
+			cnt++;
+			valid=0;
+			vwrite_user(user,"~FT%2d)~RS %s",cnt,remove_first(line));
+			}
+		fgets(line,ARR_SIZE-1,fp);
+		}
+	fclose(fp);
+	nmail=mail_sizes(user->name,1);
+	vwrite_user(user,"\nTotal of ~OL%d~RS message%s, ~OL%d~RS of which %s new.\n",cnt,PLTEXT_S(cnt),nmail,PLTEXT_IS(nmail));
+	if (stat(fname, &fb)==-1) fsize=0;
+	else fsize=fb.st_size;
+	vwrite_user(user, "Using %d bytes\n", fsize);
 }
 
 
@@ -660,10 +667,12 @@ if (word_count>2) {
   write_syslog(SYSLOG,1,"%s sent mail to all the %ss.\n",user->name,user_level[level].name);
   return;
   }
+#ifdef NETLINSK
 if (user->type==REMOTE_TYPE) {
   write_user(user,"Sorry, due to software limitations remote users cannot use the line editor.\nUse the '.lmail <level>/wizzes/all <mesg>' method instead.\n");
   return;
   }
+#endif
 if ((level=get_level(word[1]))==-1) {
   if (!strcmp(word[1],"WIZZES")) level=-1;
   else if (!strcmp(word[1],"ALL")) level=-2;
@@ -768,8 +777,7 @@ if (!strcasecmp(word[1],"all")) {
     return;
     }
   fprintf(fpo,"From: %s\n",reg_sysinfo[TALKERNAME]);
-  fprintf(fpo,"To: %s <%s>\n",user->name,user->email);
-  fprintf(fpo,"Subject: Manual forwarding of smail.\n\n\n");
+  fprintf(fpo,"To: %s <%s>\n\n",user->name,user->email);
   fscanf(fpi,"%d %d\r",&tmp1,&tmp2);
   fgets(line,ARR_SIZE-1,fpi);
   while (!feof(fpi)) {
@@ -779,7 +787,7 @@ if (!strcasecmp(word[1],"all")) {
   fputs(talker_signature,fpo);
   fclose(fpi);
   fclose(fpo);
-  send_forward_email(user->email,filenameo);
+  send_email(user->email, "Manual forwarding of smail", filenameo);
   write_user(user,"You have now sent ~OL~FRall~RS your smails to your email account.\n");
   return;
   }
@@ -807,8 +815,7 @@ if (!(fpi=fopen(filenamei,"r"))) {
   return;
   }
 fprintf(fpo,"From: %s\n",reg_sysinfo[TALKERNAME]);
-fprintf(fpo,"To: %s <%s>\n",user->name,user->email);
-fprintf(fpo,"Subject: Manual forwarding of smail.\n\n\n");
+fprintf(fpo,"To: %s <%s>\n\n",user->name,user->email);
 valid=1;  cnt=1;
 fscanf(fpi,"%d %d\r",&tmp1,&tmp2);
 fgets(line,ARR_SIZE-1,fpi);
@@ -831,7 +838,7 @@ SKIP:
 fputs(talker_signature,fpo);
 fclose(fpi);
 fclose(fpo);
-send_forward_email(user->email,filenameo);
+send_email(user->email, "Manual forwarding of smail", filenameo);
 vwrite_user(user,"You have now sent smail number ~FM~OL%d~RS to your email account.\n",smail_number);
 }
 
@@ -843,12 +850,12 @@ int mail_sizes(char *name, int type)
 {
 	FILE *fp;
 	int valid,cnt=0,new=0,size=0;
-	char w1[ARR_SIZE],line[ARR_SIZE],filename[500],*str;
+	char w1[ARR_SIZE],line[ARR_SIZE],fname[FNAME_LEN],*str;
 
 	set_crash();
 name[0]=toupper(name[0]);
-sprintf(filename,"%s/%s.M", USERMAILS,name);
-if (!(fp=fopen(filename,"r"))) return cnt;
+sprintf(fname,"%s/%s.M", USERMAILS,name);
+if (!(fp=fopen(fname,"r"))) return cnt;
 valid=1;
 fscanf(fp,"%d %d\r",&new,&size);
 /* return amount of new mail or size of mail file */
@@ -858,7 +865,7 @@ if (type) {
   }
 /* count up total mail */
 fgets(line,ARR_SIZE-1,fp);
-while(!feof(fp)) {
+while (!feof(fp)) {
   if (*line=='\n') valid=1;
   sscanf(line,"%s",w1);
   str=colour_com_strip(w1);
@@ -877,18 +884,18 @@ int reset_mail_counts(UR_OBJECT user)
 {
 	FILE *infp,*outfp;
 	int size,tmp1,tmp2;
-	char c,filename[500];
+	char c,fname[FNAME_LEN];
 	struct stat stbuf;
 
 	set_crash();
-	sprintf(filename,"%s/%s.M", USERMAILS,user->name);
+	sprintf(fname,"%s/%s.M", USERMAILS,user->name);
 	/* get file size */
-	if (stat(filename,&stbuf)==-1) size=0;
+	if (stat(fname,&stbuf)==-1) size=0;
 	else size=stbuf.st_size;
 
-	if (!(infp=fopen(filename,"r"))) return 0;
+	if (!(infp=fopen(fname,"r"))) return 0;
 	/* Update last read / new mail received time at head of file */
-	if ((outfp=fopen("tempfile","w"))) {
+	if ((outfp=fopen(TEMPFILE, "w"))) {
 		fprintf(outfp,"0 %d\r",size);
 		/* skip first line of mail file */
 		fscanf(infp,"%d %d\r",&tmp1,&tmp2);
@@ -899,12 +906,12 @@ int reset_mail_counts(UR_OBJECT user)
 			c=getc(infp);
 			}
 		fclose(outfp);
-		rename("tempfile",filename);
+		rename(TEMPFILE, fname);
 		}
 	user->read_mail=time(0);
 	fclose(infp);
 	return 1;
 }
 
-#endif /* mail.c */
+#endif /* __MAIL_C__ */
 

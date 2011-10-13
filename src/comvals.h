@@ -2,8 +2,8 @@
 /*
  * comvals.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -231,8 +231,13 @@ enum comvals {
 	CASH,
 	MONEY,
 	BANK,
-	RESTORE
-} com_num;
+	RESTORE,
+	LYNX,
+	MYNAME,
+	ROOMOWNER,
+	COLORS,
+	ICQPAGE
+	} com_num;
 
-#endif /* comvals.h */
+#endif /* __COMVALS_H__ */
 

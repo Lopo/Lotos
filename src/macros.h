@@ -2,8 +2,8 @@
 /*
  * macros.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -16,5 +16,5 @@ extern char text[ARR_SIZE*2];
 extern char word[MAX_WORDS][WORD_LEN+1];
 extern int word_count;
 
-#endif /* macros.h */
+#endif /* __MACROS_H__ */
 

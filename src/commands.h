@@ -2,8 +2,8 @@
 /*
  * commands.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -12,24 +12,28 @@
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__ 1
 
+#include "comvals.h"
+
 /* These are the general function names of the commands */
 char *command_types[]={
-  "General","Social","Messages","User","Ignores","Movement","Clones","Admin",
-  #ifdef NETLINKS
-    "Netlink",
-  #endif
-  "Plugins","*"
-  };
+	"General", "Social", "Messages", "User", "Ignores",
+	"Movement", "Clones", "Admin",
+#ifdef NETLINKS
+	"Netlink",
+#endif
+	"Plugins", "*"
+	};
 
 
 /* The enumerated type of above */
 enum comtypes {
-  CT_GENERAL,CT_SOCIAL,CT_MSG,CT_USER,CT_IGNORE,CT_MOVE,CT_CLONE,CT_ADMIN
-  #ifdef NETLINKS
-    ,CT_NETLINK
-  #endif
-  ,CT_PLUGINS
-  };
+	CT_GENERAL, CT_SOCIAL, CT_MSG, CT_USER, CT_IGNORE,
+	CT_MOVE, CT_CLONE, CT_ADMIN,
+#ifdef NETLINKS
+	CT_NETLINK,
+#endif
+	CT_PLUGINS
+	};
 
 
 /* Although the commands are now set up like this, you still need to add the enum
@@ -37,8 +41,8 @@ enum comtypes {
    commands may not work correctly and it'll be YOUR OWN FAULT!!
   */
 struct {
-  char *name,*alias; int level,function;
-  } command_table[]={
+	char *name,*alias; int level,function;
+	} command_table[]={
     { "quit",       "",    JAILED,  CT_GENERAL },
     { "look",       "",    NEW,     CT_GENERAL },
     { "say",        "",    JAILED,  CT_SOCIAL  },
@@ -261,9 +265,13 @@ struct {
 	{ "money",		"",	ARCH,	CT_GENERAL	},
 	{ "bank",		"",	USER,	CT_GENERAL	},
 	{ "restore",	"", WIZ,	CT_ADMIN	},
+	{ "lynx",		"",	USER,	CT_GENERAL	},
+	{ "myname",		"",	WIZ,	CT_GENERAL	},
+	{ "roomowner",	"",	WIZ,	CT_GENERAL	},
+	{ "colors",		"",	JAILED,	CT_USER		},
+	{ "icqpage",	"", USER,	CT_MSG		},
     { "*","*",-1,-1 } /* stopping clause - do not remove */
-  };
-#include "comvals.h"
+	};
 
 /* Subsection of the 'ign' command - for setting of attributes */
 struct {
@@ -286,5 +294,5 @@ struct {
 		{"*",""}
   };
 
-#endif /* commands.h */
+#endif /* __COMMANDS_H__ */
 

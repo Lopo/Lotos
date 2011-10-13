@@ -1,4 +1,4 @@
-L o t o s   verzia 1.2.1
+L o t o s   verzia 1.2.2
 ==============================================================================
                  Instalacia, nastavenie, pouzivatelsky manual
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -103,15 +103,15 @@ POZN.: Pozri samostatne specializovane manualy
         a pripadne aj GZIP. Obidva by mali byt standardne dostupne na kazdom
         UN*X konte. Takze najprv sa treba prihlasit na svoje konto.
         Potom nasledujte tieto kroky:
-        `cd ~´ - prepne do vasho domovskeho adresara
-        `cp <stary_adresar>/lotos120.tar.gz .´ skopiruje balik do domovskeho
+        `cd ~' - prepne do vasho domovskeho adresara
+        `cp <stary_adresar>/lotos122.tar.gz .' skopiruje balik do domovskeho
         adresara ak uz je balik stiahnuty z internetu. Ak nie je, tak ho
         treba najprv stiahnut z Lotos domovskej web stranky do vasho 
         domovskeho adresara.
-        `gzip -d lotos120.tar.gz´ rozbali subor a premenuje ho na lotos120.tar
-        `tar -xvf lotos120.tar´ rozbali subor na jednotlive subory a adresare
-        v jednom adresari lotos120. Ak chcete iny nazov adresara, treba pouzit
-        prikaz `mv ./lotos120 ./<novy_nazov>´. Po tomto je uz Lotos kompletne
+        `gzip -d lotos122.tar.gz' rozbali subor a premenuje ho na lotos122.tar
+        `tar -xvf lotos122.tar' rozbali subor na jednotlive subory a adresare
+        v jednom adresari lotos122. Ak chcete iny nazov adresara, treba pouzit
+        prikaz `mv ./lotos122 ./<novy_nazov>'. Po tomto je uz Lotos kompletne
         naistalovany.
 
     2. SYSTEM SUBOROV
@@ -164,7 +164,7 @@ POZN.: Pozri samostatne specializovane manualy
 
    4. PRVA KOMPILACIA A SPUSTENIE
       ---------------------------
-        Na konmpilaciu sluzi subor Makefile. Takze staci napisat `make´
+        Na konmpilaciu sluzi subor Makefile. Takze staci napisat `make'
         v adresari SRC a vsetko sa automaticky skompiluje. Ak sa vyskytnu nejake
         chyby, treba skontrolovat subor, v ktorom je podla kompilatora chyba.
         Ak ste neurobily v zdrojovych kodoch ziadne zmeny, nemali by sa
@@ -172,16 +172,16 @@ POZN.: Pozri samostatne specializovane manualy
          POZNAKMA: Red Hat system vyzaduje kniznicu crypt. Ta sa prida
                    dopisanim do suboru makefile. (Pozri redhat.txt)
         Ak kompilacia prebehla bez chyb, staci uz len spustit program. Na to
-        sa treba presunut do adresara z programom - `cd ../bin´ a spustit
-        program prikazom `./lotos´. Tym sa nastartuje talker a vy sa mozete
+        sa treba presunut do adresara z programom - `cd ../bin' a spustit
+        program prikazom `./lotos'. Tym sa nastartuje talker a vy sa mozete
         pripojit cez port nastaveny v konfiguracnom subore.
         Lotos je dodavany s nasledujucim kontom nastavenym na najvyssi level.
                 Username: fred
                 Password: test
         Ak ste zmenili meno majitela v strukture reg_sysinfo, treba najprv
         premenovat subor s tymto defaultnym userom. To sa dosiahne prikazom
-        `mv Fred.D <novemeno>.D´ v adresari USERFILES. Potom uz staci len
-        napisat `telnet localhost <port>´. Ak ste nezmenili meno, tak to radim
+        `mv Fred.D <novemeno>.D' v adresari USERFILES. Potom uz staci len
+        napisat `telnet localhost <port>'. Ak ste nezmenili meno, tak to radim
         urobit kvoli bezpecnosti !
 
    ----------------------------------------------
@@ -208,7 +208,7 @@ POZN.: Pozri samostatne specializovane manualy
      6. BEZPECNOSTNE PROBLEMY
         ---------------------
          Ak by boli nejake problemy s niektorym userom, su nejake moznosti
-        ako si ho udrzat `od tela´ a mat v systeme klud.
+        ako si ho udrzat `od tela' a mat v systeme klud.
         "krok 1"
           MUZZLE - znemozni userovi rozpravat a viest akukolvek
                    konverzaciu.

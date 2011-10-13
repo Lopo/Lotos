@@ -2,8 +2,8 @@
 /*
  * ct_clone.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -71,7 +71,7 @@ for(u=user_first;u!=NULL;u=u->next) {
 /* Create clone */
 if ((u=create_user())==NULL) {		
   vwrite_user(user,"%s: Unable to create copy.\n",syserror);
-  write_syslog(SYSLOG,0,"ERROR: Unable to create user copy in clone().\n");
+  write_syslog(ERRLOG,1,"Unable to create user copy in clone().\n");
   return;
   }
 u->type=CLONE_TYPE;
@@ -102,28 +102,31 @@ void destroy_clone(UR_OBJECT user)
 
 	set_crash();
 /* Check room and user */
-if (word_count<2) rm=user->room;
-else {
-  if ((rm=get_room(word[1]))==NULL) {
-    write_user(user,nosuchroom);  return;
-    }
-  }
-if (word_count>2) {
-  if ((u2=get_user_name(user,word[2]))==NULL) {
-    write_user(user,notloggedon);  return;
-    }
-  if (u2->level>=user->level) {
-    write_user(user,"You cannot destroy the clone of a user of an equal or higher level.\n");
-    return;
-    }
-  }
-else u2=user;
-for(u=user_first;u!=NULL;u=u->next) {
+	if (word_count<2) rm=user->room;
+	else {
+		if (!(rm=get_room(word[1]))) {
+			write_user(user,nosuchroom);
+			return;
+			}
+		}
+	if (word_count>2) {
+		if (!(u2=get_user_name(user, word[2]))) {
+			write_user(user,notloggedon);
+			return;
+			}
+		if (u2->level>=user->level) {
+			write_user(user,"You cannot destroy the clone of a user of an equal or higher level.\n");
+			return;
+			}
+		}
+	else u2=user;
+for (u=user_first;u!=NULL;u=u->next) {
   if (u->type==CLONE_TYPE && u->room==rm && u->owner==u2) {
     destruct_user(u);
     reset_access(rm);
     write_user(user, clone_user_destroy);
-    if (user->vis) name=user->bw_recap; else name=invisname;
+    if (user->vis) name=user->bw_recap;
+	else name=invisname;
     vwrite_room_except(user->room,user,clone_room_destroy1, name);
     vwrite_room(rm, clone_room_destroy2, u2->bw_recap);
     if (u2!=user) vwrite_user(u2,"~OLSYSTEM: ~FR%s has destroyed your clone in the %s.\n",user->bw_recap,rm->name);
@@ -131,8 +134,8 @@ for(u=user_first;u!=NULL;u=u->next) {
     return;
     }
   }
-if (u2==user) vwrite_user(user,"You do not have a clone in the %s.\n",rm->name);
-else vwrite_user(user,"%s~RS does not have a clone the %s.\n",u2->recap,rm->name);
+	if (u2==user) vwrite_user(user,"You do not have a clone in the %s.\n",rm->name);
+	else vwrite_user(user,"%s~RS does not have a clone the %s.\n",u2->recap,rm->name);
 }
 
 
@@ -330,5 +333,5 @@ for(u=user_first;u!=NULL;u=u->next) {
 write_user(user,"You do not have a clone in that room.\n");
 }
 
-#endif /* ct_clone.c */
+#endif /* __CT_CLONE_C__ */
 

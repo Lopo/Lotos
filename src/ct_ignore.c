@@ -2,8 +2,8 @@
 /*
  * ct_ignore.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -339,5 +339,5 @@ IGN_JUMP:
 		}
 }
 
-#endif /* ct_ignore.c */
+#endif /* __CT_IGNORE_C__ */
 

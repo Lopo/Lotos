@@ -2,8 +2,8 @@
 /*
  * obj_rm.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -12,9 +12,12 @@
 #ifndef __OBJ_RM_H__
 #define __OBJ_RM_H__ 1
 
+#include "define.h"
+
 /* room information structure */
 struct room_struct {
 	char name[ROOM_NAME_LEN+1],label[ROOM_LABEL_LEN+1],desc[ROOM_DESC_LEN+1];
+	char real_name[PERSONAL_ROOMNAME_LEN];
 	char topic[TOPIC_LEN+1],revbuff[REVIEW_LINES][REVIEW_LEN+2],map[ROOM_NAME_LEN+1];
 	int access; /* public , private etc */
 	int revline; /* line number for review */
@@ -32,5 +35,5 @@ struct room_struct {
 	};
 typedef struct room_struct *RM_OBJECT;
 
-#endif /* obj_rm.h */
+#endif /* __OBJ_RM_H__ */
 

@@ -2,8 +2,8 @@
 /*
  * prompts.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -43,7 +43,7 @@ char *noswearing             ="\nXces po xrapie ?~RS\n";
 char *enterprompt            ="~FB-=+ ~RSstlac ~OL[~RS~FGENTER~OL~FW] ~RSpre nalogovanie ~FB+=-~RS";
 char *session_swap           ="~OL~FB[ ~FTswap session ~FB]~FG:";
 char *more_prompt            ="~BB~FG-=[~OL%d%%~RS~BB~FG]=- (~OLR~RS~BB~FG)-znovu, (~OLB~RS~BB~FG)-spat, (~OLE~RS~BB~FG)-koniec, <RETURN>-pokracuj:~RS ";
-char *unknown_command        ="~FTNeznamy prikaz. Ak xces vytvorit novy napis na talker@losys.net~RS\n";
+char *unknown_command        ="~FTNeznamy prikaz. Ak xces vytvorit novy napis na talker@losys.sk~RS\n";
 char *no_message_prompt      ="\nNa nastenke neni su spravy.\n";
 char *single_message_prompt  ="\nNa nastenke je len jedna sprava.\n";
 char *message_prompt         =" a pocet sprav na nastenke: ~OL~FM%d~RS.\n";
@@ -195,7 +195,7 @@ char *wiz_port_closed  ="Sorrac, wizardovsky port je momentalne uzavrety pre dal
 char *continue1        ="~CB-=[ ~CRStlac enter na pokracovanie. ~CB]=-\n";
 char *continue2        ="~CB-=[ ~CW[~CYENTER~CW] = ~CYpokracovat, ~CW[~CYE~CW] + [~CYENTER~CW] = ~CYKonec ~CB]=-\n";
 char *auto_afk_mesg    ="~OL[~FYAUTO~FW-~FRAFK~FW]";
-char *clone_desc       ="~BR~OL(KLON)";
+char *clone_desc       ="~BR~OL(KLON)~RS";
 char *no_wizs_logged   ="Sorac, momentalne tu neni ziadny wizard.\n";
 char *empty_log        ="Tento log je prazdny.\n\n";
 char *nosuchtr         ="taky transport neni\n";
@@ -215,6 +215,9 @@ char *user_bch_setup   ="~CRTak volba neexistuje ...\n";
 
 /* netriedene */
 char *muzzled_cannot   ="~FRMas zalepenu tlamu, nemozes %s !\n";
+char *priv_room_fix    ="~FROsobne ruumky sa nedaju fixovat ~RS\n";
+char *room_topic_clrd  ="\n~FY~OLThe topic has been cleared.\n";
+char *ctopic_in_room   ="You can only clear the topic of the room you are in.\n";
 
-#endif /* prompts.c */
+#endif /* __PROMPTS_C__ */
 

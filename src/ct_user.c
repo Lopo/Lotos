@@ -2,8 +2,8 @@
 /*
  * ct_user.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -162,8 +162,19 @@ void status(UR_OBJECT user)
 		write_user(user, "~OL|~RS ~FGNewMail monitor FWD CharEcho wrap Pueblo riadky farby AudioPrompt xterm blind~RS~OL|\n");
 		vwrite_user(user, "~OL|~RS   %-3.3s     %-3.3s   %-3.3s   %-3.3s    %-3.3s   %-3.3s     %-2.2d     %-1.1d       %-3.3s      %-3.3s   %-3.3s ~OL|\n",
 			nm, offon[u->monitor], noyes2[u->autofwd], noyes2[u->terminal.checho],
-			noyes2[u->terminal.wrap], noyes2[u->pueblo], u->terminal.pager, /*u->colour*/9,
-			noyes2[(u->pueblo_mm && u->pueblo)], offon[u->terminal.xterm],
+			noyes2[u->terminal.wrap],
+#ifdef PUEBLO
+			noyes2[u->pueblo],
+#else
+			0,
+#endif
+			u->terminal.pager, /*u->colour*/9,
+#ifdef PUEBLO
+			noyes2[(u->pueblo_mm && u->pueblo)],
+#else
+			0,
+#endif
+			offon[u->terminal.xterm],
 			offon[u->terminal.blind]);
 		sprintf(text, "Killed %d people, and died %d times.  Energy : %d, Bullets : %d",
 			u->kills, u->deaths, u->hps, u->bullets);
@@ -216,7 +227,7 @@ void status(UR_OBJECT user)
 void enter_profile(UR_OBJECT user, int done_editing)
 {
 	FILE *fp;
-	char *c,filename[500];
+	char *c,fname[FNAME_LEN];
 
 	set_crash();
 if (!done_editing) {
@@ -225,14 +236,14 @@ if (!done_editing) {
   editor(user,NULL);
   return;
   }
-sprintf(filename,"%s/%s.P", USERPROFILES,user->name);
-if (!(fp=fopen(filename,"w"))) {
+sprintf(fname,"%s/%s.P", USERPROFILES,user->name);
+if (!(fp=fopen(fname,"w"))) {
   vwrite_user(user,"%s: couldn't save your profile.\n",syserror);
-  write_syslog(ERRLOG,1,"Couldn't open file %s to write in enter_profile().\n",filename);
+  write_syslog(ERRLOG,1,"Couldn't open file %s to write in enter_profile().\n",fname);
   return;
   }
 c=user->malloc_start;
-while(c!=user->malloc_end) putc(*c++,fp);
+while (c!=user->malloc_end) putc(*c++,fp);
 fclose(fp);
 write_user(user,"Profile stored.\n");
 }
@@ -243,7 +254,7 @@ void examine(UR_OBJECT user)
 {
 	UR_OBJECT u;
 	FILE *fp;
-	char filename[500], text2[ARR_SIZE], line[182];
+	char fname[FNAME_LEN], text2[ARR_SIZE], line[182];
 	int on,days,hours,mins,timelen,days2,hours2,mins2,idle,cnt,newmail;
 	int prf;
 
@@ -294,8 +305,8 @@ void examine(UR_OBJECT user)
 		if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
 		write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
 		if (prf) {
-			sprintf(filename,"%s/%s.P", USERPROFILES,u->name);
-			if (!(fp=fopen(filename,"r"))) write_user(user, no_profile_prompt);
+			sprintf(fname,"%s/%s.P", USERPROFILES,u->name);
+			if (!(fp=fopen(fname,"r"))) write_user(user, no_profile_prompt);
 			else {
 				fgets(line, 81, fp);
 				while (!feof(fp)) {
@@ -342,8 +353,8 @@ void examine(UR_OBJECT user)
 	if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
 	write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
 	if (prf) {
-		sprintf(filename,"%s/%s.P", USERPROFILES,u->name);
-		if (!(fp=fopen(filename,"r"))) write_user(user, no_profile_prompt);
+		sprintf(fname,"%s/%s.P", USERPROFILES,u->name);
+		if (!(fp=fopen(fname,"r"))) write_user(user, no_profile_prompt);
 		else {
 			fgets(line, 81, fp);
 			while(!feof(fp)) {
@@ -531,6 +542,9 @@ if (word_count<2) {
   }
 if (!validate_email(inpstr)) {
   write_user(user,"That email address format is incorrect.  Correct format: user@network.net\n");
+  sprintf(text,"~FY<WIZ>~RS %s has attempted to set an incorrect e-mail address: %s\n",user->name,inpstr);
+  write_level(WIZ,1,text,NULL);
+  write_syslog(SYSLOG,1,"%s tries to set '%s' as an email address.\n",user->name,inpstr);
   return;
   }
 write_syslog(REQLOG,1,"%-*s : %s\n",USER_NAME_LEN,user->name,inpstr);
@@ -623,7 +637,9 @@ void suicide(UR_OBJECT user)
 		write_user(user,"Password incorrect.\n");
 		return;
 		}
+#ifdef PUEBLO
 	audioprompt(user, 4, 0);
+#endif
 	write_user(user,"\n\07~FR~OL~LI*** WARNING - This will delete your account! ***\n\nAre you sure about this (y/n)? ");
 	user->misc_op=6;  
 	no_prompt=1;
@@ -897,40 +913,148 @@ void set_ualarm(UR_OBJECT user)
 
 void set_follow(UR_OBJECT user)
 {
+	UR_OBJECT ur;
+
 	set_crash();
 	if (word_count<2) {
-		write_usage(user, "follow [<user>]|[-cancel]");
-		if (!user->follow) write_user(user, "Momentalne nikoho nesledujes\n");
-		else vwrite_user(user, "Momentalne sledujes %s\n", user->follow->name);
+		write_usage(user, "%s [<user>]|[-cancel]", command_table[FOLLOW].name);
+		if (user->follow[0]=='\0') write_user(user, "Momentalne nikoho nesledujes\n");
+		else vwrite_user(user, "Momentalne sledujes %s\n", user->follow);
 		return;
 		}
 	if (!strcmp(word[1], "-cancel")) {
-		if (!user->follow) {
+		if (user->follow[0]=='\0') {
 			write_user(user, "Ved nikoho nesledujes !\n");
 			return;
 			}
-		vwrite_user(user, "Odteraz uz nesledujes %s\n", user->follow->name);
-		user->follow=NULL;
+		vwrite_user(user, "Odteraz uz nesledujes %s\n", user->follow);
+		user->follow[0]='\0';
 		return;
 		}
 	if (user->lroom==2) {
-		vwrite_user(user, "Si prilepen%s - nemozes nikoho sledovat 1\n", grm_gnd(1, user->gender));
+		vwrite_user(user, "Si prilepen%s - nemozes nikoho sledovat !\n", grm_gnd(1, user->gender));
 		return;
 		}
 	if (user->restrict[RESTRICT_GO]==restrict_string[RESTRICT_GO]) {
 		write_user(user, ">>>You cannot have acces to another sky...\n");
 		return;
 		}
-	if ((user->follow=get_user_name(user, word[1]))==NULL) {
+	if ((ur=get_user_name(user, word[1]))==NULL) {
 		write_user(user, notloggedon);
 		return;
 		}
-	if (user->follow==user) {
+	if (ur==user) {
 		write_user(user, "Sledovat seba ? Salies ?\n");
+		user->follow[0]='\0';
 		return;
 		}
-	vwrite_user(user, "Odteraz sledujes %s\n", user->follow->name);
+	if (user->room!=ur->room) {
+		write_user(user, "Najpr musite byt v jedne ruume !\n");
+		user->follow[0]='\0';
+		}
+	vwrite_user(user, "Odteraz sledujes %s\n", ur->nameg);
+	strcpy(user->follow, ur->name);
 }
 
-#endif /* ct_user.c */
+void switch_colors(UR_OBJECT user)
+{
+	char *opts[]={"off", "zaba", "telbin", "xterm", "norm", "*"};
+	int i;
+
+	set_crash();
+	if (word_count<2) {
+		write_user(user, "mozne prednastavenia:\n");
+		for (i=0; opts[i][0]!='*'; i++)
+			vwrite_user(user, "\t- %s\n", opts[i]);
+		vwrite_user(user, "presne nastavenie je mozne pomocou prikazu .%s\n", command_table[TERMINAL].name);
+		return;
+		}
+	for (i=0; opts[i][0]!='*'; i++)
+		if (!strcmp(opts[i], word[1])) break;
+	switch (i) {
+		case 0: //off
+			user->terminal.txt=0;
+			user->terminal.bckg=0;
+			user->terminal.revers=0;
+			user->terminal.blink=0;
+			user->terminal.bold=0;
+			user->terminal.underline=0;
+			user->terminal.clear=0;
+			user->terminal.music=0;
+			user->terminal.xterm=0;
+			user->terminal.checho=0;
+			user->terminal.wrap=0;
+			user->terminal.blind=0;
+			user->terminal.pager=13;
+			break;
+		case 1: //zaba
+			user->terminal.txt=0;
+			user->terminal.bckg=0;
+			user->terminal.revers=0;
+			user->terminal.blink=0;
+			user->terminal.bold=1;
+			user->terminal.underline=0;
+			user->terminal.clear=0;
+			user->terminal.music=0;
+			user->terminal.xterm=0;
+			user->terminal.checho=0;
+			user->terminal.wrap=0;
+			user->terminal.blind=0;
+			user->terminal.pager=23;
+			break;
+		case 2: //telbin
+			user->terminal.txt=1;
+			user->terminal.bckg=1;
+			user->terminal.revers=0;
+			user->terminal.blink=0;
+			user->terminal.bold=1;
+			user->terminal.underline=0;
+			user->terminal.clear=0;
+			user->terminal.music=0;
+			user->terminal.xterm=0;
+			user->terminal.checho=1;
+			user->terminal.wrap=0;
+			user->terminal.blind=0;
+			user->terminal.pager=25;
+			break;
+		case 3: //xterm
+			user->terminal.txt=1;
+			user->terminal.bckg=1;
+			user->terminal.revers=1;
+			user->terminal.blink=1;
+			user->terminal.bold=1;
+			user->terminal.underline=0;
+			user->terminal.clear=1;
+			user->terminal.music=0;
+			user->terminal.xterm=1;
+			user->terminal.checho=0;
+			user->terminal.wrap=0;
+			user->terminal.blind=0;
+			user->terminal.pager=25;
+			break;
+		case 4: //norm
+			user->terminal.txt=1;
+			user->terminal.bckg=1;
+			user->terminal.revers=0;
+			user->terminal.blink=0;
+			user->terminal.bold=1;
+			user->terminal.underline=0;
+			user->terminal.clear=1;
+			user->terminal.music=0;
+			user->terminal.xterm=0;
+			user->terminal.checho=0;
+			user->terminal.wrap=0;
+			user->terminal.blind=0;
+			user->terminal.pager=25;
+			break;
+		default:
+			write_user(user, "chybny parameter\n");
+			return;
+		}
+	vwrite_user(user, "nastavena schema: %s\n", opts[i]);
+	vwrite_user(user, "presne nastavenie je mozne pomocou prikazu .%s\n", command_table[TERMINAL].name);
+}
+
+
+#endif /* __CT_USER_C__ */
 

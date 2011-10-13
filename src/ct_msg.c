@@ -2,8 +2,8 @@
 /*
  * ct_msg.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -19,12 +19,13 @@
 #include <ctype.h>
 #include <netinet/in.h>
 
+#include "ct_msg.h"
 #include "define.h"
 #include "prototypes.h"
 #include "obj_ur.h"
 #include "obj_rm.h"
 #include "obj_sys.h"
-#include "ct_msg.h"
+#include "comvals.h"
 
 
 /* verify that mail has been sent to the address supplied */
@@ -292,5 +293,60 @@ switch(stage) {
   }
 }
 
-#endif /* ct_msg.c */
+void send_icqpage(UR_OBJECT user, char *inpstr)
+{
+	char fname[FNAME_LEN], icqnum[ICQ_LEN+1], subj[100], addr[100];
+	int on;
+	UR_OBJECT ur;
+	FILE *fp;
+
+	if (word_count<3) {
+		write_usage(user, "%s <user>/<ICQ#> <text>", command_table[ICQPAGE].name);
+		return;
+		}
+	icqnum[0]='\0';
+	if (is_number(word[1])) strncpy(icqnum, word[1], ICQ_LEN);
+	else {
+		if (!(ur=get_user_name(user, word[1]))) {
+			if (!(ur=create_user())) {
+				vwrite_user(user, "%s: nemozem vytvorit docasny user objekt.\n", syserror);
+				write_syslog(ERRLOG, 1, "Unable to create temp user object in send_icqpage()\n");
+				return;
+				}
+			strcpy(ur->name, word[1]);
+			if (!load_user_details(ur)) {
+				write_user(user, nosuchuser);
+				destruct_user(ur);
+				destructed=0;
+				return;
+				}
+			on=0;
+			}
+		else on=1;
+		strcpy(icqnum, ur->icq);
+		if (!on) {
+			destruct_user(ur);
+			destructed=0;
+			}
+		}
+	if (icqnum[0]=='\0') {
+		write_user(user, "sprava neposlana, chybne alebo nezistitelne ICQ cislo\n");
+		return;
+		}
+	sprintf(fname, "%s/%s.icq", TEMPFILES, user->name);
+	if (!(fp=fopen(fname, "w"))) {
+		write_user(user, "nemozem vytvorit docasny subor pre spravu\n");
+		write_syslog(ERRLOG, 1, "unable to open file in send_icqpage()\n");
+		return;
+		}
+	fprintf(fp, icq_page_email);
+	fprintf(fp, "%s\n", remove_first(inpstr));
+	fclose(fp);
+	sprintf(addr, "%s@pager.mirabilis.com", icqnum);
+	sprintf(subj, "ICQ page from %s", user->name);
+	send_email(addr, subj, fname);
+	write_user(user, "sprava bola odoslana\n");
+}
+
+#endif /* __CT_MSG_C__ */
 

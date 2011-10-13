@@ -2,8 +2,8 @@
 /*
  * main.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -24,9 +24,9 @@ extern UR_OBJECT user_first,user_last;
 
 /* structure to see who last logged on */
 extern struct {
-  char name[USER_NAME_LEN+1],time[80];
-  short int on;
-  } last_login_info[];
+	char name[USER_NAME_LEN+1],time[80];
+	short int on;
+	} last_login_info[];
 
 extern RM_OBJECT room_first,room_last;
 
@@ -36,27 +36,27 @@ extern RM_OBJECT room_first,room_last;
 
 /* main user list structure */
 struct user_dir_struct {
-  char name[USER_NAME_LEN+1],date[80];
-  short int level;
-  struct user_dir_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1],date[80];
+	short int level;
+	struct user_dir_struct *next,*prev;
+	};
 extern struct user_dir_struct *first_dir_entry,*last_dir_entry;
 
 /* main list of wizzes */
 struct wiz_list_struct {
-  char name[USER_NAME_LEN+1];
-  short int level;
-  struct wiz_list_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1];
+	short int level;
+	struct wiz_list_struct *next,*prev;
+	};
 extern struct wiz_list_struct *first_wiz_entry,*last_wiz_entry;
 
 /* command list */
 struct command_struct {
-  char name[15],alias[5]; /* 15 and 5 characters should be long enough */
-  short int id,min_lev,function;
-  int count;
-  struct command_struct *next,*prev;
-  };
+	char name[15],alias[5]; /* 15 and 5 characters should be long enough */
+	short int id,min_lev,function;
+	int count;
+	struct command_struct *next,*prev;
+	};
 extern struct command_struct *first_command,*last_command;
 extern char cmd_history[16][128];
 
@@ -68,9 +68,9 @@ extern SYSPP_OBJECT syspp;
 /* levels used on the talker */
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 /* default rooms */
 char *default_jail="windows";
@@ -83,17 +83,18 @@ char *default_casino="casino";
    You may add more or remove as many as you like, but you MUST
    keep the stopping clause in */
 struct { 
-  char *name; int level; 
-  } priv_room[]={
-    { "linux", ARCH }, /* a room for wizzes+ only */
-    { "*", 0 } /* stopping clause */
-    };
+	char *name;
+	int level; 
+	} priv_room[]={
+		{ "linux", ARCH }, /* a room for wizzes+ only */
+		{ "*", 0 } /* stopping clause */
+		};
 
 /* colour code values */
 struct {
-  char *esc_code;
-  char *txt_code;
-  } colour_codes[]={
+	char *esc_code;
+	char *txt_code;
+	} colour_codes[]={
     /* Standard stuff */
     { "\033[0m\033[37m\033[40m", "RS" }, /* reset */
     { "\033[1m", "OL" }, /* bold */
@@ -149,12 +150,7 @@ extern char *offon[];
 extern char *minmax[];
 extern char *sex[];
 
-
-
-
-
 /* other strings used on the talker */
-
 extern char *syserror, *invisenter, *invisleave, *invisname;
 extern char *nosuchroom, *nosuchuser, *notloggedon;
 extern char *talker_name;
@@ -232,4 +228,5 @@ extern char *auto_afk_mesg;
 extern char *default_personal_room_desc, *default_personal_room_topic;
 extern char *room_setup_enter;
 
-#endif /* main.h */
+#endif /* __MAIN_H__ */
+

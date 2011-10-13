@@ -1,7 +1,7 @@
-# Main config file for Lotos 1.2.1
+# Main config file for Lotos 1.2.2
 
 INIT:
-verification       lotos121
+verification       lotos122
 mainport           7000
 wizport            7001
 linkport           7002
@@ -31,7 +31,6 @@ gatecrash_level    P_II
 time_out_maxlevel  P_II
 crash_action       REBOOT
 auto_purge         NO
-allow_recaps       YES
 auto_promote       YES
 personal_rooms     YES
 startup_room_parse NO

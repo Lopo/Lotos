@@ -2,8 +2,8 @@
 /*
  * adds.c
  * 
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -39,10 +39,12 @@
 #include "prototypes.h"
 
 
+/* any testing algoritmus can be writed here by developing */
 #ifdef DEBUG
 void test(UR_OBJECT user, char *inpstr)
 {
 	set_crash();
+	write_user(user, "This is a testing function\n");
 }
 #endif
 
@@ -88,14 +90,14 @@ void write_usage(UR_OBJECT user, char *str, ...)
 }
 
 
-int osstar_load(void)
+int lotos_load(void)
 {
 	int tmp=-1;
 
 	set_crash();
 	if (init_ossmain()) tmp=0;  /* Initialize main system */
 	if (tmp==-1) {
-		printf("Lotos:  Main system did not initialize in osstar_load()!!\n           BOOT ABORTED.\n\n");
+		printf("Lotos:  Main system did not initialize in lotos_load()!!\n           BOOT ABORTED.\n\n");
 		exit(0);
 		}
 	load_plugins();
@@ -136,7 +138,7 @@ void oss_versionVerify(void)
 	for (plugin=plugin_first; plugin!=NULL; plugin=p) {
 		p=plugin->next;
 		if (atoi(RUN_VER) < atoi(plugin->req_ver)) {
-			printf("\nOSS: Plugin '%s' pozaduje vyssiu verziu Lotos.\n",plugin->name);
+			printf("\nLotos: Plugin '%s' pozaduje vyssiu verziu Lotos.\n",plugin->name);
 			write_syslog(SYSLOG, 0, "Lotos: Plugin '%s' pozaduje Lotos verzie %s.\n",plugin->name,plugin->req_ver);
 			for (com=cmds_first; com!=NULL; com=com->next) if (com->plugin==plugin) destroy_pl_cmd(com);
 			destroy_plugin(plugin);
@@ -158,26 +160,29 @@ void create_systempp(void)
 	syspp->oss_highlev_debug=0;
 	syspp->debug_input=0; // POZOR !!! Nikdy nenastavovat na 1 !!!
 	syspp->highlev_debug_on=0;
+#ifdef PUEBLO
 	syspp->pueblo_enh=0;
 	syspp->pblo_usr_mm_def=0;
 	syspp->pblo_usr_pg_def=0;
+#endif
 	syspp->kill_msgs=0;
 	syspp->sys_access=1;
 	syspp->wiz_access=1;
 	syspp->auto_afk=0;
 	syspp->auto_afk_time=0;
+	syspp->reboot_time=0;
 }
 
 
-int show_file(UR_OBJECT user, char *filename)
+int show_file(UR_OBJECT user, char *fname)
 {
 	FILE *fp;
 	char line[ARR_SIZE+1];
 
 	set_crash();
-	if ((fp=fopen(filename, "r"))==NULL) return 0;
+	if (!(fp=fopen(fname, "r"))) return 0;
 	fgets(line, ARR_SIZE, fp);
-	while(!feof(fp)) {
+	while (!feof(fp)) {
 		line[strlen(line)-1]='\0';
 		strcat(line, "\n");
 		write_user(user, line);
@@ -194,7 +199,7 @@ void write_room_except2(RM_OBJECT rm, char *str, UR_OBJECT user, UR_OBJECT user2
 	UR_OBJECT u;
 
 	set_crash();
-for (u=user_first;u!=NULL;u=u->next) {
+for (u=user_first; u!=NULL; u=u->next) {
   if (u->login 
       || u->room==NULL 
       || (u->room!=rm && rm!=NULL) 
@@ -308,7 +313,7 @@ char *getanswer(FILE *popfp, char *buff, int eol)
 	set_crash();
 	for (;;) {
 		ch=getc(popfp);
-		if ((eol==1) || (ch == '\n')) {
+		if ((eol==1) || (ch=='\n')) {
 			*in='\0';
 			eol=0;
 			return buff;
@@ -357,7 +362,7 @@ void load_swear_file(UR_OBJECT user)
 
 int backup_talker(void)
 {
-	char fname[6][500];
+	char fname[6][FNAME_LEN];
 	int i;
 
 	set_crash();
@@ -377,13 +382,11 @@ int backup_talker(void)
 		  	for (i=0; i<6; i++) unlink(fname[i]);
 			write_syslog(SYSLOG, 1, "Backing Up Talker Files To : %s/%s.tgz\n",BACKUPDIR,BACKUPFILE);
 			write_syslog(SYSLOG, 1, "For Zip Progress, Read File: %s/%s.log\n",LOGFILES,BACKUPFILE);
-//		sprintf(text,"zip -v -9 -r %s/%s.zip * > %s/%s/%s.log",
-//			BACKUPDIR, BACKUPFILE, ROOTDIR, LOGFILES, BACKUPFILE);
-			sprintf(text, "tar -zcfp '%s' '%s' 1> '%s' 2> '%s'",
-				fname[3], ROOTDIR, fname[4], fname[5]
-				);
+//		sprintf(text,"zip -v -9 -r %s/%s.zip * > %s/%s/%s.log", BACKUPDIR, BACKUPFILE, ROOTDIR, LOGFILES, BACKUPFILE);
+			sprintf(text, "tar -zcfp '%s' '%s' 1> '%s' 2> '%s'", fname[3], ROOTDIR, fname[4], fname[5]);
 			system(text);
-			for (i=0; i<3; i++) rename(fname[i+3], fname[i]);
+			for (i=0; i<3; i++)
+				rename(fname[i+3], fname[i]);
 			_exit(1);
 			return 1;
 		}
@@ -398,16 +401,16 @@ void follow(UR_OBJECT user)
 
 	set_crash();
 	for (ur=user_first; ur!=NULL; ur=ur->next) {
-		if (ur->follow!=user) continue;
+		if (strcmp(ur->follow, user->name)) continue;
 		if (ur->room==user->room) continue; /* inac by (asi) vznikol nekonecny cyklus */
 		if (ur->level<command_table[FOLLOW].level) { /* kvoli demote */
-			ur->follow=NULL;
+			ur->follow[0]='\0';
 			continue;
 			}
 		if (!has_room_access(ur, user->room)) {
 			vwrite_user(ur, "Smola, ale %s is%s do miestnosti, kde ty nemas pristup,\nnemozes %s uz dalej sledovat ...\n",
 				user->name, grm_gnd(7, user->gender), grm_gnd(8, user->gender));
-			ur->follow=NULL;
+			ur->follow[0]='\0';
 			continue;
 			}
 		if (ur->level<WIZ) { /* len ak je do roomy linka */
@@ -512,7 +515,7 @@ if (!(u=get_user_name(user,word[1]))) {
    }
 if (u->level>u->real_level) {
   u->level=u->real_level;
-  vwrite_user(user,"You have restored %s to their original level.\n");
+  vwrite_user(user,"%s Ma odteraz svoj originalny level.\n", u->name);
   vwrite_room_except(u->room,u,"%s begins fading as their power is restored to normal.\n",u->name);
   vwrite_user(u,"Bol obnoveny tvoj originalny level.\n");
   write_syslog(SYSLOG, 1, "%s restored %s to their original level.\n",user->name,u->name);
@@ -546,7 +549,7 @@ void crash_dump(void)
 {
 	FILE *fp;
 	int i;
-	char fname[512];
+	char fname[FNAME_LEN];
 
 	set_crash();
 	sprintf(fname, "%s/crash_dump.%4d_%02d_%02d_%02d_%02d_%02d", LOGFILES, tyear, tmonth, tday, thour, tmin, tsec);
@@ -565,5 +568,75 @@ void crash_dump(void)
 }
 #endif
 
-#endif /* adds.c */
+/* allows a user to rename their room */
+void personal_room_rename(UR_OBJECT user,char *inpstr) {
+	char name[ROOM_NAME_LEN+1];
+	RM_OBJECT rm;
+
+	if (!amsys->personal_rooms) {
+		write_user(user,"Personal room functions are currently disabled.\n");
+		return;
+		}
+	if (word_count<2) {
+		write_usage(user, "%s <nazov>\n", command_table[MYNAME].name);
+		return;
+		}
+	sprintf(name,"(%s)",user->name);
+	strtolower(name);
+	/* get room that user is in */
+	if ((rm=get_room_full(name))==NULL) {
+		write_user(user,"Sorry, but you cannot use the room renaming feature at this time.\n");
+		return;
+		}
+	if (user->room!=rm) {
+		write_user(user,"You have to be in your personal room to rename it.\n");
+		return;
+		}
+	if (strlen(inpstr)>PERSONAL_ROOMNAME_LEN) {
+		write_user(user,"You cannot have a room name that long.\n");
+		return;
+		}
+	strcpy(rm->real_name,inpstr);
+	vwrite_user(user,"You have now renamed your room to: %s\n",rm->real_name);
+	if (!personal_room_store(user->name,1,rm))
+		write_syslog(SYSLOG,1,"ERROR: Unable to save personal room status in personal_room_rename()\n");
+}
+
+/* Show users who owns what room by Michael Doig*/
+void room_owner(UR_OBJECT user)
+{
+	RM_OBJECT rm;
+	int rmcnt, pcnt;
+	char usrname[USER_NAME_LEN+1];
+	char *line="--==[*]-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-[*]==--\n";
+
+	if (!amsys->personal_rooms) {
+		write_user(user,"Personal room functions are currently disabled.\n");
+		return;
+		}
+	strtolower(word[1]);
+	rmcnt=0;
+	write_user(user,"~OL~FG _              _               \n");
+	write_user(user,"~OL~FG|_) _  _ ._ _  / \\    ._  _ .__\n");
+	write_user(user,"~OL~FG| \\(_)(_)| | | \\_/\\/\\/| |(/_|_>\n");
+	write_user(user, line);
+	write_user(user,"    ~OL~FGPersonal Room Owner             Personal Room Name                       \n");
+	write_user(user, line);
+	for (rm=room_first; rm!=NULL; rm=rm->next) {
+		if (is_personal_room(rm)) {
+			pcnt=room_visitor_count(rm);
+			midcpy(rm->name,usrname,1,strlen(rm->name)-2);
+			usrname[0]=toupper(usrname[0]);
+			vwrite_user(user,"    ~OL%-*s~RS                    ~OL%-*s~RS             ~OL~FB\n", USER_NAME_LEN,usrname,ROOM_NAME_LEN,rm->real_name);
+			rmcnt++;
+			}
+		}
+	if (!rmcnt) write_user(user,"  ~OL~FB ~RS~FRNo personal rooms are currently in memory.\n");
+	write_user(user, line);
+	write_user(user,"    ~RSTo visit a room, type ~FR.visit username ~FTeg. ~FR.visit andy\n");
+	write_user(user, line);
+	return;
+}
+
+#endif /* __ADDS_C__ */
 

@@ -2,8 +2,8 @@
 /*
  * val_set_main.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -19,5 +19,5 @@ enum set_tabval {
 	SET_PPA,         SET_VOICE,   SET_MODE,    SET_PROMPT,      SET_WHO
 	} set_tab_val;
 
-#endif /* val_set_main.h */
+#endif /* __VAL_SET_MAIN_H__ */
 

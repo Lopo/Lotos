@@ -2,8 +2,8 @@
 /*
  * globals.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -30,10 +30,9 @@
 UR_OBJECT user_first,user_last;
 
 struct {
-  char name[USER_NAME_LEN+1],time[80];
-  short int on;
-  } 
-last_login_info[LASTLOGON_NUM+1];
+	char name[USER_NAME_LEN+1],time[80];
+	short int on;
+	} last_login_info[LASTLOGON_NUM+1];
 
 RM_OBJECT room_first,room_last;
 TR_OBJECT transport_first, transport_last;
@@ -45,27 +44,27 @@ TR_OBJECT transport_first, transport_last;
 
 /* main user list structure */
 struct user_dir_struct {
-  char name[USER_NAME_LEN+1],date[80];
-  short int level;
-  struct user_dir_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1],date[80];
+	short int level;
+	struct user_dir_struct *next,*prev;
+	};
 struct user_dir_struct *first_dir_entry,*last_dir_entry;
 
 /* main list of wizzes */
 struct wiz_list_struct {
-  char name[USER_NAME_LEN+1];
-  short int level;
-  struct wiz_list_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1];
+	short int level;
+	struct wiz_list_struct *next,*prev;
+	};
 struct wiz_list_struct *first_wiz_entry,*last_wiz_entry;
 
 /* command list */
 struct command_struct {
-  char name[15],alias[5]; /* 15 and 5 characters should be long enough */
-  short int id,min_lev,function;
-  int count;
-  struct command_struct *next,*prev;
-  };
+	char name[15],alias[5]; /* 15 and 5 characters should be long enough */
+	short int id,min_lev,function;
+	int count;
+	struct command_struct *next,*prev;
+	};
 struct command_struct *first_command,*last_command;
 char cmd_history[16][128];
 
@@ -74,13 +73,10 @@ SYS_OBJECT amsys;
 
 /* some general arrays being defined */
 char *month[12]={
-  "Januar","Februar","Marec","April","Maj","Jun",
-  "Jul","August","September","Oktober","November","December"
-  };
+	"Januar","Februar","Marec","April","Maj","Jun",
+	"Jul","August","September","Oktober","November","December"};
 
-char *day[7]={
-  "Nedela","Pondelok","Utorok","Streda","Stvrtok","Piatok","Sobota"
-  };
+char *day[7]={"Nedela","Pondelok","Utorok","Streda","Stvrtok","Piatok","Sobota"};
 
 char *noyes1[]={ "NIE","ANO" };
 char *noyes2[]={ "NIE","ANO" };
@@ -94,7 +90,7 @@ char *crypt_salt="NU";
 /* you can change this for whatever sig you want - of just "" if you don't want
    to have a sig file attached at the end of emails */
 char *talker_signature=
-"\n\n+-------------------------------------------------------------------------+\n\
+"\n\n+------------------------------------------------------------------------+\n\
 |        Tato sprava ti pola poslana prikazom .smail na talkri Star       |\n\
 |    a toto je tvoj Auto-forward. Neodpovedaj priamo na tento mail !!!!   |\n\
 |                                                                         |\n\
@@ -111,6 +107,13 @@ Pouzi tento kod s prikazom '.verify' pri tvojom najblizsom prihlaseni na talker.
 Potom mozes pouzit prikaz '.set' na zapnutie'vypnutie forvardovania .smail sprav.\n\n
 Vdaka za zawislacenie na tomto talkri - dobre si to uzi !\n\n
                      Lopo\n\n";
+
+/* you can change this for whatever sig you want - of just "" if you don't want
+   to have a sig file attached at the begin of icq pages */
+char *icq_page_email=
+"\n\n+------------------------------------------------------------------------+\n\
+| Star - talker spusteny na talker.losys.sk:7000    email talker@losys.sk |\n\
++-------------------------------------------------------------------------+\n";
 
 char swear_words[MAX_SWEARS+1][WORD_LEN+1];
 
@@ -211,7 +214,6 @@ int cal_days[12]={31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 char *cal_daynames[8]={"Ned","Pon","Uto","Str","Stv","Pia","Sob","Ned"};
 
 
-
 char *no_leave="noleave";
 
 PL_OBJECT plugin_first, plugin_last;
@@ -253,7 +255,7 @@ char *reg_sysinfo[13]={
 /* Talker E-Mail   */ "talker@losys.sk",
 /* Talker Website  */ "http://talker.losys.sk/",
 /* Sysop Real Name */ "Pavol Hluchy",
-/* Sysop User Name */ "Fred",
+/* Sysop User Name */ "Lopo",
 /* Pueblo Web Dir. */ "media/",
 /* Graphic Image   */ "img_title.gif",
 /* Rootovske heslo */ "NUKyNCCLvgLH."
@@ -285,7 +287,7 @@ struct {
 	char lastfile[512+1];
 	int lastline;
 	unsigned char n;
-} crash[CRASH_HISTORY];
+	} crash[CRASH_HISTORY];
 int crash_step;
 #endif
 
@@ -360,7 +362,7 @@ struct {
 		{'C', "clear", "clear", "prepne sposob mazania obrazovky"},
 		{'M', "music", "music", "zapne/vypne pouzivanie kodov na ansimusic"},
 		{'X', "xterm", "xterm", "zapne/vypne kompatibilitu s xterm-om"},
-		{'C', "checho", "charecho", "zapne/vypne echovanie pisanych znakov"},
+		{'E', "checho", "charecho", "zapne/vypne echovanie pisanych znakov"},
 		{'W', "wrap", "wrap", "zapne/vypne zalamovanie riadkov"},
 		{'I', "blind", "blind", "vypne vsetky vypisy na obrazovku"},
 		{'P', "pager", "pager", "nastavi pocet naraz zobrazenych riadkov"},
@@ -377,5 +379,5 @@ struct {
 		{'*', "*", "*", ""}
 		};
 
-#endif /* globals.c */
+#endif /* __GLOBALS_C__ */
 

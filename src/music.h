@@ -2,8 +2,8 @@
 /*
  * music.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -28,5 +28,5 @@ char *jb_files[]={
 	"overture.wav",	"got_it.mid"
 	};
 
-#endif /* music.h */
+#endif /* __MUSIC_H__ */
 

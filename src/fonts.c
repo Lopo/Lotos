@@ -2,8 +2,8 @@
 /*
  * fonts.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -91,7 +91,7 @@ void skiptoeol(FILE *fp)
 	int dummy;
 
 	set_crash();
-	while (dummy=getc(fp),dummy!='\n'&&dummy!=EOF) ;
+	while (dummy=getc(fp), dummy!='\n'&&dummy!=EOF) ;
 }
 
 
@@ -108,7 +108,7 @@ int readfont(char *fontname)
 	int maxlen,cmtlines,ffright2left;
 	char *fileline,magicnum[5];
 	FILE *fontfile;
-	char fontpath[500];
+	char fontpath[FNAME_LEN];
 
 	set_crash();
 	sprintf(fontpath, "%s/%s.flf", FIGLET_FONTS, fontname);
@@ -615,5 +615,5 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 	return;
 }
 
-#endif /* fonts.c */
+#endif /* __FONTS_C__ */
 

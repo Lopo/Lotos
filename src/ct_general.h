@@ -2,8 +2,8 @@
 /*
  * ct_general.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -22,16 +22,16 @@ extern SYSPP_OBJECT syspp;
 extern CM_OBJECT cmds_first;
 
 struct wiz_list_struct {
-  char name[USER_NAME_LEN+1];
-  short int level;
-  struct wiz_list_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1];
+	short int level;
+	struct wiz_list_struct *next,*prev;
+	};
 extern struct wiz_list_struct *first_wiz_entry;
 struct user_dir_struct {
-  char name[USER_NAME_LEN+1],date[80];
-  short int level;
-  struct user_dir_struct *next,*prev;
-  };
+	char name[USER_NAME_LEN+1],date[80];
+	short int level;
+	struct user_dir_struct *next,*prev;
+	};
 extern struct user_dir_struct *first_dir_entry;
 
 extern char text[];
@@ -54,17 +54,19 @@ extern char *invisname, *noswearing;
 extern char *default_warp, *default_jail, *default_shoot, *default_bank;
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 extern struct {
-  char *name,*alias; int level,function;
-  } command_table[];
+	char *name,*alias;
+	int level,function;
+	} command_table[];
 
 extern struct { 
-  char *name; int level; 
-  } priv_room[];
+	char *name;
+	int level; 
+	} priv_room[];
 
 extern char *colors[];
 
@@ -80,6 +82,7 @@ extern char *user_knock_prompt, *user_room_knock_prompt, *room_knock_prompt;
 extern char *private_review_prompt, *review_header, *no_review_prompt;
 extern char *entroom_edit_header, *prooms_disabled;
 extern char *continue2;
+extern char *priv_room_fix;
 
-#endif /* ct_general.h */
+#endif /* __CT_GENERAL_H__ */
 

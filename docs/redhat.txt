@@ -1,5 +1,5 @@
 +------------------------------------------------------------------------------+
-Lotos 1.2.1 - info pre prevadzku na RedHat Linuxe
+Lotos 1.2.2 - info pre prevadzku na RedHat Linuxe
 +------------------------------------------------------------------------------+
 
 Ak bude Lotos spustany na systeme RedHat, je potrebne prilinkovat k Lotos-u

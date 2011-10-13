@@ -2,8 +2,8 @@
 /*
  * ct_move.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -148,14 +148,22 @@ if (rm->transp!=NULL) {
 		return;
 		}
 	}
-else
-	for(i=0;i<MAX_LINKS;++i) {
-		if (user->room->link[i]==rm) {
-			move_user(user,rm,0);
+else {
+	if (user->room->transp) {
+		if ((!user->room->transp->go) && user->room->link[user->room->transp->out]==rm) {
+			move_user(user, rm, 0);
 			follow(user);
 			return;
 			}
 		}
+	else for (i=0; i<MAX_LINKS; ++i) {
+		if (user->room->link[i]==rm) {
+			move_user(user, rm, 0);
+			follow(user);
+			return;
+			}
+		}
+	}
 if (user->level<WIZ) {
   vwrite_user(user,"The %s is not adjoined to here.\n",rm->name);
   return;

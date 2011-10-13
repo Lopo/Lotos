@@ -1,0 +1,6 @@
+~OLPouzitie :~RS roomowner
+
+Zobrazi jednoduchy zoznam vsetkych osobny miestnosti a ich majitelov.
+Je to podobne adminskemu prikazu .rmadmin ale s menej informaciami
+
+~OLPozri :~RS rmadmin, rooms

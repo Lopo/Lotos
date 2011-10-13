@@ -2,8 +2,8 @@
 /*
  * mail.h
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -25,16 +25,16 @@ extern char *nosuchuser;
 extern char *talker_name, *talker_signature;
 
 struct user_dir_struct {
-  char name[USER_NAME_LEN+1],date[80];
-  short int level;
-  struct user_dir_struct *next,*prev;
+	char name[USER_NAME_LEN+1],date[80];
+	short int level;
+	struct user_dir_struct *next,*prev;
   };
 extern struct user_dir_struct *first_dir_entry;
 
 extern struct {
-  char *name;
-  char *alias;
-  } user_level[];
+	char *name;
+	char *alias;
+	} user_level[];
 
 extern char *reg_sysinfo[];
 
@@ -42,5 +42,5 @@ extern char *reg_sysinfo[];
 extern char *smail_edit_header;
 extern char *dmail_nomail, *dmail_too_many;
 
-#endif /* mail.h */
+#endif /* __MAIL_H__ */
 

@@ -2,8 +2,8 @@
 /*
  * netlinks.c
  *
- *   Lotos v1.2.1  : (c) 1999-2001 Pavol Hluchy (Lopo)
- *   last update   : 26.12.2001
+ *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
+ *   last update   : 16.5.2002
  *   email         : lopo@losys.sk
  *   homepage      : lopo.losys.sk
  *   Lotos homepage: lotos.losys.sk
@@ -828,7 +828,7 @@ void nl_checkexist(NL_OBJECT nl, char *to, char *from)
 void nl_user_notexist(NL_OBJECT nl, char *to, char *from)
 {
 	UR_OBJECT user;
-	char filename[500];
+	char fname[FNAME_LEN];
 	char text2[ARR_SIZE];
 
 	set_crash();
@@ -840,8 +840,8 @@ else {
   sprintf(text2,"There is no user named %s at %s, your mail bounced.\n",to,nl->service);
   send_mail(NULL,from,text2,0);
   }
-sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
-unlink(filename);
+sprintf(fname,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
+unlink(fname);
 }
 
 
@@ -850,11 +850,11 @@ void nl_user_exist(NL_OBJECT nl, char *to, char *from)
 {
 	UR_OBJECT user;
 	FILE *fp;
-	char text2[ARR_SIZE],filename[500],line[82];
+	char text2[ARR_SIZE],fname[FNAME_LEN],line[82];
 
 	set_crash();
-sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
-if (!(fp=fopen(filename,"r"))) {
+sprintf(fname,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
+if (!(fp=fopen(fname,"r"))) {
   if ((user=get_user(from))!=NULL) {
     sprintf(text,"~OLSYSTEM:~RS An error occured during mail delivery to %s@%s.\n",to,nl->service);
     write_user(user,text);
@@ -874,20 +874,20 @@ while(!feof(fp)) {
   }
 fclose(fp);
 write_sock(nl->socket,"\nENDMAIL\n");
-unlink(filename);
+unlink(fname);
 }
 
 
 /*** Got some mail coming in ***/
 void nl_mail(NL_OBJECT nl, char *to, char *from)
 {
-	char filename[500];
+	char fname[FNAME_LEN];
 
 	set_crash();
 write_syslog(NETLOG,1,"NETLINK: Mail received for %s from %s.\n",to,nl->service);
-sprintf(filename,"%s/IN_%s_%s@%s",MAILSPOOL,to,from,nl->service);
-if (!(nl->mailfile=fopen(filename,"w"))) {
-  write_syslog(ERRLOG,1,"Couldn't open file %s to write in nl_mail().\n",filename);
+sprintf(fname,"%s/IN_%s_%s@%s",MAILSPOOL,to,from,nl->service);
+if (!(nl->mailfile=fopen(fname,"w"))) {
+  write_syslog(ERRLOG,1,"Couldn't open file %s to write in nl_mail().\n",fname);
   sprintf(text,"MAILERROR %s %s\n",to,from);
   write_sock(nl->socket,text);
   return;
@@ -902,7 +902,7 @@ strcpy(nl->mail_from,from);
 void nl_endmail(NL_OBJECT nl)
 {
 	FILE *infp,*outfp;
-	char c,infile[500],mailfile[500];
+	char c,infile[FNAME_LEN],mailfile[FNAME_LEN];
 	int amount,size,tmp1,tmp2;
 	struct stat stbuf;
 
@@ -911,7 +911,7 @@ fclose(nl->mailfile);
 nl->mailfile=NULL;
 sprintf(mailfile,"%s/IN_%s_%s@%s",MAILSPOOL,nl->mail_to,nl->mail_from,nl->service);
 /* Copy to users mail file to a tempfile */
-if (!(outfp=fopen("tempfile","w"))) {
+if (!(outfp=fopen(TEMPFILE,"w"))) {
   write_syslog(ERRLOG,1,"Couldn't open tempfile in netlink_endmail().\n");
   sprintf(text,"MAILERROR %s %s\n",nl->mail_to,nl->mail_from);
   write_sock(nl->socket,text);
@@ -948,7 +948,7 @@ c=getc(infp);
 while(!feof(infp)) {  putc(c,outfp);  c=getc(infp);  }
 fclose(infp);
 fclose(outfp);
-rename("tempfile",infile);
+rename(TEMPFILE,infile);
 write_user(get_user(nl->mail_to),"\07~FT~OL~LI** YOU HAVE NEW MAIL **\n");
 
 END:
@@ -1000,7 +1000,7 @@ write_sock(nl->socket,text);
 void shutdown_netlink(NL_OBJECT nl)
 {
 	UR_OBJECT u;
-	char mailfile[500];
+	char mailfile[FNAME_LEN];
 
 	set_crash();
 if (nl->type==UNCONNECTED) return;
@@ -1272,5 +1272,5 @@ write_sock(nl->socket,text);
 write_user(user,"Request sent.\n");
 }
 
-#endif /* netlinks.c */
+#endif /* __NETLINKS_C__ */
 
