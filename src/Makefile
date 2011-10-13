@@ -1,14 +1,13 @@
 #*
-#*   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
-#*   last update   : 16.5.2002
-#*   email         : lopo@losys.sk
-#*   homepage      : lopo.losys.sk
-#*   Lotos homepage: lotos.losys.sk
+#*   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+#*   last update   : 30.1.2003
+#*   email         : lotos@losys.sk
+#*   homepage      : lotos.losys.sk
 #*
 
 USE_NETLINKS		= n
 USE_PUEBLO		= n
-USE_DEBUG		= n
+USE_DEBUG		= y
 
 #adresare
 DIR_MAIN		= ..
@@ -16,7 +15,7 @@ DIR_SRC			= $(DIR_MAIN)/src
 DIR_BIN			= $(DIR_MAIN)/bin
 DIR_OBJ			= $(DIR_MAIN)/objs
 #parametre vyslednej binarky
-BINARY			= lotos122
+BINARY			= lotos123
 TARGET			= $(DIR_BIN)/$(BINARY)
 PERMS			= 700
 #programy
@@ -25,12 +24,12 @@ SED			= sed
 #pomocne subory
 FILE_DEP		= .depend
 FILE_TAG		= tags
-FILE_DIST		= lotos122.tgz
+FILE_DIST		= lotos123.tgz
 
 ifeq ($(USE_DEBUG), y)
-	CFLAGS  	= -O0 -m486 -Wall -g
+	CFLAGS  	= -O0 -Wall -g
 else
-	CFLAGS		= -O3 -m486 -Wall
+	CFLAGS		= -O3 -Wall -ffast-math
 endif
 #definicie
 ifeq ($(USE_DEBUG), y)
@@ -102,7 +101,7 @@ $(FILE_DEP):
 		@printf "\033[1;32mMaking $(FILE_DEP)\033[0m ..."
 		@touch $(FILE_DEP)
 		@$(CC) -MM *.c -MM ./plugins/*.c > .tmdepend
-		@$(SED) -e '1,$$s/^[a-z]/$$(DIR_OBJ)\/&/' .tmdepend > $(FILE_DEP)
+		@$(SED) -e '1,$$s/^[a-z0-9]/$$(DIR_OBJ)\/&/;s/plugins\/\.\.\///g' .tmdepend > $(FILE_DEP)
 		@rm -f .tmdepend
 		@printf " \033[1;32mdone\033[0m\n"
 
@@ -124,6 +123,7 @@ distclean: clean
 		@rm -f $(DIR_MAIN)/tempfiles/*
 		@rm -f $(DIR_SRC)/$(FILE_DEP)
 		@rm -f $(DIR_SRC)/$(FILE_TAG)
+		@rm -f $(DIR_SRC)/*~
 		@printf "\033[1;32mdone\033[0m\n"
 
 reall:
@@ -151,7 +151,7 @@ dist:
 		@make distclean
 		@( cd ../..;\
 			printf "\033[1;37mcompressing\n\033[0m\n";\
-			tar zcfp $(FILE_DIST) lotos122;\
+			tar zcfp $(FILE_DIST) lotos123;\
 			chmod 600 $(FILE_DIST);\
 			pwd;\
 			ls -la $(FILE_DIST))

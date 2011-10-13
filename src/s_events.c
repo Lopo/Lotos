@@ -2,11 +2,10 @@
 /*
  * s_events.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __S_EVENTS_C__
@@ -43,6 +42,7 @@ void do_events(int sig)
 		check_autosave();
 	check_credit_updates();
 	check_lynx();
+	check_pings();
 }
 
 
@@ -216,6 +216,25 @@ void check_lynx(void)
 		}
 }
 
+void check_pings(void)
+{
+	UR_OBJECT user=user_first, next;
+
+	while (user) {
+		next=user->next;
+		if (user->type==CLONE_TYPE || user->type==BOT_TYPE) {
+			user=next;
+			continue;
+			}
+		if (!user->next_ping || user->next_ping<-1) {
+			user->next_ping=-1;
+			ping_timed(user);
+			}
+		if (user->next_ping>0) user->next_ping-=amsys->heartbeat;
+		else if (user->next_ping<-1) user->next_ping=PINGINTERVAL;
+		user=next;
+		}
+}
 
 #endif /* __S_EVENTS_C__ */
 

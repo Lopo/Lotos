@@ -2,11 +2,10 @@
 /*
  * prototypes.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __PROTOTYPES_H__
@@ -699,4 +698,13 @@ void      room_owner args((UR_OBJECT user));
 void      switch_colors args((UR_OBJECT user));
 void      send_icqpage args((UR_OBJECT user, char *inpstr));
 
+//ping
+void      ping args((UR_OBJECT user));
+void      ping_respond args((UR_OBJECT user));
+void      ping_timed args((UR_OBJECT user));
+char *    ping_string args((UR_OBJECT user));
+void      check_pings args((void));
+void      ping_user args((UR_OBJECT user));
+
 #endif /* __PROTOTYPES_H__ */
+

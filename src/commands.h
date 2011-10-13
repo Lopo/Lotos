@@ -2,11 +2,10 @@
 /*
  * commands.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __COMMANDS_H__
@@ -270,6 +269,7 @@ struct {
 	{ "roomowner",	"",	WIZ,	CT_GENERAL	},
 	{ "colors",		"",	JAILED,	CT_USER		},
 	{ "icqpage",	"", USER,	CT_MSG		},
+	{ "ping",		"",	SUPER,	CT_ADMIN	},
     { "*","*",-1,-1 } /* stopping clause - do not remove */
 	};
 

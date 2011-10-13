@@ -2,11 +2,10 @@
 /*
  * ct_general.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_GENERAL_C__
@@ -219,7 +218,7 @@ switch (rm->access) {
 sprintf(temp, message_prompt, rm->mesg_cnt);
 strcat(text,temp);
 write_user(user,text);
-if (rm->topic[0]) vwrite_user(user, topic_prompt, rm->topic);
+if (rm->topic[0]) vwrite_user(user, topic_prompt, rm->topic, rm->topicowner);
 else write_user(user, notopic_prompt);	
 }
 
@@ -424,18 +423,18 @@ void who(UR_OBJECT user, int type)
 		}
 
 if ((type==2) && !strcmp(word[1],"key")) {
-  write_user(user,"\n+----------------------------------------------------------------------------+\n");
-  write_user(user,"| ~OL~FTUser login stages are as follows~RS                                           |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
-  vwrite_user(user,"| ~FY~OLStage %d :~RS The user has logged onto the port and is entering their name     |\n",LOGIN_NAME);
-  vwrite_user(user,"| ~FY~OLStage %d :~RS The user is entering their password for the first time           |\n",LOGIN_PASSWD);
-  vwrite_user(user,"| ~FY~OLStage %d :~RS The user is new and has been asked to confirm their password     |\n",LOGIN_CONFIRM);
-  vwrite_user(user,"| ~FY~OLStage %d :~RS The user has entered the pre-login information prompt            |\n",LOGIN_PROMPT);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  write_user(user, ascii_tline);
+  write_user(user,"~CT| User login stages are as follows                                             |\n");
+  write_user(user, ascii_line);
+  vwrite_user(user,"~CT|~RS ~CYStage %d :~RS The user has logged onto the port and is entering their name       ~CT|\n",LOGIN_NAME);
+  vwrite_user(user,"~CT|~RS ~CYStage %d :~RS The user is entering their password for the first time             ~CT|\n",LOGIN_PASSWD);
+  vwrite_user(user,"~CT|~RS ~CYStage %d :~RS The user is new and has been asked to confirm their password       ~CT|\n",LOGIN_CONFIRM);
+  vwrite_user(user,"~CT|~RS ~CYStage %d :~RS The user has entered the pre-login information prompt              ~CT|\n",LOGIN_PROMPT);
+  write_user(user, ascii_bline);
   return;
   }
 if ((user->who_type==2 && type==0) || type!=0) {
-	write_user(user,"\n+----------------------------------------------------------------------------+\n");
+	write_user(user, ascii_tline);
 	write_user(user,center_string(78,0,NULL,"%sPrihlaseny juzri %s",(user->login)?"":"~FG",long_date(1)));
 	}
 switch (type) {
@@ -458,7 +457,7 @@ switch (type) {
    write_user(user,"~FTMeno            :Lev Line Ignall Vis Idle Mins Port Site/Service\n");
    break;
   }
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_line);
 for(u=user_first;u!=NULL;u=u->next) {
   if (u->type==CLONE_TYPE) continue;
   mins=(long)(time(0) - u->last_login)/60;
@@ -531,7 +530,7 @@ for(u=user_first;u!=NULL;u=u->next) {
   if ((strlen(word[1]) && strstr(text, word[1])) || !strlen(word[1]))
           write_user(user, text);
   }
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_line);
 switch (type) {
  case 2:
    sprintf(text," a ~OL~FG%d~RS login%s", logins, grm_num(7, logins));
@@ -551,7 +550,7 @@ switch (type) {
 				 total,PLTEXT_S(total),total-invis,invis));
    break;
  }
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_bline);
 }
 
 
@@ -622,6 +621,7 @@ for (rm=room_first;rm!=NULL;rm=rm->next) {
 /*** See review of conversation ***/
 void review(UR_OBJECT user)
 {
+	struct tm *tm_struct;
 	RM_OBJECT rm=user->room;
 	int i,line,cnt;
 
@@ -645,14 +645,15 @@ void review(UR_OBJECT user)
 	cnt=0;
 	for(i=0;i<REVIEW_LINES;++i) {
 		line=(rm->revline+i)%REVIEW_LINES;
-		if (rm->revbuff[line][0]) {
+		if (rm->revbuff[line].buff[0]) {
 			cnt++;
 			if (cnt==1) vwrite_user(user, "\n%s\n", center("~BB~FG*** Zaznam kecov pre tuto miestnost ***", 81));
-			write_user(user,rm->revbuff[line]); 
+			tm_struct=localtime(&(rm->revbuff[line].time));
+			vwrite_user(user, "%02d:%02d %s", tm_struct->tm_hour, tm_struct->tm_min, rm->revbuff[line].buff); 
 			}
 		}
 	if (!cnt) write_user(user, no_review_prompt);
-	else vwrite_user(user, "\n%s\n", center("~BB~FG*** Koniec ***", 81));
+	else vwrite_user(user, "\n%s\n", center(review_end, 81));
 }
 
 
@@ -662,27 +663,27 @@ void show_version(UR_OBJECT user)
 	int i;
 
 	set_crash();
-	write_user(user,".----------------------------------------------------------------------------.\n");
+	write_user(user, ascii_tline);
 	sprintf(text, "(C) %s", reg_sysinfo[SYSOPUNAME]);
-	vwrite_user(user,"| ~FT~OLStar talker verzia %-8.8s                           %20.20s~RS |\n", TVERSION, text);
-	vwrite_user(user,"| ~FT~OLLotos verzia %-8.8s                            (C) Pavol Hluchy, Maj 2002~RS |\n", OSSVERSION);
-	vwrite_user(user,"| ~FT~OLAmnuts version %-5s                 (C) Andrew Collington, September 1999~RS |\n", AMNUTSVER);
-	vwrite_user(user,"| NUTS version %5s                       (C) Neil Robertson, November 1996 |\n", NUTSVER);
+	vwrite_user(user,"~CT| Star talker verzia %-8.8s                             %20.20s ~CT|\n", TVERSION, text);
+	vwrite_user(user,"~CT| Lotos verzia %-8.8s                             (C) Pavol Hluchy, Maj 2002 |\n", OSSVERSION);
+	vwrite_user(user,"~CT| Amnuts version %-5s                   (C) Andrew Collington, September 1999 |\n", AMNUTSVER);
+	vwrite_user(user,"~CT|~RS NUTS version %5s                         (C) Neil Robertson, November 1996 ~CT|\n", NUTSVER);
 	if (user->level>=ARCH) {
-	write_user(user,"+----------------------------------------------------------------------------+\n");
-	vwrite_user(user,"| Total number of users    : ~OL%-4d~RS  Maximum online users     : ~OL%-3d~RS            |\n",amsys->user_count,amsys->max_users);
-	vwrite_user(user,"| Maximum smail copies     : ~OL%-3d~RS                                             |\n",MAX_COPIES);
-	vwrite_user(user,"| Personal rooms active    : ~OL%-3s~RS   Maximum user idle time   : ~OL%-3d~RS mins~RS       |\n",noyes2[amsys->personal_rooms],amsys->user_idle_time/60);
+	write_user(user, ascii_line);
+	vwrite_user(user,"~CT|~RS Total number of users    : ~OL%-4d~RS  Maximum online users     : ~OL%-3d~RS              ~CT|\n",amsys->user_count,amsys->max_users);
+	vwrite_user(user,"~CT|~RS Maximum smail copies     : ~OL%-3d~RS                                               ~CT|\n",MAX_COPIES);
+	vwrite_user(user,"~CT|~RS Personal rooms active    : ~OL%-3s~RS   Maximum user idle time   : ~OL%-3d~RS mins~RS         ~CT|\n",noyes2[amsys->personal_rooms],amsys->user_idle_time/60);
 #ifdef NETLINKS
-	write_user(user,"| Compiled netlinks        : ~OLANO~RS                                             |\n");
+	vwrite_user(user,"~CT|~RS Compiled netlinks        : ~OL%s~RS                                               ~CT|\n", noyes2[1]);
 #else
-	write_user(user,"| Compiled netlinks        : ~OLNIE~RS                                             |\n");
+	vwrite_user(user,"~CT|~RS Compiled netlinks        : ~OL%s~RS                                               ~CT|\n", noyes2[0]);
 #endif
-	write_user(user,"+----------------------------------------------------------------------------+\n");
+	write_user(user, ascii_line);
 	for (i=JAILED;i<=ROOT;i++)
-		vwrite_user(user,"| Number of users at level %-6s : ~OL%-4d~RS                                     |\n",user_level[i].alias,amsys->level_count[i]);
+		vwrite_user(user,"~CT|~RS Number of users at level %-6s : ~OL%-4d~RS                                       ~CT|\n",user_level[i].alias,amsys->level_count[i]);
 		}
-	write_user(user,"`----------------------------------------------------------------------------'\n");
+	write_user(user, ascii_bline);
 }
 
 
@@ -863,8 +864,8 @@ void show_ranks(UR_OBJECT user)
 		cnt[pcom->req_lev]++;
 		pcom=pcom->next;
 		}
-	write_user(user," ~OL~FTLevely na talkri~RS\n");
-	write_user(user,"+----------------------------------------------------------------------------+\n");
+	write_user(user, levels_on_talker);
+	write_user(user, ascii_line);
 	for (i=JAILED; i<=ROOT; i++) {
 		if (i!=user->level) {
 			ptr=cl[i];
@@ -878,7 +879,7 @@ void show_ranks(UR_OBJECT user)
 			ptr,user_level[i].alias,chr,chr,
 			user_level[i].name,chr,i,total+=cnt[i],cnt[i]);
 		}
-	write_user(user,"+----------------------------------------------------------------------------+\n\n");
+	write_user(user, ascii_line);
 }
 
 
@@ -928,7 +929,7 @@ if (u->room!=NULL)  {
 if (count>0) vwrite_user(user,"pocet pre teba neviditelnych wizardof : %d\n",count);
 if (!some_on) write_user(user,"Sorac, neni su tu wizardi ...\n");
 write_user(user,"\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_bline);
 }
 
 
@@ -947,21 +948,21 @@ void get_time(UR_OBJECT user)
 	hours=(secs%86400)/3600;
 	mins=(secs%3600)/60;
 	secs=secs%60;
-	write_user(user,"     ~OL~FTPresny cas~RS\n");
-	write_user(user,"+----------------------------------------------------------------------------+\n");
+	write_user(user, actual_time);
+	write_user(user, ascii_tline);
 	sprintf(temp,"%s, %d %s, %02d:%02d:%02d %d",day[twday],tmday,month[tmonth],thour,tmin,tsec,tyear);
-	vwrite_user(user,"| Aktualny systemovy cas     : ~OL%-45s~RS |\n",temp);
+	vwrite_user(user,"~CT|~RS Aktualny systemovy cas     : ~OL%-47s~RS ~CT|\n",temp);
 	if (user->level>=ARCH) {
-		vwrite_user(user,"| Start talkra               : ~OL%-45s~RS |\n",bstr);
+		vwrite_user(user,"~CT|~RS Start talkra               : ~OL%-47s~RS ~CT|\n",bstr);
 		if (syspp->reboot_time!=0) {
 			strcpy(rbstr, ctime(&syspp->reboot_time));
 			rbstr[strlen(rbstr)-1]='\0';
-			vwrite_user(user,"| Restart talkra             : ~OL%-45s~RS |\n",rbstr);
+			vwrite_user(user,"~CT|~RS Restart talkra             : ~OL%-47s~RS ~CT|\n",rbstr);
 			}
 		sprintf(temp,"%d d, %d h, %d min, %d s",days,hours,mins,secs);
-		vwrite_user(user,"| Uptime                     : ~OL%-45s~RS |\n",temp);
+		vwrite_user(user,"~CT|~RS Uptime                     : ~OL%-47s~RS ~CT|\n",temp);
 		}
-	write_user(user,"+----------------------------------------------------------------------------+\n\n");
+	write_user(user, ascii_bline);
 }
 
 
@@ -990,34 +991,36 @@ if (strstr(word[1],"*?")) {
   write_user(user,"You cannot have *? in your pattern.\n");
   return;
   }
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-sprintf(text,"| ~FT~OLUser grep for pattern:~RS ~OL%-51s~RS |\n",word[1]);
+write_user(user, ascii_tline);
+sprintf(text,"~CT| User grep for pattern:~RS ~OL%-53s~RS ~CT|\n",word[1]);
 write_user(user,text);
-write_user(user,"+----------------------------------------------------------------------------+\n");
-x=0; found=0; pat[0]='\0';
+write_user(user, ascii_line);
+x=0;
+found=0;
+pat[0]='\0';
 strcpy(pat,word[1]);
 strtolower(pat);
 for (entry=first_dir_entry;entry!=NULL;entry=entry->next) {
   strcpy(name,entry->name);
   name[0]=tolower(name[0]);
   if (pattern_match(name,pat)) {
-    if (!x) vwrite_user(user,"| %-*s  ~FT%-20s~RS   ",USER_NAME_LEN,entry->name,user_level[entry->level].name);
-    else vwrite_user(user,"   %-*s  ~FT%-20s~RS |\n",USER_NAME_LEN,entry->name,user_level[entry->level].name);
+    if (!x) vwrite_user(user,"~CT|~RS %-*s  ~FT%-21s~RS   ",USER_NAME_LEN,entry->name,user_level[entry->level].name);
+    else vwrite_user(user,"   %-*s  ~FT%-21s~RS ~CT|\n",USER_NAME_LEN,entry->name,user_level[entry->level].name);
     x=!x;
     ++found;
     }
   }
-if (x) write_user(user,"                                      |\n");
+if (x) write_user(user,"                                       ~CT|\n");
 if (!found) {
-  write_user(user,"|                                                                            |\n");
-  write_user(user,"| ~OL~FRNo users have that pattern~RS                                                 |\n");
-  write_user(user,"|                                                                            |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user,"~CT|                                                                              |\n");
+  write_user(user,"~CT| ~CRNo users have that pattern~RS                                                   ~CT|\n");
+  write_user(user,"~CT|                                                                              |\n");
+  write_user(user, ascii_bline);
   return;
   }
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_line);
 vwrite_user(user,"  ~OL%d~RS user%s had the pattern ~OL%s\n",found,PLTEXT_S(found),word[1]);
-write_user(user,"+----------------------------------------------------------------------------+\n\n");
+write_user(user, ascii_bline);
 }
 
 
@@ -1108,11 +1111,11 @@ void reload_gun(UR_OBJECT user)
 	RM_OBJECT rm;
 
 	set_crash();
-rm=get_room(default_shoot);
-if (rm==NULL) {
-  write_user(user,"Nemas kde strielat.\n");
-  return;
-  }
+	rm=get_room(default_shoot);
+	if (rm==NULL) {
+		write_user(user,"Nemas kde strielat.\n");
+		return;
+		}
 if (user->room!=rm) {
   vwrite_user(user,"Tu nemozes trielat. Chod do ruumy ~OL%s~RS.\n",rm->name);
   return;
@@ -1750,7 +1753,6 @@ void lynx(UR_OBJECT user, char *inpstr)
 			user->lynx=pid;
 		}
 }
-
 
 #endif /* __CT_GENERAL_C__ */
 

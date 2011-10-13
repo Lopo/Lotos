@@ -2,11 +2,10 @@
 /*
  * ct_msg.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_MSG_C__
@@ -77,9 +76,9 @@ if (!stage) {
   /* display all the reminders a user has set */
   cnt_total=0;
   if (!strcasecmp("all",word[1])) {
-    write_user(user,"+----------------------------------------------------------------------------+\n");
-    write_user(user,"| ~OL~FTAll your reminders~RS                                                         |\n");
-    write_user(user,"+----------------------------------------------------------------------------+\n\n");
+    write_user(user, ascii_tline);
+    write_user(user,"~CT| All your reminders                                                           |\n");
+    write_user(user, ascii_line);
     for (i=0;i<MAX_REMINDERS;i++) {
       /* no msg set, then no reminder */
       if (!user->reminder[i].msg[0]) continue;
@@ -88,7 +87,7 @@ if (!stage) {
       vwrite_user(user,"    %s\n",user->reminder[i].msg);
       }
     if (!cnt_total) write_user(user,"You do not have reminders set.\n");
-    write_user(user,"\n+----------------------------------------------------------------------------+\n\n");
+    write_user(user, ascii_bline);
     return;
     }
   /* display all the reminders a user has for today */
@@ -97,9 +96,9 @@ if (!stage) {
     m=tmonth+1;
     y=tyear;
     cnt_today=0;
-    write_user(user,"+----------------------------------------------------------------------------+\n");
-    write_user(user,"| ~OL~FTYour reminders for today are~RS                                               |\n");
-    write_user(user,"+----------------------------------------------------------------------------+\n\n");
+    write_user(user, ascii_tline);
+    write_user(user,"~CT| Your reminders for today are                                                 |\n");
+    write_user(user, ascii_line);
     for (i=0,j=0;i<MAX_REMINDERS;i++) {
       if (user->reminder[i].day==d && user->reminder[i].month==m && user->reminder[i].year==y) {
 	vwrite_user(user,"~OL%2d)~RS %s\n",++j,user->reminder[i].msg);
@@ -107,7 +106,7 @@ if (!stage) {
         }
       }
     if (!cnt_today) write_user(user,"You do not have reminders set for today.\n");
-    write_user(user,"\n+----------------------------------------------------------------------------+\n\n");
+    write_user(user, ascii_bline);
     return;
     }
   /* allow a user to set a reminder */
@@ -205,10 +204,10 @@ if (!stage) {
       return;
       }
     }
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_line);
   sprintf(temp, "Your reminders for %d%s %s, %d", d, ordinal_text(d), month[m-1], y);
-  vwrite_user(user,"| ~OL~FT%-74.74s~RS |\n", temp);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  vwrite_user(user,"~CT| %-76.76s |\n", temp);
+  write_user(user, ascii_line);
   cnt_today=0;
   for (i=0;i<MAX_REMINDERS;i++) {
     if (user->reminder[i].day==d && user->reminder[i].month==m && user->reminder[i].year==y) {
@@ -217,7 +216,7 @@ if (!stage) {
       }
     }
   if (!cnt_today) vwrite_user(user,"You have no reminders set for %d%s %s, %d\n",d,ordinal_text(d),month[m-1],y);
-  write_user(user,"\n+----------------------------------------------------------------------------+\n\n");
+  write_user(user, ascii_bline);
   return;
   }
 

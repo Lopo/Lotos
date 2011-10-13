@@ -2,11 +2,10 @@
 /*
  * ct_user.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_USER_C__
@@ -95,7 +94,7 @@ void status(UR_OBJECT user)
 		if (!(u=get_user(word[1]))) {
 			if ((u=create_user())==NULL) {
 				vwrite_user(user, "%s: unable to create temporary user session.\n",syserror);
-				write_syslog(ERRLOG,0,"Unable to create temporary user session in status().\n");
+				write_syslog(ERRLOG,1,"Unable to create temporary user session in status().\n");
 				return;
 				}
 			strcpy(u->name,word[1]);
@@ -122,25 +121,21 @@ void status(UR_OBJECT user)
 	write_user(user, "\n");
 	vwrite_user(user, "Status pre %s~RS %s\n",
 		u->recap, u->desc);
-	if (on) write_user(user, "~OL.-- ~FTSystem info~FW ----~FY(on line)~FW----------------------------------- ~FTUser info ~FW----.\n");
-	else write_user(user, "~OL.-- ~FTSystem info~FW ----~FB(off line)~FW---------------------------------- ~FTUser info ~FW----.\n");
+	if (on) write_user(user, "~CT.-- ~FRSystem info~FT ----~FY(on line)~FT----------------------------------- ~FRUser info ~FT----.\n");
+	else write_user(user, "~CT.-- ~FRSystem info~FT ----~FB(off line)~FT---------------------------------- ~FRUser info ~FT----.\n");
 	if (on) {
 		sprintf(text, "site~RS       : %s:%d", u->site, u->site_port);
-		vwrite_user(user, "~OL|~RS ~FG%-79.79s ~OL|\n", text);
+		vwrite_user(user, "~CT|~RS ~FG%-79.79s ~CT|\n", text);
 		}
-	vwrite_user(user, "~OL|~RS ~FGlast site~RS  : %-46.46s~OL|~RS ~FGlevel~RS %s         ~OL|\n",
-		u->last_site, user_level[u->level].alias);
+	vwrite_user(user, "~CT|~RS ~FGlast site~RS  : %-46.46s~CT|~RS ~FGlevel~RS %s         ~CT|\n", u->last_site, user_level[u->level].alias);
 	days=u->total_login/86400;
 	hours=(u->total_login%86400)/3600;
 	mins=(u->total_login%3600)/60;
 	hs=(int)(time(0)-u->last_login)/60;
 	sprintf(text, "%dd %dh %dm", days, hours, mins);
-	if (on)	vwrite_user(user, "~OL|~RS ~FGtotal login~RS: %-20.20s                          ~OL|~RS ~FGonline~RS %-5d min~OL|\n",
-		text, hs);
-	else vwrite_user(user, "~OL|~RS ~FGtotal login~RS: %-20.20s                          ~OL|~RS                 ~OL|\n",
-		text);
-	vwrite_user(user, "~OL|~RS ~FGhomepage~RS   : %-46.46s~OL|~RS ~FGgender~RS %-8.8s ~OL|\n",
-		(u->homepage[0]!='#')?u->homepage:"nenastavena", sex[u->gender]);
+	if (on)	vwrite_user(user, "~CT|~RS ~FGtotal login~RS: %-25.25s                     ~CT|~RS ~FGonline~RS %-5d min~CT|\n", text, hs);
+	else vwrite_user(user, "~CT|~RS ~FGtotal login~RS: %-25.25s                     ~CT|                 |\n", text);
+	vwrite_user(user, "~CT|~RS ~FGhomepage~RS   : %-46.46s~CT|~RS ~FGgender~RS %-8.8s ~CT|\n", (u->homepage[0]!='#')?u->homepage:"nenastavena", sex[u->gender]);
 	if (!strcmp(u->email, "#UNSET")) sprintf(text, "~FR~OLnenastaveny~RS");
 	else {
 		sprintf(text, "%s", u->email);
@@ -151,18 +146,16 @@ void status(UR_OBJECT user)
 	    || (user->level>=ARCH && user->level>u->level)
 	    ) {
 		hs=colour_com_count(text);
-	vwrite_user(user, "~OL|~RS ~FGe-mail~RS     : %-*.*s ~OL|\n", 63+hs*3, 63+hs*3, text);
+	vwrite_user(user, "~CT|~RS ~FGe-mail~RS     : %-*.*s ~CT|\n", 63+hs*3, 63+hs*3, text);
 	}
 
 	if (u==user || user->level>=GOD) {
-		write_user(user, "~OL|-- ~FTPrivat info~FW ---------------------------------------------------------------|\n");
+		write_user(user, "~CT|-- ~FRPrivat info~FT ---------------------------------------------------------------|\n");
 		newmail=mail_sizes(u->name, 1);
 		if (newmail) sprintf(nm, "%d", newmail);
-		else sprintf(nm, "NIE");
-		write_user(user, "~OL|~RS ~FGNewMail monitor FWD CharEcho wrap Pueblo riadky farby AudioPrompt xterm blind~RS~OL|\n");
-		vwrite_user(user, "~OL|~RS   %-3.3s     %-3.3s   %-3.3s   %-3.3s    %-3.3s   %-3.3s     %-2.2d     %-1.1d       %-3.3s      %-3.3s   %-3.3s ~OL|\n",
-			nm, offon[u->monitor], noyes2[u->autofwd], noyes2[u->terminal.checho],
-			noyes2[u->terminal.wrap],
+		else sprintf(nm, noyes2[0]);
+		write_user(user, "~CT|~RS ~FGNewMail monitor FWD CharEcho wrap Pueblo riadky farby AudioPrompt xterm blind~CT|\n");
+		vwrite_user(user, "~CT|~RS   %-3.3s     %-3.3s   %-3.3s   %-3.3s    %-3.3s   %-3.3s     %-2.2d     %-1.1d       %-3.3s      %-3.3s   %-3.3s ~CT|\n", nm, offon[u->monitor], noyes2[u->autofwd], noyes2[u->terminal.checho], noyes2[u->terminal.wrap],
 #ifdef PUEBLO
 			noyes2[u->pueblo],
 #else
@@ -174,47 +167,37 @@ void status(UR_OBJECT user)
 #else
 			0,
 #endif
-			offon[u->terminal.xterm],
-			offon[u->terminal.blind]);
-		sprintf(text, "Killed %d people, and died %d times.  Energy : %d, Bullets : %d",
-			u->kills, u->deaths, u->hps, u->bullets);
-		vwrite_user(user,"~OL|~RS %-76.76s ~OL|\n", text);
+			offon[u->terminal.xterm], offon[u->terminal.blind]);
+		sprintf(text, "Killed %d people, and died %d times.  Energy : %d, Bullets : %d", u->kills, u->deaths, u->hps, u->bullets);
+		vwrite_user(user,"~CT|~RS %-76.76s ~CT|\n", text);
 		}
 
 	if (user->level>=GOD || u==user) {
-		write_user(user, "~OL|-- ~FTPhrases~FW -------------------------------------------------------------------|\n");
-		vwrite_user(user, "~OL|~RS ~FGin~RS : %-71.71s~RS ~OL|\n", u->in_phrase);
-		vwrite_user(user, "~OL|~RS ~FGout~RS: %-71.71s~RS ~OL|\n", u->out_phrase);
+		write_user(user, "~CT|-- ~FRPhrases~FT -------------------------------------------------------------------|\n");
+		vwrite_user(user, "~CT|~RS ~FGin~RS : %-71.71s~RS ~CT|\n", u->in_phrase);
+		vwrite_user(user, "~CT|~RS ~FGout~RS: %-71.71s~RS ~CT|\n", u->out_phrase);
 		}
 
-	write_user(user, "~OL|-- ~FTIgnore~FW --------------------------------------------------------------------|\n");
-	write_user(user, "~OL|~RS   ~FGAll    Shout    Tell    Greet    Fun    Wiz    Pic    Beep    Transport~RS    ~OL|\n");
-	vwrite_user(user, "~OL|~RS   %-3.3s     %-3.3s     %-3.3s      %-3.3s     %-3.3s    %-3.3s    %-3.3s    %-3.3s       %-3.3s        ~OL|\n",
+	write_user(user, "~CT|-- ~FRIgnore~FT --------------------------------------------------------------------|\n");
+	write_user(user, "~CT|~RS   ~FGAll    Shout    Tell    Greet    Fun    Wiz    Pic    Beep    Transport~RS    ~CT|\n");
+	vwrite_user(user, "~CT|~RS   %-3.3s     %-3.3s     %-3.3s      %-3.3s     %-3.3s    %-3.3s    %-3.3s    %-3.3s       %-3.3s        ~CT|\n",
 		noyes2[u->ignore.all], noyes2[u->ignore.shouts], noyes2[u->ignore.tells],
 		noyes2[u->ignore.greets], noyes2[u->ignore.funs], noyes2[u->ignore.wiz],
 		noyes2[u->ignore.pics], noyes2[u->ignore.beeps], noyes2[u->ignore.transp]
 		);
 
 	if (user->level>=WIZ) {
-		write_user(user, "~OL|-- ~FTWiz info~FW ------------------------------------------------------------------|\n");
-		vwrite_user(user, "~OL|~RS ~FGICQ~RS     : %-10.10s       ~FGvek~RS     : %-3d      ~FGtot. logins~RS: %-5d      ~FGmoneys ~FW~OL|\n",
-			(u->icq[0]!='#')?u->icq:"unset", u->age, u->logons);
-		vwrite_user(user, "~OL|~RS ~FGrestrict~RS: %-14.14s   ~FGbcounter~RS: %-6d   ~FGtcounter~RS   : %-5d   %-4d/%-4d ~OL|\n",
-			u->restrict, u->bcount, u->tcount, u->bank, u->money);
+		write_user(user, "~CT|-- ~FRWiz info~FT ------------------------------------------------------------------|\n");
+		vwrite_user(user, "~CT|~RS ~FGICQ~RS     : %-10.10s       ~FGvek~RS     : %-3d      ~FGtot. logins~RS: %-5d      ~FGmoneys ~CT|\n", (u->icq[0]!='#')?u->icq:"unset", u->age, u->logons);
+		vwrite_user(user, "~CT|~RS ~FGrestrict~RS: %-14.14s   ~FGbcounter~RS: %-6d   ~FGtcounter~RS   : %-5d   %-4d/%-4d ~CT|\n", u->restrict, u->bcount, u->tcount, u->bank, u->money);
 		strcpy(text, ctime((time_t *)&u->t_expire));
 		if ((pp=strchr(text, '\n'))) pp[0]='\0';
-		vwrite_user(user, "~OL|~RS ~FGexpire~RS  : %-3.3s  o %-26.26s   ~FGverified~RS   : %-3.3s               ~OL|\n",
-			noyes2[u->expire], text, noyes2[u->mail_verified]);
+		vwrite_user(user, "~OL|~RS ~FGexpire~RS  : %-3.3s  o %-26.26s   ~FGverified~RS   : %-3.3s               ~OL|\n", noyes2[u->expire], text, noyes2[u->mail_verified]);
 		}
 
-	write_user(user, "~OL|-- ~FTOther info~FW ----------------------------------------------------------------|\n");
-	vwrite_user(user, "~OL|~RS   ~FGJailLev~RS: %-3.3s      ~FGUnJailLev~RS: %-3.3s      ~FGUnMuzzLev~RS: %-3.3s      ~FGprilep~RS %-3.3s       ~OL|\n",
-		(u->arrestby)?user_level[u->arrestby].alias:"not",
-		user_level[u->unarrest].alias,
-		(u->muzzled)?user_level[u->muzzled].alias:"not",
-		noyes2[(u->lroom==2)]
-		);
-	write_user(user, "~OL`------------------------------------------------------------------------------'\n");
+	write_user(user, "~CT|-- ~FROstatne info~FT --------------------------------------------------------------|\n");
+	vwrite_user(user, "~CT|~RS   ~FGJailLev~RS: %-3.3s      ~FGUnJailLev~RS: %-3.3s      ~FGUnMuzzLev~RS: %-3.3s      ~FGprilep~RS %-3.3s       ~CT|\n", (u->arrestby)?user_level[u->arrestby].alias:"not", user_level[u->unarrest].alias, (u->muzzled)?user_level[u->muzzled].alias:"not", noyes2[(u->lroom==2)]);
+	write_user(user, ascii_bline);
 
 	if (!on) {
 		destruct_user(u);
@@ -230,22 +213,22 @@ void enter_profile(UR_OBJECT user, int done_editing)
 	char *c,fname[FNAME_LEN];
 
 	set_crash();
-if (!done_editing) {
-  write_user(user, profile_edit_header);
-  user->misc_op=5;
-  editor(user,NULL);
-  return;
-  }
-sprintf(fname,"%s/%s.P", USERPROFILES,user->name);
-if (!(fp=fopen(fname,"w"))) {
-  vwrite_user(user,"%s: couldn't save your profile.\n",syserror);
-  write_syslog(ERRLOG,1,"Couldn't open file %s to write in enter_profile().\n",fname);
-  return;
-  }
-c=user->malloc_start;
-while (c!=user->malloc_end) putc(*c++,fp);
-fclose(fp);
-write_user(user,"Profile stored.\n");
+	if (!done_editing) {
+		write_user(user, profile_edit_header);
+		user->misc_op=5;
+		editor(user,NULL);
+		return;
+		}
+	sprintf(fname,"%s/%s.P", USERPROFILES,user->name);
+	if (!(fp=fopen(fname,"w"))) {
+		vwrite_user(user,"%s: couldn't save your profile.\n",syserror);
+		write_syslog(ERRLOG,1,"Couldn't open file %s to write in enter_profile().\n",fname);
+		return;
+		}
+	c=user->malloc_start;
+	while (c!=user->malloc_end) putc(*c++,fp);
+	fclose(fp);
+	write_user(user,"Profile stored.\n");
 }
 
 
@@ -292,7 +275,7 @@ void examine(UR_OBJECT user)
 	prf=strncmp("-noprofile", word[2], strlen(word[2]));
 	if (word_count<3) prf=1;
 
-	write_user(user,"\n+----------------------------------------------------------------------------+\n");
+	write_user(user, ascii_tline);
 	sprintf(text2,"%s~RS %s",u->recap,u->desc);
 	cnt=colour_com_count(text2);
 	vwrite_user(user,"Name   : %-*.*s~RS Level : %s\n",45+cnt*3,45+cnt*3,text2,user_level[u->level].name);
@@ -303,7 +286,7 @@ void examine(UR_OBJECT user)
 		u->last_login_len/3600,(u->last_login_len%3600)/60,days,PLTEXT_S(days),hours,PLTEXT_S(hours),mins,PLTEXT_S(mins));
 		if (user->level>=WIZ) vwrite_user(user,"Last site  : %s\n",u->last_site);
 		if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
-		write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
+		write_user(user,"~CT+----- ~FBProfile ~CT--------------------------------------------------------------+\n");
 		if (prf) {
 			sprintf(fname,"%s/%s.P", USERPROFILES,u->name);
 			if (!(fp=fopen(fname,"r"))) write_user(user, no_profile_prompt);
@@ -327,7 +310,7 @@ void examine(UR_OBJECT user)
 				}
 			}
 		else write_user(user, "Preskakujem profil\n");
-		write_user(user,"+----------------------------------------------------------------------------+\n\n");
+		write_user(user, ascii_bline);
 		destruct_user(u);
 		destructed=0;
 		return;
@@ -351,13 +334,13 @@ void examine(UR_OBJECT user)
 #endif
 		}
 	if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
-	write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
+	write_user(user,"~CT+----- ~FBProfile ~CT--------------------------------------------------------------+\n");
 	if (prf) {
 		sprintf(fname,"%s/%s.P", USERPROFILES,u->name);
 		if (!(fp=fopen(fname,"r"))) write_user(user, no_profile_prompt);
 		else {
 			fgets(line, 81, fp);
-			while(!feof(fp)) {
+			while (!feof(fp)) {
 				replace_string(line, "{name}", user->name);
 				replace_string(line, "{nameg}", user->nameg);
 				replace_string(line, "{named}", user->named);
@@ -375,7 +358,7 @@ void examine(UR_OBJECT user)
 			}
 		}
 	else write_user(user, "Preskakujem profil\n");
-	write_user(user,"+----------------------------------------------------------------------------+\n\n");
+	write_user(user, ascii_bline);
 	if (user->level<=u->level && user!=u)
 		vwrite_user(u, "%s si ta oscannoval%s\n", user->name, grm_gnd(4, user->gender));
 }
@@ -750,36 +733,36 @@ if (word_count==2) {
   days=timelen/86400;
   hours=(timelen%86400)/3600;
   mins=(timelen%3600)/60;
-  write_user(user,"\n+----------------------------------------------------------------------------+\n");
-  vwrite_user(user,"| ~FT~OLLast login details of %-52s~RS |\n",u->name);
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  vwrite_user(user,"~CT| Last login details of %-54s |\n",u->name);
+  write_user(user, ascii_line);
   strcpy(tmp,ctime((time_t *)&(u->last_login)));
   tmp[strlen(tmp)-1]='\0';
-  vwrite_user(user,"| Was last logged in %-55s |\n",tmp);
+  vwrite_user(user,"~CT|~RS Was last logged in %-57s ~CT|\n",tmp);
   sprintf(tmp,"Which was %d day%s, %d hour%s and %d minute%s ago",days,PLTEXT_S(days),hours,PLTEXT_S(hours),mins,PLTEXT_S(mins));
-  vwrite_user(user,"| %-74s |\n",tmp);
+  vwrite_user(user,"~CT|~RS %-76s ~CT|\n",tmp);
   sprintf(tmp,"Was on for %d hour%s and %d minute%s",
 	  u->last_login_len/3600,PLTEXT_S(u->last_login_len/3600),(u->last_login_len%3600)/60,PLTEXT_S((u->last_login_len%3600)/60));
-  vwrite_user(user,"| %-74s |\n",tmp);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  vwrite_user(user,"~CT|~RS %-76s ~CT|\n",tmp);
+  write_user(user, ascii_bline);
   destruct_user(u);
   destructed=0;
   return;
   } /* end if */
 /* if checking all of the last users to log on */
 /* get each line of the logins and check if that user is still on & print out the result. */
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-write_user(user,"| ~FT~OLThe last users to have logged in~RS                                           |\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_tline);
+write_user(user,"~CT| The last users to have logged in                                             |\n");
+write_user(user, ascii_line);
 for (i=0;i<LASTLOGON_NUM;i++) {
   if (!last_login_info[i].name[0]) continue;
   if (last_login_info[i].on && (!(u=get_user(last_login_info[i].name))->vis && user->level<WIZ)) continue;
   sprintf(line,"%s %s",last_login_info[i].name,last_login_info[i].time);
-  if (last_login_info[i].on) sprintf(text,"| %-67s ~OL~FYONLINE~RS |\n",line);
-  else sprintf(text,"| %-74s |\n",line);
+  if (last_login_info[i].on) sprintf(text,"~CT|~RS %-69s ~OL~FYONLINE~RS ~CT|\n",line);
+  else sprintf(text,"~CT|~RS %-76s ~CT|\n",line);
   write_user(user,text);
   } /* end for */
-write_user(user,"+----------------------------------------------------------------------------+\n\n");
+write_user(user, ascii_bline);
 return;
 }
 
@@ -951,6 +934,7 @@ void set_follow(UR_OBJECT user)
 	if (user->room!=ur->room) {
 		write_user(user, "Najpr musite byt v jedne ruume !\n");
 		user->follow[0]='\0';
+		return;
 		}
 	vwrite_user(user, "Odteraz sledujes %s\n", ur->nameg);
 	strcpy(user->follow, ur->name);

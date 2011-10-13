@@ -1,3 +1,12 @@
+30.1.2003 v1.2.3
+----------------
+crash_action - pridane volby RESTART a SHUTDOWN
+.system - upravene niektore informacie - ziskavanie aj vypis
+doplnene zaznamenavanie casu do vsetkych revbuff-ov
+moznost uzamknutia topic-u miestnosti na svoj level
+novy prikaz .ping - dufam ze kazdy pozna
+pridany textfile - machelp
+
 13.5.2002 v1.2.2
 ----------------
 prikaz .icqpage - odosle kratku ICQ spravu juzrovi alebo priamo na zadane ICQ#

@@ -2,11 +2,10 @@
 /*
  * ct_social.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_SOCIAL_H__
@@ -60,9 +59,14 @@ extern char *wizshout_style, *wizshout_style_lev;
 extern char *cbuff_prompt;
 extern char *tell_review_header, *no_tell_review_prompt;
 extern char *shout_review_header, *no_shout_review_prompt;
+extern char *review_end;
 extern char *no_wizs_logged;
 extern char *muzzled_cannot;
-extern char *room_topic_clrd, *ctopic_in_room;
+extern char *room_topic_clrd, *ctopic_in_room, *room_topic_unlocked;
+extern char *room_topic_locked, *room_topic_hasbeenset;
+extern char *topic_prompt, *notopic_prompt, *topic_toolong, *topic_hasbeenset;
+extern char *topic_locked, *topic_unlocked, *topic_cantlock, *topic_locknoexist;
+extern char *ascii_tline, *ascii_line, *ascii_bline;
 
 #endif /* __CT_SOCIAL_H__ */
 

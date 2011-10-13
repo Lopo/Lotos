@@ -2,11 +2,10 @@
 /*
  * ct_ignore.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_IGNORE_C__
@@ -47,25 +46,17 @@ void toggle_ignall(UR_OBJECT user)
 void show_ignlist(UR_OBJECT user)
 {
 	set_crash();
-write_user(user,"+----------------------------------------------------------------------------+\n");
-if (user->ignore.all) {
-  write_user(user,"| Momentalne ignorujes ~OL~FRvsetko~RS                                                |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
-  return;
-  }
-vwrite_user(user,"| Ignoring shouts   : ~OL%-3s~RS    Ignoring tells  : ~OL%-3s~RS    Ignoring logons : ~OL%-3s~RS  |\n",
-	noyes2[user->ignore.shouts],noyes2[user->ignore.tells],noyes2[user->ignore.logons]);
-vwrite_user(user,"| Ignoring pictures : ~OL%-3s~RS    Ignoring greets : ~OL%-3s~RS    Ignoring beeps  : ~OL%-3s~RS  |\n",
-	noyes2[user->ignore.pics],noyes2[user->ignore.greets],noyes2[user->ignore.beeps]);
-if (user->level>=WIZ) {
-	vwrite_user(user,"| Ignoring wiztells : ~OL%-3s~RS    Ign. transports : ~OL%-3s~RS    Ignoring funs   : ~OL%-3s~RS  |\n",
-  		noyes2[user->ignore.wiz], noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
-  }
-else {
-	vwrite_user(user,"| Ign. transports   : ~OL%-3s~RS    Ignoring funs   : ~OL%-3s~RS                           |\n",
-  		noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
-  }
-write_user(user,"+----------------------------------------------------------------------------+\n\n");
+	write_user(user, ascii_tline);
+	if (user->ignore.all) {
+		write_user(user,"~CT|~RS Momentalne ignorujes ~OL~FRvsetko~RS                                                  ~CT|\n");
+		write_user(user, ascii_bline);
+		return;
+		}
+	vwrite_user(user,"~CT|~RS Ignoring shouts   : ~OL%-3s~RS     Ignoring tells  : ~OL%-3s~RS     Ignoring logons : ~OL%-3s~RS  ~CT|\n", noyes2[user->ignore.shouts],noyes2[user->ignore.tells],noyes2[user->ignore.logons]);
+	vwrite_user(user,"~CT|~RS Ignoring pictures : ~OL%-3s~RS     Ignoring greets : ~OL%-3s~RS     Ignoring beeps  : ~OL%-3s~RS  ~CT|\n", noyes2[user->ignore.pics],noyes2[user->ignore.greets],noyes2[user->ignore.beeps]);
+	if (user->level>=WIZ) vwrite_user(user,"~CT|~RS Ignoring wiztells : ~OL%-3s~RS     Ign. transports : ~OL%-3s~RS     Ignoring funs   : ~OL%-3s~RS  ~CT|\n", noyes2[user->ignore.wiz], noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
+	else vwrite_user(user,"~CT|~RS Ign. transports   : ~OL%-3s~RS     Ignoring funs   : ~OL%-3s~RS                            ~CT|\n", noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
+write_user(user, ascii_bline);
 }
 
 

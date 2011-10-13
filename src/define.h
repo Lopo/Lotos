@@ -2,11 +2,10 @@
 /*
  * define.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __DEFINE_H__
@@ -16,7 +15,7 @@
    ostatne musia byt nezmenene */
 
 #define TVERSION "1.0.0"
-#define OSSVERSION "1.2.2"
+#define OSSVERSION "1.2.3"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
 #define USERVER "0.12"
@@ -25,7 +24,7 @@
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/home/lotos/lotos122"
+#define ROOTDIR "/home/lotos/lotos123"
 #define DATAFILES ROOTDIR"/datafiles"
 #define CONFFILES DATAFILES"/conffiles"
 #define MAPFILES DATAFILES"/mapfiles"
@@ -253,7 +252,6 @@
 #define BIT_TEST(arg,pos) BIT_BOOL((arg) & (1L << (pos)))
 #define BIT_FLIP(arg,pos) ((arg) ^ (1L << (pos)))
 
-
 /* attempt to stop freezing time.  Thanks to Arny ('Paris' code creator)
    and Cygnus ('Ncohafmuta' code creator) for this */
 #if !defined(__GLIBC__) || (__GLIBC__ < 2)
@@ -406,6 +404,8 @@
 #else
 #	define set_crash() ((void)0)
 #endif //DEBUG
+
+#define PINGINTERVAL 10
 
 #endif /* __DEFINE_H__ */
 

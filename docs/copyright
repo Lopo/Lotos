@@ -1,21 +1,21 @@
 +------------------------------------------------------------------------------+
      COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT
-                  Copyright informacie pre LOTOS 1.2.2
+                  Copyright informacie pre Lotos 1.2.3
 +------------------------------------------------------------------------------+
-Tento dokument obsahuje copyright informacie pre LOTOS 1.2.2 a dalsie systemy
+Tento dokument obsahuje copyright informacie pre Lotos 1.2.3 a dalsie systemy
 pouzite pri jeho tvorbe.
 
-Copyright pre LOTOS
+Copyright pre Lotos
 ~~~~~~~~~~~~~~~~~~~
-Lotos je distribuovany ako freeware. Copyright sa vztahuje na vsetky subory
+Lotos je volny na nekomercne pouzitie. Copyright sa vztahuje na vsetky subory
 okrem nasledovnych: ASCII obrazky v datafiles/pictfiles, fonty
 v datafiles/fonts a originalnu dokumentaciu k Amnuts, NUTS a dalsim pouzitym
-systemom podla ich copyrightov.
+systemom podla ich vlastnych copyrightov.
 Nie je povolene dalej distribuovat alebo akokolvek pouzivat Lotos za ucelom
 akehokolvek zisku z toho plynuceho bez mojho vyslovneho suhlasu.
 Je dovolene modifikovat Lotos a dalej ho distribuovat. Musi byt ale v prikaze
 `.version' a vo version informacii pri prihlasovani jasne uvedene ze je to
-vytvorene z Lotos a nie je to 100%-ny cisty Lotos. Dalej musia byt zachovane
+vytvorene z Lotos-a a nie je to 100%-ny cisty Lotos. Dalej musia byt zachovane
 credits o Amnuts, NUTS a Lotos zobrazovane v `.help credits'. K tomu musia byt
 zachovane hlavicky na vrchu kazdeho zdrojoveho suboru obsahujuce informacie
 o Lotos-e.
@@ -26,7 +26,7 @@ Ak mate problemy s touto copyright licenciou, tak nepouzivajte Lotos.
 Pripadne kontaktujte cez lotos@losys.sk.
 
 Pavol Hluchy
-Maj, 2002
+Januar, 2003
 
 
 Copyright for Amnuts code
@@ -222,4 +222,3 @@ to be able to keep up the development of this.
 
 8... Current Copies Of This Agreement May Be Found On Our Website At:
      http://www.moesoft.8m.com.
-

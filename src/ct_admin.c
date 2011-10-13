@@ -2,11 +2,10 @@
 /*
  * ct_admin.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_ADMIN_C__
@@ -22,6 +21,7 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 #include <sys/socket.h>
+#include <malloc.h>
 
 #include "define.h"
 #include "prototypes.h"
@@ -856,27 +856,26 @@ destructed=0;
 void logging(UR_OBJECT user)
 {
 	char temp[ARR_SIZE];
-	int cnt;
+	int cnt=0;
 
 	set_crash();
-if (word_count<2) {
-  write_usage(user,"%s -l/-s/-r/-n/-e/-on/-off", command_table[LOGGING].name);
-  return;
-  }
-cnt=0;
-strtolower(word[1]);
+	if (word_count<2) {
+		write_usage(user,"%s -l/-s/-r/-n/-e/-on/-off", command_table[LOGGING].name);
+		return;
+		}
+	strtolower(word[1]);
 /* deal with listing the log status first */
 if (!strcmp(word[1],"-l")) {
-  write_user(user,"\n+----------------------------------------------------------------------------+\n");
-  write_user(user,"| ~OL~FTSystem log status~RS                                                          |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  write_user(user,"~CT| System log status~RS                                                            ~CT|\n");
+  write_user(user, ascii_line);
 #ifdef NETLINKS
   sprintf(temp,"General system log : ~OL%s~RS   Account request logs : ~OL%s~RS   Netlinks log : ~OL%s~RS", (BIT_TEST(amsys->logging,SYSLOG))?"ON ":"OFF",(BIT_TEST(amsys->logging,REQLOG))?"ON ":"OFF",(BIT_TEST(amsys->logging,NETLOG))?"ON ":"OFF");
 #else
   sprintf(temp,"General system log : ~OL%s~RS   Account request logs : ~OL%s~RS", (BIT_TEST(amsys->logging,SYSLOG))?"ON ":"OFF",(BIT_TEST(amsys->logging,REQLOG))?"ON ":"OFF");
 #endif
   cnt=colour_com_count(temp);
-  vwrite_user(user,"| %-*s |\n",74+cnt*3,temp);
+  vwrite_user(user,"~CT|~RS %-*s   ~CT|\n",74+cnt*3,temp);
 #ifdef DEBUG
   sprintf(temp,"Debug log          : ~OL%s~RS   Error log            : ~OL%s~RS",
 		(BIT_TEST(amsys->logging, DEBLOG))?"ON ":"OFF", (BIT_TEST(amsys->logging, ERRLOG))?"ON ":"OFF");
@@ -885,8 +884,8 @@ if (!strcmp(word[1],"-l")) {
 		(BIT_TEST(amsys->logging, ERRLOG))?"ON ":"OFF");
 #endif
   cnt=colour_com_count(temp);
-  vwrite_user(user,"| %-*s |\n", 74+cnt*3, temp);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  vwrite_user(user,"~CT|~RS %-*s   ~CT|\n", 74+cnt*3, temp);
+  write_user(user, ascii_bline);
   return;
   }
 /* (un)set syslog bit */
@@ -1091,19 +1090,20 @@ void system_details(UR_OBJECT user)
 #endif
 	RM_OBJECT rm;
 	UR_OBJECT u;
-	PL_OBJECT plugin;
-	CM_OBJECT plcmd;
 	char bstr[40],min_login[5];
-	char *ca[]={ "NONE  ","IGNORE","REBOOT" };
-	char *rip[]={"OFF","AUTO","MANUAL"};
+	char *ca[]={"NONE    ", "IGNORE  ", "REBOOT  ", "RESTART ", "SHUTDOWN"};
+	char *rip[]={"OFF", "AUTO", "MANUAL"};
 	int days,hours,mins,secs;
 	int netlinks,live,inc,outg;
-	int rms,inlinks,num_clones,mem,size;
+	int rms,inlinks,num_clones,mem=0;
+	struct mallinfo mi;
 	
 	set_crash();
-	write_user(user,"\n+----------------------------------------------------------------------------+\n");
+	mi=mallinfo();
+	mem=mi.arena;
+	write_user(user, ascii_tline);
 	vwrite_user(user,"~OL~FTSystem details for %s~RS v%s (Lotos version %s)\n", reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
-	write_user(user,"+----------------------------------------------------------------------------+\n");
+	write_user(user, ascii_line);
 
 /* Get some values */
 strcpy(bstr,ctime(&amsys->boot_time));
@@ -1113,38 +1113,28 @@ hours=(secs%86400)/3600;
 mins=(secs%3600)/60;
 secs=secs%60;
 num_clones=0;
-mem=0;
-size=sizeof(struct user_struct);
-for(u=user_first;u!=NULL;u=u->next) {
+for (u=user_first; u!=NULL; u=u->next)
   if (u->type==CLONE_TYPE) num_clones++;
-  mem+=size;
-  }
 rms=0;  
 inlinks=0;
-size=sizeof(struct room_struct);
-for(rm=room_first;rm!=NULL;rm=rm->next) {
+for (rm=room_first; rm!=NULL; rm=rm->next) {
 #ifdef NETLINKS
   if (rm->inlink) ++inlinks;
 #endif
-  ++rms;  mem+=size;
+  ++rms;
   }
 netlinks=0;  
 live=0;
 inc=0; 
 outg=0;
 #ifdef NETLINKS
-  size=sizeof(struct netlink_struct);
-  for(nl=nl_first;nl!=NULL;nl=nl->next) {
+  for (nl=nl_first; nl!=NULL; nl=nl->next) {
     if (nl->type!=UNCONNECTED && nl->stage==UP) live++;
     if (nl->type==INCOMING) ++inc;
     if (nl->type==OUTGOING) ++outg;
-    ++netlinks;  mem+=size;
+    ++netlinks;
     }
 #endif
-size=sizeof(struct plugin_struct);
-for(plugin=plugin_first; plugin!=NULL; plugin=plugin->next) mem+=size;
-size=sizeof(struct plugin_cmd);
-for(plcmd=cmds_first; plcmd!=NULL; plcmd=plcmd->next) mem+=size;
 if (amsys->minlogin_level==-1) strcpy(min_login,"NONE");
 else strcpy(min_login,user_level[amsys->minlogin_level].name);
 
@@ -1160,7 +1150,7 @@ if (user->level>=GOD) {
 	}
 	vwrite_user(user, "~FTTalker booted: ~FG%s", bstr);
 	vwrite_user(user, "~FTUptime       : ~FG%d d, %d h, %d m, %d s  (%d s)\n", days, hours, mins, secs, (time(0)-amsys->boot_time));
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_line);
 /* Show others */
 vwrite_user(user,"Max users              : %-3d          Current num. of users  : %d\n",amsys->max_users,syspp->acounter[3]);
 vwrite_user(user,"New users this boot    : %-3d          Old users this boot    : %d\n",amsys->logons_new,amsys->logons_old);
@@ -1179,7 +1169,7 @@ vwrite_user(user,"Echoing passwords      : %s          Swearing ban status    : 
 vwrite_user(user,"Time out afks          : %s                                      \n",noyes2[amsys->time_out_afks]);
 vwrite_user(user,"New user prompt default: %-3d          New user colour default: %s\n",amsys->prompt_def,offon[amsys->colour_def]);
 vwrite_user(user,"New user charecho def. : %s          System logging         : %s\n",offon[amsys->charecho_def],offon[(amsys->logging)?1:0]);
-vwrite_user(user,"Crash action           : %s       Object memory allocated: %d\n",ca[amsys->crash_action],mem);
+vwrite_user(user,"Crash action           : %s     Object memory allocated: %d\n",ca[amsys->crash_action],mem);
 vwrite_user(user,"User purge length      : %-3d days     Newbie purge length    : %-3d days\n",USER_EXPIRES,NEWBIE_EXPIRES);
 vwrite_user(user,"Smail auto-forwarding  : %s          Auto purge on          : %s\n",offon[amsys->forwarding],noyes2[amsys->auto_purge]);
 vwrite_user(user,"Flood protection       : %s          Resolving IP           : %s\n",offon[amsys->flood_protect],rip[amsys->resolve_ip]);
@@ -1190,7 +1180,7 @@ else sprintf(text, "%s", noyes2[0]);
 vwrite_user(user,"Pueblo-Enhanced Mode   : %s          Auto saving user's det.: %s\n", noyes2[syspp->pueblo_enh], text);
 #endif
 vwrite_user(user,"Use hostsfile          : %s\n", noyes2[use_hostsfile]);
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_bline);
 }
 
 
@@ -2373,71 +2363,12 @@ destructed=0;
 /**** Show the amount of memory that the objects are currently taking up ***/
 void show_memory(UR_OBJECT user)
 {
-	int ssize=0,usize=0,rsize=0,dsize=0,csize=0,lsize=0,wsize=0,plsize=0,tcmsize=0,total,i;
-#ifdef NETLINKS
-	int nsize=0;
-#endif
-	int tusize=0,trsize=0,tnsize=0,tdsize=0,tcsize=0,tlsize=0,twsize=0,tplsize=0,cmsize=0;
-	int sppsize=0;
-	float mb;
-	UR_OBJECT u;
-	RM_OBJECT r;
-#ifdef NETLINKS
-	NL_OBJECT n;
-#endif
-	PL_OBJECT pl;
-	CM_OBJECT cm;
-	struct command_struct *c;
-	struct user_dir_struct *d;
-	struct wiz_list_struct *w;
+	struct mallinfo mi=mallinfo();
 
-	set_crash();
-
-ssize=sizeof(struct system_struct);
-sppsize=sizeof(struct syspp_struct);
-usize=sizeof(struct user_struct);
-for (u=user_first;u!=NULL;u=u->next) tusize+=sizeof(struct user_struct);
-rsize=sizeof(struct room_struct);
-for (r=room_first;r!=NULL;r=r->next) trsize+=sizeof(struct room_struct);
-#ifdef NETLINKS
-  nsize=sizeof(struct netlink_struct);
-  for (n=nl_first;n!=NULL;n=n->next) tnsize+=sizeof(struct netlink_struct);
-#endif
-for (pl=plugin_first; pl!=NULL; pl=pl->next) tplsize+=sizeof(struct plugin_struct);
-plsize=sizeof(struct plugin_struct);
-for (cm=cmds_first; cm!=NULL; cm=cm->next) tcmsize+=sizeof(struct plugin_cmd);
-cmsize=sizeof(struct plugin_cmd);
-dsize=sizeof(struct user_dir_struct);
-for (d=first_dir_entry;d!=NULL;d=d->next) tdsize+=sizeof(struct user_dir_struct);
-csize=sizeof(struct command_struct);
-for (c=first_command;c!=NULL;c=c->next) tcsize+=sizeof(struct command_struct);
-lsize=sizeof(last_login_info[0]);
-for (i=0;i<LASTLOGON_NUM;i++) tlsize+=sizeof(last_login_info[i]);
-wsize=sizeof(struct wiz_list_struct);
-for (w=first_wiz_entry;w!=NULL;w=w->next) twsize+=sizeof(struct wiz_list_struct);
-total=tusize+trsize+tnsize+tdsize+tcsize+tlsize+twsize+ssize+tplsize+tcmsize+sppsize;
-mb=(float)total/1048576;
-
-write_user(user,"+----------------------------------------------------------------------------+\n");
-write_user(user,"| ~OL~FTMemory Object Allocation~RS                                                   |\n");
-write_user(user,"|----------------------------------------------------------------------------|\n");
-vwrite_user(user,"|    user structure : %8d bytes    directory structure : %8d bytes |\n",usize,dsize);
-vwrite_user(user,"|                   : ~OL%8d~RS bytes                        : ~OL%8d~RS bytes |\n",tusize,tdsize);
-vwrite_user(user,"|    room structure : %8d bytes      command structure : %8d bytes |\n",rsize,csize);
-vwrite_user(user,"|                   : ~OL%8d~RS bytes                        : ~OL%8d~RS bytes |\n",trsize,tcsize);
-vwrite_user(user,"| wizlist structure : %8d bytes   last login structure : %8d bytes |\n",wsize,lsize);
-vwrite_user(user,"|                   : ~OL%8d~RS bytes                        : ~OL%8d~RS bytes |\n",twsize,tlsize);
-vwrite_user(user,"|  plugin structure : %8d bytes  plugin cmds structure : %8d bytes |\n",plsize,cmsize);
-vwrite_user(user,"|                   : ~OL%8d~RS bytes                        : ~OL%8d~RS bytes |\n",tplsize,tcmsize);
-#ifdef NETLINKS
-  vwrite_user(user,"| netlink structure : %8d bytes                                         |\n",nsize);
-  vwrite_user(user,"|                   : ~OL%8d~RS bytes                                         |\n",tnsize);
-#endif
-vwrite_user(user,"|  system structure : %8d bytes     systempp structure : %8d bytes |\n",ssize,sppsize);
-vwrite_user(user,"|                   : ~OL%8d~RS bytes                        : ~OL%8d~RS bytes |\n",ssize,sppsize);
-write_user(user,"+----------------------------------------------------------------------------+\n");
-vwrite_user(user,   "| Total object memory allocated : ~OL%9d~RS bytes   (%02.3f Mb)               |\n",total,mb);
-write_user(user,"+----------------------------------------------------------------------------+\n\n");
+	vwrite_user(user, "Consumed memory: %d\n", mi.arena);
+	vwrite_user(user, "Allocated space: %d\n", mi.uordblks);
+	vwrite_user(user, "Non-inuse space: %d\n", mi.fordblks);
+	vwrite_user(user, "Releasable:      %d\n", mi.keepcost);
 }
 
 /*** Display how many times a command has been used, and its overall 
@@ -2456,9 +2387,9 @@ for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
   total_hits+=cmd->count;
   total_cmds++;
   }
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-write_user(user,"| ~FT~OLStatistika pouzivania prikazov~RS                                             |\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_tline);
+write_user(user,"~CT| Statistika pouzivania prikazov                                               |\n");
+write_user(user, ascii_line);
 for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
   /* skip if command has not been used so as not to cause crash by trying to / by 0 */
   if (!cmd->count) continue;
@@ -2468,7 +2399,7 @@ for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
   i=((cmd->count*10000)/total_hits);
   /* build up first half of the string */
   if (!x) {
-    sprintf(text,"| %11.11s %4d %3d%% ",cmd->name,cmd->count,i/100);
+    sprintf(text,"~CT|~RS %11.11s %4d %3d%% ",cmd->name,cmd->count,i/100);
     ++x;
     }
   /* build up full line and print to user */
@@ -2480,7 +2411,7 @@ for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
     ++x;
     }
   else {
-    sprintf(text2,"   %11.11s %4d %3d%%  |\n",cmd->name,cmd->count,i/100);
+    sprintf(text2,"   %11.11s %4d %3d%%    ~CT|\n",cmd->name,cmd->count,i/100);
     strcat(text,text2);
     write_user(user,text);
     text[0]='\0';  text2[0]='\0';
@@ -2489,20 +2420,20 @@ for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
   } /* end for */
 /* If you've only printed first half of the string */
 if (x==1) {
-  strcat(text,"                                                     |\n");
+  strcat(text,"                                                       ~CT|\n");
   write_user(user,text);
   }
 if (x==2) {
-  strcat(text,"                          |\n");
+  strcat(text,"                            ~CT|\n");
   write_user(user,text);
   }
-write_user(user,"|                                                                            |\n");
-write_user(user,"| Any other commands have not yet been used, or you cannot view them         |\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user,"~CT|                                                                              |\n");
+write_user(user,"~CT|~RS Any other commands have not yet been used, or you cannot view them           ~CT|\n");
+write_user(user, ascii_line);
 sprintf(text2,"Total of ~OL%d~RS commands.    ~OL%d~RS command%s used a total of ~OL%d~RS time%s.",
 	total_cmds,cmds_used,PLTEXT_S(cmds_used),total_hits,PLTEXT_S(total_hits));
-vwrite_user(user,"| %-92s |\n",text2);
-write_user(user,"+----------------------------------------------------------------------------+\n");
+vwrite_user(user,"~CT|~RS %-92s   ~CT|\n",text2);
+write_user(user, ascii_bline);
 }
 
 
@@ -2526,7 +2457,7 @@ if (!ok) {
   user->misc_op=17;
   return;
   }
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_tline);
 level=-1;
 incorrect=correct=added=removed=0;
 write_user(user,"~OLRecounting all of the users...~RS\n");
@@ -2610,13 +2541,13 @@ if (notin) {
 
 /* now to make sure that the user level counts are correct as show in .version */
 count_users();
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-vwrite_user(user,"Checked ~OL%d~RS user%s.  ~OL%d~RS node%s %s added, and ~OL%d~RS node%s %s removed.\n",
+vwrite_user(user, "\n%s", ascii_line);
+vwrite_user(user, "Checked ~OL%d~RS user%s.  ~OL%d~RS node%s %s added, and ~OL%d~RS node%s %s removed.\n",
 	added+removed+correct,PLTEXT_S(added+removed+correct),
         added,PLTEXT_S(added),PLTEXT_WAS(added),
         removed,PLTEXT_S(removed),PLTEXT_WAS(removed));
 if (incorrect) write_user(user,"See the system log for further details.\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_bline);
 user->misc_op=0;
 }
 
@@ -2713,9 +2644,9 @@ if (u==user) {
 /* if no command is given, then just view banned commands */
 if (word_count<3) {
   x=0;
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
   vwrite_user(user,"~OL~FTBanned commands for user '%s'\n",u->name);
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_line);
   for (i=0;i<MAX_XCOMS;i++) {
     if (u->xcoms[i]!=-1) {
       for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
@@ -2727,7 +2658,7 @@ if (word_count<3) {
       } /* end if */
     } /* end for */
   if (!x) write_user(user,"User has no banned commands.\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  write_user(user, ascii_bline);
   return;
   }
 if (u->level>=user->level) {
@@ -2800,9 +2731,9 @@ if (u==user) {
 /* if no command is given, then just view given commands */
 if (word_count<3) {
   x=0;
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
   vwrite_user(user,"~OL~FTGiven commands for user '%s'\n",u->name);
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_line);
   for (i=0;i<MAX_GCOMS;i++) {
     if (u->gcoms[i]!=-1) {
       for (cmd=first_command;cmd!=NULL;cmd=cmd->next) {
@@ -2814,7 +2745,7 @@ if (word_count<3) {
       } /* end if */
     } /* end for */
   if (!x) write_user(user,"User has no given commands.\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  write_user(user, ascii_bline);
   return;
   }
 	if (u->level>=user->level) {
@@ -3011,9 +2942,9 @@ if (!amsys->personal_rooms) {
 strtolower(word[1]);
 /* just display the amount of memory used by personal rooms */
 if (!strcmp(word[1],"-m")) {
-  write_user(user,"+----------------------------------------------------------------------------+\n");
-  write_user(user,"| ~FT~OLPersonal Room Memory Usage~RS                                                 |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  write_user(user, "~CT| Personal Room Memory Usage                                                   |\n");
+  write_user(user, ascii_line);
   rsize=trsize=rmcnt=locked=unlocked=0;
   rsize=sizeof(struct room_struct);
   for (rm=room_first;rm!=NULL;rm=rm->next) {
@@ -3023,32 +2954,31 @@ if (!strcmp(word[1],"-m")) {
       rmcnt++;
       }
     }
-  vwrite_user(user,"| room structure : ~OL%4d~RS bytes      total memory : ~OL%8d~RS bytes  (%02.3f Mb) |\n",rsize,trsize,(float)trsize/1000000);
-  vwrite_user(user,"|    total rooms : ~OL%4d~RS                  status : ~OL%2d~RS locked, ~OL%2d~RS unlocked     |\n",rmcnt,locked,unlocked);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  vwrite_user(user, "~CT|~RS room structure : ~OL%4d~RS bytes      total memory : ~OL%8d~RS bytes  (%02.3f Mb)   ~CT|\n",rsize,trsize,(float)trsize/1000000);
+  vwrite_user(user, "~CT|~RS    total rooms : ~OL%4d~RS                  status : ~OL%2d~RS locked, ~OL%2d~RS unlocked       ~CT|\n",rmcnt,locked,unlocked);
+  write_user(user, ascii_bline);
   return;
   }
 /* list all the personal rooms in memory together with status */
 if (!strcmp(word[1],"-l")) {
   rmcnt=0;
-  write_user(user,"+----------------------------------------------------------------------------+\n");
-  write_user(user,"| ~OL~FTPersonal Room Listings~RS                                                     |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  write_user(user,"~CT| Personal Room Listings                                                       |\n");
+  write_user(user, ascii_line);
   for (rm=room_first;rm!=NULL;rm=rm->next) {
     if (is_personal_room(rm)) {
       pcnt=room_visitor_count(rm);
       midcpy(rm->name,usrname,1,strlen(rm->name)-2);
       usrname[0]=toupper(usrname[0]);
-      vwrite_user(user,"| Owner : ~OL%-*s~RS       Status : ~OL%s~RS   Msg Count : ~OL%-2d~RS  People : ~OL%-2d~RS |\n",
-	      USER_NAME_LEN,usrname,(rm->access==PERSONAL_LOCKED)?"~FRlocked  ":"~FGunlocked",rm->mesg_cnt,pcnt);
+      vwrite_user(user,"~CT|~RS Owner : ~OL%-*s~RS       Status : ~OL%s~RS   Msg Count : ~OL%-2d~RS  People : ~OL%-2d~RS   ~CT|\n", USER_NAME_LEN,usrname,(rm->access==PERSONAL_LOCKED)?"~FRlocked  ":"~FGunlocked",rm->mesg_cnt,pcnt);
       rmcnt++;
       }
     }
-  if (!rmcnt) write_user(user,"| ~FRNo personal rooms are currently in memory~RS                                  |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  if (!rmcnt) write_user(user,"~CT|~RS ~FRNo personal rooms are currently in memory~RS                                    ~CT|\n");
+  write_user(user, ascii_line);
   if (rmcnt) {
-    vwrite_user(user,"| Total personal rooms : ~OL~FM%2d~RS                                                  |\n",rmcnt);
-    write_user(user,"+----------------------------------------------------------------------------+\n\n");
+    vwrite_user(user,"~CT|~RS Total personal rooms : ~CM%2d~RS                                                    ~CT|\n",rmcnt);
+    write_user(user, ascii_bline);
     }
   return;
   }
@@ -3151,17 +3081,17 @@ if (!strcmp("-r",word[1])) {
     return;
     }
   cnt=0;
-  fprintf(fp,"------------------------------------------------------------------------------\n");
-  fprintf(fp,"Users of level %s %s\n",user_level[lev].name,long_date(1));
-  fprintf(fp,"------------------------------------------------------------------------------\n");
-  for (entry=first_dir_entry;entry!=NULL;entry=entry->next)
+  fprintf(fp, ascii_tline);
+  fprintf(fp, "Users of level %s %s\n", user_level[lev].name, long_date(1));
+  fprintf(fp, ascii_line);
+  for (entry=first_dir_entry; entry!=NULL; entry=entry->next)
     if (entry->level==lev) {
       fprintf(fp,"%s\n",entry->name);
       ++cnt;
       }
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   fprintf(fp,"Total users at %s : %d\n",user_level[lev].name,cnt);
-  fprintf(fp,"------------------------------------------------------------------------------\n\n");
+  fprintf(fp, ascii_bline);
   fclose(fp);
   sprintf(text,"Dumped rank ~OL%s~RS to file.  ~OL%d~RS user%s recorded.\n",user_level[lev].name,cnt,PLTEXT_S(cnt)); 
   write_user(user,text);
@@ -3176,16 +3106,16 @@ if (!strcmp("-u",word[1])) {
     return;
     }
   cnt=0;
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_tline);
   fprintf(fp,"All users %s\n",long_date(1));
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   for (entry=first_dir_entry;entry!=NULL;entry=entry->next) {
     fprintf(fp,"%s\n",entry->name);
     ++cnt;
     }
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   fprintf(fp,"Total users : %d\n",cnt);
-  fprintf(fp,"------------------------------------------------------------------------------\n\n");
+  fprintf(fp, ascii_bline);
   fclose(fp);
   sprintf(text,"Dumped all users to file.  ~OL%d~RS user%s recorded.\n",cnt,PLTEXT_S(cnt)); 
   write_user(user,text);
@@ -3199,11 +3129,11 @@ if (!strcmp("-c",word[1])) {
     write_syslog(ERRLOG,1,"Unable to open dump file %s in dump_to_file().\n",filename);
     return;
     }
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_tline);
   fprintf(fp,"The last 16 commands %s\n",long_date(1));
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   for (i=((j=amsys->last_cmd_cnt-16)>0?j:0);i<amsys->last_cmd_cnt;i++) fprintf(fp,"%s\n",cmd_history[i&15]);
-  fprintf(fp,"------------------------------------------------------------------------------\n\n");
+  fprintf(fp, ascii_bline);
   fclose(fp);
   write_user(user,"Dumped the last 16 commands that have been used.\n");
   return;
@@ -3240,9 +3170,9 @@ if (!strcmp("-m",word[1])) {
   for (cm=cmds_first; cm!=NULL; cm=cm->next) tcmsize+=sizeof(struct plugin_cmd);
   total=tusize+trsize+tnsize+tdsize+tcsize+tlsize+twsize+ssize+tplsize+tcmsize+sppsize;
   mb=(float)total/1048576;
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_tline);
   fprintf(fp,"Memory Object Allocation %s\n",long_date(1));
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   fprintf(fp,"     user structure : %8d bytes    directory structure : %8d bytes\n",usize,dsize);
   fprintf(fp,"              total : %8d bytes                  total : %8d bytes\n",tusize,tdsize);
   fprintf(fp,"     room structure : %8d bytes      command structure : %8d bytes\n",rsize,csize);
@@ -3257,9 +3187,9 @@ if (!strcmp("-m",word[1])) {
   fprintf(fp,"              total : %8d bytes                  total : %8d bytes\n",ssize,sppsize);
   fprintf(fp,"   plugin structure : %8d bytes  plugin cmds structure : %8d bytes\n",plsize,cmsize);
   fprintf(fp,"              total : %8d bytes                  total : %8d bytes\n",tplsize,tcmsize);
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   fprintf(fp,"Total object memory allocated : %9d bytes   (%02.3f Mb)\n",total,mb);
-  fprintf(fp,"------------------------------------------------------------------------------\n\n");
+  fprintf(fp, ascii_bline);
   fclose(fp);
   write_user(user,"Dumped the memory currently being used by the talker.\n");
   return;
@@ -3278,9 +3208,9 @@ if (!strcmp("-s",word[1])) {
   hours=(secs%86400)/3600;
   mins=(secs%3600)/60;
   secs=secs%60;
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_tline);
   fprintf(fp,"System details %s\n",long_date(1));
-  fprintf(fp,"------------------------------------------------------------------------------\n");
+  fprintf(fp, ascii_line);
   fprintf(fp,"System name : %s, release %s, %s\n",amsys->sysname,amsys->sysrelease,amsys->sysversion);
   fprintf(fp,"Running on  : %s, %s\n",amsys->sysmachine,amsys->sysnodename);
   fprintf(fp,"Talker PID  : %u\n",amsys->pid);
@@ -3303,7 +3233,7 @@ if (!strcmp("-s",word[1])) {
       fprintf(fp,"IP Resolve  : Resolving IPs without gethostbyaddr()\n");
       break;
     }
-  fprintf(fp,"------------------------------------------------------------------------------\n\n");
+  fprintf(fp, ascii_bline);
   fclose(fp);
   write_user(user,"Dumped the system details.\n");
   return;
@@ -3644,7 +3574,11 @@ void finger_host(UR_OBJECT user)
 		write_usage(user,"%s <user@hostname>", command_table[FINGER].name);
 		return;
 		}
-	
+	if (strchr(word[1], ';')) {
+		write_syslog(SYSLOG, 1, "%s trying hack system thru .finger: '%s'\n", user->name, word[1]);
+		write_user(user, "~LI~CRDetekovany pokus o hacknutie systemu !!~RS\nzaznamenane !\n");
+		return;
+		}
 	switch (double_fork()) {
 		case -1 : write_user(user,"Lotos: finger: fork failure\n");
 			write_syslog(ERRLOG, 1, "finger: fork failure\n");
@@ -4339,11 +4273,11 @@ void identify(UR_OBJECT user)
 
 	set_crash();
 	if (word_count<2) {
-		write_usage(user, "identify <user>|<line>");
+		write_usage(user, "%s <user>|<line>", command_table[IDENTIFY].name);
 		return;
 		}
 	if (!is_number(word[1])) { /* user name */
-		if((u=get_user(word[1]))==NULL) {
+		if (!(u=get_user(word[1]))) {
 			write_user(user, nosuchuser);
 			return;
 			}
@@ -4357,7 +4291,7 @@ void identify(UR_OBJECT user)
 	else { /* socket line */
 		line=atoi(word[1]);
 		for (u=user_first; u!=NULL; u=u->next)
-			if(u->type!=CLONE_TYPE && u->socket==line) {
+			if (u->type!=CLONE_TYPE && u->socket==line) {
 				found=1;
 				break;
 				}
@@ -4370,12 +4304,12 @@ void identify(UR_OBJECT user)
 	localport=u->port;
 	if (found || strlen(u->name)<USER_MIN_LEN) strcpy(username,"Login user");
 	else strcpy(username,u->name);
-	if ((rhost=fgethostbyname(u->site))==NULL) {
+	if (!(rhost=fgethostbyname(u->site))) {
 		if (use_hostsfile) {
 			write_syslog(ERRLOG, 1, "Warning: Host %s not found by fgethostbyname() for %s.\n", u->site, username);
 			write_user(user,">>>Warning! Cannot found user site in hostsfile...\n");
 			}
-		if ((rhost=gethostbyname(u->site))==NULL) { /* try directly */
+		if (!(rhost=gethostbyname(u->site))) { /* try directly */
 			write_syslog(ERRLOG, 1, ">>>Host %s not found by gethostbyname() for %s in identify().\n",u->site,username);
 			vwrite_user(user, "%s: %s not found.\n",syserror,u->site);
 			return;
@@ -4486,6 +4420,27 @@ void identify(UR_OBJECT user)
 			break;
 		}
 	write_user(user, text);
+}
+
+void ping_user(UR_OBJECT user)
+{
+	UR_OBJECT u;
+
+	if (!user) return;
+	if (word_count<2) {
+		write_user(user, center("~FT-~CT=~CB>~FG Ping Listing... ~CB<~CT=~RS~FT-\n", 80));
+		for (u=user_first; u!=NULL; u=u->next) {
+			if (u->login || u->type==CLONE_TYPE || u->type==BOT_TYPE) continue;
+			if (u->vis && user->level<u->level) continue;
+			vwrite_user(user, "~CW - ~FT%s~RS ~FMhas approx. %ld.%.2ld seconds of lag. ~CB[~CR%s~CB]\n", u->recap, u->last_ping/1000000, (u->last_ping/10000)%1000000, ping_string(u));
+			}
+		return;
+		}
+	if (!(u=get_user_name(user, word[1]))) {
+		write_user(user, notloggedon);
+		return;
+		}
+	vwrite_user(user, "~CW - ~FT%s~RS ~FMhas approx. %ld.%.2ld seconds of lag. ~CB[~CR%s~CB]\n", u->recap, u->last_ping/1000000, (u->last_ping/10000)%1000000, ping_string(u));
 }
 
 #endif /* __CT_ADMIN_C__ */

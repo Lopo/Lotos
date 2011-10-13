@@ -1,12 +1,13 @@
-L o t o s   v1.2.2
+L o t o s   v1.2.3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Informacie o chybach
 --------------------
 V tomto dokumente su spisane vsetky chyby o ktorych vyskyte viem.
 
-(-: Momentalne nie su zname ziadne chyby. :-)
+- niekedy to cele spadne, dovod neznamy
+- obcas vypise hlasku od transportu aj ked je zapnute ignore
 
 Takze prosim kazdeho, kto pouzije Lotos, nech sa ozve
-na lopo@losys.sk s oznamenim, ci sa chyba prejavuje a na akom systeme Lotos
+na lotos@losys.sk s oznamenim, ci sa chyba prejavuje a na akom systeme Lotos
 skusal. Samozrejme nech tam napise kazdy, kto si mysli, ze vie ako tu chybu
 odstranit, pripadne ak nasiel dalsiu chybu.

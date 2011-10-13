@@ -2,11 +2,10 @@
 /*
  * s_string.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __S_STRING_C__
@@ -369,20 +368,20 @@ char *ordinal_text(int num)
 char *long_date(int which)
 {
 	static char dstr[80];
-	int ap,hour;
+	int ap, hour;
 
 	set_crash();
-if (thour>=12) {
-  (thour>12) ? (hour=(int)thour-12) : (hour=12);
-  ap=1;
-  }
-else {
-  (!thour) ? (hour=12) : (hour=(int)thour);
-  ap=0;
-  }
-if (which) sprintf(dstr,"v %s %d %s %d o %02d:%02d%s",day[twday],tmday,month[tmonth],(int)tyear,hour,(int)tmin,!ap?"":"pm");
-else sprintf(dstr,"[ %s %d %s %d o %02d:%02d%s ]",day[twday],tmday,month[tmonth],(int)tyear,hour,(int)tmin,!ap?"":"pm");
-return dstr;
+	if (thour>=12) {
+		(thour>12) ? (hour=(int)thour-12) : (hour=12);
+		ap=1;
+		}
+	else {
+		(!thour) ? (hour=12) : (hour=(int)thour);
+		ap=0;
+		}
+	if (which) sprintf(dstr, "v %s %d %s %d o %02d:%02d%s", day[twday], tmday, month[tmonth], (int)tyear, hour, (int)tmin, !ap?"":"pm");
+	else sprintf(dstr, "[ %s %d %s %d o %02d:%02d%s ]",day[twday], tmday, month[tmonth], (int)tyear, hour, (int)tmin, !ap?"":"pm");
+	return dstr;
 }
 
 

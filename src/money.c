@@ -2,11 +2,10 @@
 /*
  * money.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __MONEY_C__
@@ -120,14 +119,14 @@ if (word_count<2) {
   }
 /* list all users online and the amount of cash they have */
 if (!strcasecmp(word[1],"-l")) {
-  write_user(user,"\n+----------------------------------------------------------------------------+\n");
-  write_user(user,"| ~FT~OLUser money listings~RS                                                        |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  write_user(user,"~CT| User money listings                                                          |\n");
+  write_user(user, ascii_line);
   for (u=user_first;u!=NULL;u=u->next) {
     ++user_cnt;
     /* build up first half of the string */
     if (!x) {
-      sprintf(text,"| %-13.13s $%6d ",u->name,u->money);
+      sprintf(text,"~CT|~RS %-13.13s $%6d ",u->name,u->money);
       ++x;
       }
     /* build up full line and print to user */
@@ -139,7 +138,7 @@ if (!strcasecmp(word[1],"-l")) {
       ++x;
       }
     else {
-      sprintf(text2,"   %-13.13s $%6d  |\n",u->name,u->money);
+      sprintf(text2,"   %-13.13s $%6d    ~CT|\n",u->name,u->money);
       strcat(text,text2);
       write_user(user,text);
       text[0]='\0';  text2[0]='\0';
@@ -148,17 +147,17 @@ if (!strcasecmp(word[1],"-l")) {
     } /* end for */
   /* If you've only printed first half of the string */
   if (x==1) {
-    strcat(text,"                                                     |\n");
+    strcat(text,"                                                       ~CT|\n");
     write_user(user,text);
     }
   if (x==2) {
-    strcat(text,"                          |\n");
+    strcat(text,"                            ~CT|\n");
     write_user(user,text);
     }
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_line);
   sprintf(text,"Total of ~OL%d~RS user%s",user_cnt,PLTEXT_S(user_cnt));
-  vwrite_user(user,"| %-80s |\n",text);
-  write_user(user,"+----------------------------------------------------------------------------+\n\n");
+  vwrite_user(user,"~CT|~RS %-82s ~CT|\n",text);
+  write_user(user, ascii_bline);
   return;
   }
 /* give money to users */

@@ -1,7 +1,7 @@
-LOTOS   ver 1.2.2
+LOTOS   ver 1.2.3
 ================================================================================
 User file format
-UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.2.2
+UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.2.3
 ================================================================================
 
 Kazdy riadok zacina slovom oznacujucim obsah riadka.

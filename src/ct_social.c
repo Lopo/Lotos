@@ -2,11 +2,10 @@
 /*
  * ct_social.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_SOCIAL_C__
@@ -41,39 +40,39 @@ void say(UR_OBJECT user, char *inpstr)
 	if (user->muzzled) {
 		vwrite_user(user, muzzled_cannot, "kecat");  return;
 		}
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
-                break;
-    case SBMAX: write_user(user,noswearing);
-                return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch (amsys->ban_swearing) {
+			case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
 #ifdef NETLINKS
-if (user->room==NULL) {
-  sprintf(text,"ACT %s say %s\n",user->name,inpstr);
-  write_sock(user->netlink->socket,text);
-  no_prompt=1;
-  return;
-  }
+	if (user->room==NULL) {
+		sprintf(text,"ACT %s say %s\n",user->name,inpstr);
+		write_sock(user->netlink->socket,text);
+		no_prompt=1;
+		return;
+		}
 #endif
-if (word_count<2 && user->command_mode) {
-  write_user(user,"Say what?\n");  return;
-  }
-smiley_type(inpstr,type);
-if (user->type==CLONE_TYPE) {
-  vwrite_room(user->room,"Clone of %s~RS %ss: %s\n",user->recap,type,inpstr);
-  record(user->room,text);
-  return;
-  }
-vwrite_user(user,"~FGYou %s:~RS %s\n",type,inpstr);
-if (user->vis) name=user->bw_recap; else name=invisname;
-if (!user->vis) write_monitor(user,user->room,0);
-sprintf(text, say_style, name,type,inpstr);
-write_room_except(user->room,text,user);
-record(user->room,text);
-plugin_triggers(user, inpstr);
+	if (word_count<2 && user->command_mode) {
+		write_user(user, "Say what?\n");
+		return;
+		}
+	smiley_type(inpstr, type);
+	if (user->type==CLONE_TYPE) {
+		vwrite_room(user->room, "Clone of %s~RS %ss: %s\n", user->recap, type, inpstr);
+		record(user->room, text);
+		return;
+		}
+	vwrite_user(user, "~FGYou %s:~RS %s\n", type, inpstr);
+	if (user->vis) name=user->bw_recap;
+	else name=invisname;
+	if (!user->vis) write_monitor(user, user->room, 0);
+	sprintf(text, say_style, name, type, inpstr);
+	write_room_except(user->room, text, user);
+	record(user->room, text);
+	plugin_triggers(user, inpstr);
 }
 
 
@@ -286,70 +285,70 @@ void tell(UR_OBJECT user, char *inpstr)
 /*** Emote something ***/
 void emote(UR_OBJECT user, char *inpstr)
 {
-char *name;
+	char *name;
 
 	set_crash();
-if (user->muzzled) {
-  vwrite_user(user, muzzled_cannot, "kecat");  return;
-  }
-if (word_count<2) {
-  write_user(user,"Emote co?\n");  return;
-  }
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch (amsys->ban_swearing) {
-    case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
-if (user->type==CLONE_TYPE) {
-  if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) vwrite_room(user->room,"The clone of %s%s\n",user->name,inpstr);
-  else vwrite_room(user->room,"The clone of %s~RS %s\n",user->recap,inpstr);
-  record(user->room,text);
-  plugin_triggers(user, inpstr);
-  return;
-  }
-if (user->vis) name=user->recap;
-else name=invisname;
-if (!user->vis) write_monitor(user,user->room,0);
-if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s~RS%s\n",name,inpstr);
-else sprintf(text,"%s~RS %s\n",name,inpstr);
-write_room(user->room,text);
-record(user->room,text);
-plugin_triggers(user, inpstr);
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kecat");
+		return;
+		}
+	if (word_count<2) {
+		write_user(user,"Emote co?\n");
+		return;
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch (amsys->ban_swearing) {
+			case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
+	if (user->type==CLONE_TYPE) {
+		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) vwrite_room(user->room,"The clone of %s%s\n",user->name,inpstr);
+		else vwrite_room(user->room,"The clone of %s~RS %s\n",user->recap,inpstr);
+		record(user->room,text);
+		plugin_triggers(user, inpstr);
+		return;
+		}
+	if (user->vis) name=user->recap;
+	else name=invisname;
+	if (!user->vis) write_monitor(user,user->room,0);
+	if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s~RS%s\n",name,inpstr);
+	else sprintf(text,"%s~RS %s\n",name,inpstr);
+	write_room(user->room,text);
+	record(user->room,text);
+	plugin_triggers(user, inpstr);
 }
 
 
 /*** Do a shout emote ***/
 void semote(UR_OBJECT user, char *inpstr)
 {
-char *name;
+	char *name;
 
 	set_crash();
-if (user->muzzled) {
-  vwrite_user(user, muzzled_cannot, "kricat");  return;
-  }
-if (word_count<2) {
-  write_user(user,"Shout emote what?\n");  return;
-  }
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
-if (user->vis) name=user->recap;
-else name=invisname;
-if (!user->vis) write_monitor(user,NULL,0);
-if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~OL!!!~RS %s~RS%s\n",name,inpstr);
-else sprintf(text,"~OL!!~RS %s~RS %s\n",name,inpstr);
-write_room(NULL,text);
-record_shout(text);
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kricat");
+		return;
+		}
+	if (word_count<2) {
+		write_user(user,"Shout emote what?\n");
+		return;
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch(amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
+	if (user->vis) name=user->recap;
+	else name=invisname;
+	if (!user->vis) write_monitor(user,NULL,0);
+	if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~OL!!!~RS %s~RS%s\n",name,inpstr);
+	else sprintf(text,"~OL!!~RS %s~RS %s\n",name,inpstr);
+	write_room(NULL,text);
+	record_shout(text);
 }
 
 
@@ -544,23 +543,65 @@ void set_topic(UR_OBJECT user, char *inpstr)
 {
 	RM_OBJECT rm=user->room;
 	char *name;
+	int lockit=0;
 
 	set_crash();
-if (word_count<2) {
-  if (!strlen(rm->topic)) {
-    write_user(user,"No topic has been set yet.\n");  return;
-    }
-  vwrite_user(user,"The current topic is: %s\n",rm->topic);
-  return;
-  }
-if (strlen(inpstr)>TOPIC_LEN) {
-  write_user(user,"Topic too long.\n");  return;
-  }
-vwrite_user(user,"Topic set to: %s\n",inpstr);
-if (user->vis) name=user->recap;
-else name=invisname;
-vwrite_room_except(rm,user,"%s~RS has set the topic to: %s\n",name,inpstr);
-strcpy(rm->topic,inpstr);
+	if (word_count<2) {
+		if (!strlen(rm->topic)) {
+			write_user(user, notopic_prompt);
+			return;
+			}
+		vwrite_user(user, topic_prompt, rm->topic, rm->topicowner);
+		return;
+		}
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "menit temu");
+		return;
+		}
+	if (user->level<rm->topiclock) {
+		vwrite_user(user, topic_locked, user_level[rm->topiclock].name);
+		return;
+		}
+	if (user->vis) name=user->recap;
+	else name=invisname;
+	if (!strncasecmp(word[1], "-lock", 2)) {
+		if (user->level<SUPER) {
+			write_user(user, topic_cantlock);
+			return;
+			}
+		if (rm->topiclock) {
+			vwrite_user(user, topic_unlocked);
+			vwrite_room_except(rm, user, room_topic_unlocked, name);
+			rm->topiclock=0;
+			return;
+			}
+		lockit=1;
+		}
+	if (word_count==2 && lockit) {
+		if (rm->topic[0]=='\0') {
+			write_user(user, topic_locknoexist);
+			return;
+			}
+		vwrite_room_except(rm, user, room_topic_locked, user->recap, user_level[user->level].name);
+		rm->topiclock=user->level;
+		vwrite_user(user, topic_locked, user_level[rm->topiclock].name);
+		return;
+		}
+	if (lockit) inpstr=remove_first(inpstr);
+	if (strlen(inpstr)>TOPIC_LEN) {
+		write_user(user, topic_toolong);
+		return;
+		}
+	vwrite_user(user, topic_hasbeenset, inpstr);
+	vwrite_room_except(rm, user, room_topic_hasbeenset, name, inpstr);
+	strncpy(rm->topic, inpstr, TOPIC_LEN);
+	strncpy(rm->topicowner, user->recap, USER_NAME_LEN*4);
+	if (lockit) {
+		vwrite_room_except(rm, user, room_topic_locked, user->recap, user_level[user->level].name);
+		rm->topiclock=user->level;
+		vwrite_user(user, topic_locked, user_level[rm->topiclock].name);
+		}
+	else rm->topiclock=0;
 }
 
 
@@ -729,23 +770,25 @@ void revclr(UR_OBJECT user)
 /*** Show recorded tells and pemotes ***/
 void revtell(UR_OBJECT user)
 {
-	int i,cnt=0,line;
+	struct tm *tm_struct;
+	int i, cnt=0, line;
 
 	set_crash();
 	if (user->restrict[RESTRICT_VIEW]==restrict_string[RESTRICT_VIEW]) {
 		write_user(user,">>>Sorry, you have no right to access the revtell buffer.\n");
 		return;
 		}
-for (i=0;i<REVTELL_LINES;++i) {
-  line=(user->revline+i)%REVTELL_LINES;
-  if (user->revbuff[line][0]) {
-    cnt++;
-    if (cnt==1) write_user(user, tell_review_header);
-    write_user(user,user->revbuff[line]); 
-    }
-  }
-if (!cnt) write_user(user, no_tell_review_prompt);
-else write_user(user,"\n~BB~FG*** End ***\n\n");
+	for (i=0;i<REVTELL_LINES;++i) {
+		line=(user->revline+i)%REVTELL_LINES;
+		if (user->revbuff[line].buff[0]) {
+			cnt++;
+			if (cnt==1) write_user(user, tell_review_header);
+			tm_struct=localtime(&(user->revbuff[line].time));
+			vwrite_user(user, "%02d:%02d %s", tm_struct->tm_hour, tm_struct->tm_min, user->revbuff[line].buff); 
+			}
+		}
+	if (!cnt) write_user(user, no_tell_review_prompt);
+	else vwrite_user(user, "\n%s\n", center(review_end, 81));
 }
 
 
@@ -1213,19 +1256,21 @@ write_level(WIZ,1,text,user);
 /*** See review of shouts ***/
 void revshout(UR_OBJECT user)
 {
+	struct tm *tm_struct;
 	int i,line,cnt=0;
 
 	set_crash();
 	for (i=0;i<REVIEW_LINES;++i) {
 		line=(amsys->sbuffline+i)%REVIEW_LINES;
-		if (amsys->shoutbuff[line][0]) {
+		if (amsys->shoutbuff[line].buff[0]) {
 			cnt++;    
 			if (cnt==1) write_user(user, shout_review_header);
-			write_user(user,amsys->shoutbuff[line]); 
+			tm_struct=localtime(&(amsys->shoutbuff[line].time));
+			vwrite_user(user, "%02d:%02d %s", tm_struct->tm_hour, tm_struct->tm_min, amsys->shoutbuff[line].buff); 
 			}
 		}
 	if (!cnt) write_user(user, no_shout_review_prompt);
-	else write_user(user,"\n~BB~FG*** End ***\n\n");
+	else vwrite_user(user, "\n%s\n", center(review_end, 81));
 }
 
 
@@ -1235,8 +1280,10 @@ void clear_shouts(void)
 	int c;
 
 	set_crash();
-	for (c=0;c<REVIEW_LINES;++c)
-		amsys->shoutbuff[c][0]='\0';
+	for (c=0;c<REVIEW_LINES;++c) {
+		amsys->shoutbuff[c].buff[0]='\0';
+		amsys->shoutbuff[c].time=0;
+		}
 	amsys->sbuffline=0;
 }
 
@@ -1247,8 +1294,10 @@ void clear_tells(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for (c=0;c<REVTELL_LINES;++c)
-		user->revbuff[c][0]='\0';
+	for (c=0;c<REVTELL_LINES;++c) {
+		user->revbuff[c].buff[0]='\0';
+		user->revbuff[c].time=0;
+		}
 	user->revline=0;
 }
 
@@ -1293,19 +1342,21 @@ vwrite_user(user,"Qcall nastaveny na: ~OL%s\n", user->call);
 /*** Show recorded tells and pemotes ***/
 void revafk(UR_OBJECT user)
 {
+	struct tm *tm_struct;
 	int i,cnt=0,line;
 
 	set_crash();
 	for (i=0;i<REVTELL_LINES;++i) {
 		line=(user->afkline+i)%REVTELL_LINES;
-		if (user->afkbuff[line][0]) {
+		if (user->afkbuff[line].buff[0]) {
 			cnt++;
 			if (cnt==1) write_user(user,"\n~BB~FG*** Your AFK review buffer ***\n\n");
-			write_user(user,user->afkbuff[line]); 
+			tm_struct=localtime(&(user->afkbuff[line].time));
+			vwrite_user(user, "%02d:%02d %s", tm_struct->tm_hour, tm_struct->tm_min, user->afkbuff[line].buff); 
 			}
 		}
 	if (!cnt) write_user(user,"AFK review buffer is empty.\n");
-	else write_user(user,"\n~BB~FG*** End ***\n\n");
+	else vwrite_user(user, "\n%s\n", center(review_end, 81));
 }
 
 
@@ -1315,8 +1366,10 @@ void clear_afk(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for (c=0;c<REVTELL_LINES;++c)
-		user->afkbuff[c][0]='\0';
+	for (c=0;c<REVTELL_LINES;++c) {
+		user->afkbuff[c].buff[0]='\0';
+		user->afkbuff[c].time=0;
+		}
 	user->afkline=0;
 }
 
@@ -1324,19 +1377,21 @@ void clear_afk(UR_OBJECT user)
 /*** Show recorded tells and pemotes ***/
 void revedit(UR_OBJECT user)
 {
+	struct tm *tm_struct;
 	int i,cnt=0,line;
 
 	set_crash();
 	for (i=0;i<REVTELL_LINES;++i) {
 		line=(user->editline+i)%REVTELL_LINES;
-		if (user->editbuff[line][0]) {
+		if (user->editbuff[line].buff[0]) {
 			cnt++;
 			if (cnt==1) write_user(user,"\n~BB~FG*** Your edit review  buffer ***\n\n");
-			write_user(user,user->editbuff[line]); 
+			tm_struct=localtime(&(user->editbuff[line].time));
+			vwrite_user(user, "%02d:%02d %s", tm_struct->tm_hour, tm_struct->tm_min, user->editbuff[line].buff);
 			}
 		}
 	if (!cnt) write_user(user,"EDIT review buffer is empty.\n");
-	else write_user(user,"\n~BB~FG*** End ***\n\n");
+	else vwrite_user(user, "\n%s\n", center(review_end, 81));
 }
 
 
@@ -1346,8 +1401,10 @@ void clear_edit(UR_OBJECT user)
 	int c;
 
 	set_crash();
-	for (c=0;c<REVTELL_LINES;++c)
-		user->editbuff[c][0]='\0';
+	for (c=0;c<REVTELL_LINES;++c) {
+		user->editbuff[c].buff[0]='\0';
+		user->editbuff[c].time=0;
+		}
 	user->editline=0;
 }
 
@@ -1389,7 +1446,7 @@ void say_to(UR_OBJECT user, char *inpstr)
 		}
 	if (mur==1) {
 		if (u==user) {
-			write_user(user,"Talking to yourself is the first sign of madness!\n");
+			write_user(user, "Sebe ? Salies ?!\n");
 			return;
 			}
 		if ((check_igusers(u, user))!=-1
@@ -1484,18 +1541,18 @@ if (word_count<2) {
   for (i=0;i<MAX_FRIENDS;++i) {
     if (!user->friend[i][0]) continue;
     if (++cnt==1) {
-      write_user(user,"+----------------------------------------------------------------------------+\n");
-      write_user(user,"| ~FT~OLNames on your friends list are as follows~RS                                  |\n");
-      write_user(user,"+----------------------------------------------------------------------------+\n");
+      write_user(user, ascii_tline);
+      write_user(user,"~CT| Names on your friends list are as follows                                    |\n");
+      write_user(user, ascii_line);
       }
-    vwrite_user(user,"| %-74s |\n",user->friend[i]);
+    vwrite_user(user,"~CT|~RS %-76s ~CT|\n",user->friend[i]);
     }
   if (!cnt) write_user(user,"You have no names on your friends list.\n");
   else {
-    write_user(user,"+----------------------------------------------------------------------------+\n");
-    if (!user->alert) write_user(user,"| ~FTYou are currently not being alerted~RS                                        |\n");
-    else write_user(user,"| ~OL~FTYou are currently being alerted~RS                                            |\n");
-    write_user(user,"+----------------------------------------------------------------------------+\n");
+    write_user(user, ascii_line);
+    if (!user->alert) write_user(user,"~CT| You are currently not being alerted                                          |\n");
+    else write_user(user,"~CT| You are currently being alerted                                              |\n");
+    write_user(user, ascii_bline);
     }
   return;
   }
@@ -1563,35 +1620,36 @@ void friend_say(UR_OBJECT user, char *inpstr)
 	int i,cnt=0;
 
 	set_crash();
-if (user->muzzled) {
-  vwrite_user(user, muzzled_cannot, "kecat");
-  return;
-  }
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kecat");
+		return;
+		}
 /* check to see if use has friends listed */
-for (i=0;i<MAX_FRIENDS;++i) if (user->friend[i][0]) ++cnt;
-if (!cnt) {
-  write_user(user,"You have no friends listed.\n");
-  return;
-  }
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
-if (word_count<2) {
-  write_user(user,"Say what to your friends?\n");  return;
-  }
-smiley_type(inpstr,type);
-sprintf(text,"~FGYou %s to your friends:~RS %s\n",type,inpstr);
-write_user(user,text);
-record_tell(user,text);
-if (user->vis) name=user->bw_recap; else name=invisname;
-sprintf(text,"~FGFriend %s %ss:~RS %s\n",name,type,inpstr);
-write_friends(user,text,1);
+	for (i=0;i<MAX_FRIENDS;++i)
+		if (user->friend[i][0]) ++cnt;
+	if (!cnt) {
+		write_user(user,"You have no friends listed.\n");
+		return;
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch (amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
+	if (word_count<2) {
+		write_user(user,"Say what to your friends?\n");
+		return;
+		}
+	smiley_type(inpstr,type);
+	sprintf(text,"~FGYou %s to your friends:~RS %s\n",type,inpstr);
+	write_user(user,text);
+	record_tell(user,text);
+	if (user->vis) name=user->bw_recap;
+	else name=invisname;
+	sprintf(text,"~FGFriend %s %ss:~RS %s\n",name,type,inpstr);
+	write_friends(user,text,1);
 }
 
 
@@ -1602,28 +1660,28 @@ void friend_emote(UR_OBJECT user, char *inpstr)
 	int i,cnt=0;
 
 	set_crash();
-if (user->muzzled) {
-  vwrite_user(user, muzzled_cannot, "kecat");  return;
-  }
-if (word_count<2) {
-  write_user(user,"Emote what to your friends?\n");
-  return;
-  }
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kecat");
+		return;
+		}
+	if (word_count<2) {
+		write_user(user,"Emote what to your friends?\n");
+		return;
+		}
 /* check to see if use has friends listed */
-for (i=0;i<MAX_FRIENDS;++i) if (user->friend[i][0]) ++cnt;
-if (!cnt) {
-  write_user(user,"You have no friends listed.\n");
-  return;
-  }
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
+	for (i=0;i<MAX_FRIENDS;++i)
+		if (user->friend[i][0]) ++cnt;
+	if (!cnt) {
+		write_user(user,"You have no friends listed.\n");
+		return;
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch(amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
 if (user->vis) name=user->recap;
 else name=invisname;
 if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~OL~FGFriend~RS %s~RS%s\n",name,inpstr);
@@ -1708,27 +1766,19 @@ void hug(UR_OBJECT user, char *inpstr)
 	if (mur>1) {
 		for (i=0; i<mur; i++) {
 			if ((u=get_user_name(user, user->murlist[i]))==NULL) {
-				vwrite_user(user, "~OL~FR%s~RS: %s",
-					user->murlist[i], notloggedon);
+				vwrite_user(user, "~OL~FR%s~RS: %s", user->murlist[i], notloggedon);
 				continue;
 				}
 			if (u==user) {
-				vwrite_user(user, "~OL~FR%s~RS: ~OLseba ? hmm ...\n",
-					user->murlist[i]);
+				vwrite_user(user, "~OL~FR%s~RS: ~OLseba ? hmm ...\n", user->murlist[i]);
 				continue;
 				}
-			if ((check_igusers(u, user))!=-1
-			    && (user->level<GOD
-				|| user->level<u->level
-				)
-			    ) {
-				vwrite_user(user,"~OL~FR%s~RS : momentalne ta ignoruje.\n",
-					user->murlist[i]);
+			if ((check_igusers(u, user))!=-1 && (user->level<GOD || user->level<u->level)) {
+				vwrite_user(user,"~OL~FR%s~RS : momentalne ta ignoruje.\n", user->murlist[i]);
 				continue;
 				}
 			if ((u->ignore.all || u->ignore.tells) && (user->level<ARCH || u->level>user->level)) {
-				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n",
-					user->murlist[i]);
+				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n", user->murlist[i]);
 				continue;
 				}
 		#ifdef NETLINKS
@@ -1748,7 +1798,7 @@ void hug(UR_OBJECT user, char *inpstr)
 				}
 			else vwrite_user(u, "~OL~FG%s~FW ta pozdravuje !\n", user->name);
 			if (word_count>2) {
-					if (!u->afk) vwrite_user(u, "A sepka ti:~RS %s\n", inpstr);
+				if (!u->afk) vwrite_user(u, "A sepka ti:~RS %s\n", inpstr);
 				sprintf(text, "~FG~OLHUG~RS od %s:~RS %s\n", user->name, inpstr);
 				}
 			else sprintf(text, "~FG~OLHUG~RS od %s\n", user->name);
@@ -1766,19 +1816,13 @@ void hug(UR_OBJECT user, char *inpstr)
 			write_user(user, "Posielat HUG sebe ? Salies ?\n");
 			return;
 			}
-		if ((check_igusers(u, user)!=-1)
-		    && (user->level<GOD
-			|| user->level<u->level
-			)
-		    ) {
+		if ((check_igusers(u, user)!=-1) && (user->level<GOD || user->level<u->level)) {
 			vwrite_user(user,"~FG~OL%s~FW ta momentalne ignoruje.\n", u->name);
 			return;
 			}
 		if (u->ignore.all && (user->level<ARCH || u->level>user->level)) {
-			if (u->malloc_start)
-				vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
-			else
-				vwrite_user(user, "~FG~OL%s~FW momentalne vsetko ignoruje\n", u->name);
+			if (u->malloc_start) vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
+			else vwrite_user(user, "~FG~OL%s~FW momentalne vsetko ignoruje\n", u->name);
 			return;
 			}
 	#ifdef NETLINKS
@@ -1798,7 +1842,7 @@ void hug(UR_OBJECT user, char *inpstr)
 			}
 		else vwrite_user(u, "~OL~FG%s~FW ta pozdravuje !\n", user->name);
 		if (word_count>2) {
-				if (!u->afk) vwrite_user(u, "A sepka ti: %s\n", inpstr);
+			if (!u->afk) vwrite_user(u, "A sepka ti: %s\n", inpstr);
 			sprintf(text, "~FG~OLHUG~RS od %s:~RS %s\n", user->name, inpstr);
 			}
 		else sprintf(text, "~FG~OLHUG~RS od %s\n", user->name);
@@ -1828,27 +1872,19 @@ void kiss(UR_OBJECT user, char *inpstr)
 	if (mur>1) {
 		for (i=0; i<mur; i++) {
 			if ((u=get_user_name(user, user->murlist[i]))==NULL) {
-				vwrite_user(user, "~OL~FR%s~RS: %s",
-					user->murlist[i], notloggedon);
+				vwrite_user(user, "~OL~FR%s~RS: %s", user->murlist[i], notloggedon);
 				continue;
 				}
 			if (u==user) {
-				vwrite_user(user, "~OL~FR%s~RS: ~OLseba ? hmm ...\n",
-					user->murlist[i]);
+				vwrite_user(user, "~OL~FR%s~RS: ~OLseba ? hmm ...\n", user->murlist[i]);
 				continue;
 				}
-			if ((check_igusers(u, user))!=-1
-			    && (user->level<GOD
-				|| user->level<u->level
-				)
-			    ) {
-				vwrite_user(user,"~OL~FR%s~RS : momentalne ta ignoruje.\n",
-					user->murlist[i]);
+			if ((check_igusers(u, user))!=-1 && (user->level<GOD || user->level<u->level)) {
+				vwrite_user(user,"~OL~FR%s~RS : momentalne ta ignoruje.\n", user->murlist[i]);
 				continue;
 				}
 			if ((u->ignore.all || u->ignore.tells) && (user->level<ARCH || u->level>user->level)) {
-				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n",
-					user->murlist[i]);
+				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n", user->murlist[i]);
 				continue;
 				}
 		#ifdef NETLINKS
@@ -1868,7 +1904,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 				}
 			else vwrite_user(u, "~OL~FG%s~FW ta bozkava !\n", user->name);
 			if (word_count>2) {
-					if (!u->afk) vwrite_user(u, "A sepka ti:~RS %s\n", inpstr);
+				if (!u->afk) vwrite_user(u, "A sepka ti:~RS %s\n", inpstr);
 				sprintf(text, "~FR~OLKISS~RS od %s:~RS %s\n", user->name, inpstr);
 				}
 			else sprintf(text, "~FR~OLKISS~RS od %s\n", user->name);
@@ -1886,19 +1922,13 @@ void kiss(UR_OBJECT user, char *inpstr)
 			write_user(user, "Posielat KISS sebe ? Salies ?\n");
 			return;
 			}
-		if ((check_igusers(u, user)!=-1)
-		    && (user->level<GOD
-			|| user->level<u->level
-			)
-		    ) {
+		if ((check_igusers(u, user)!=-1) && (user->level<GOD || user->level<u->level)) {
 			vwrite_user(user,"~FG~OL%s~FW ta momentalne ignoruje.\n", u->name);
 			return;
 			}
 		if (u->ignore.all && (user->level<ARCH || u->level>user->level)) {
-			if (u->malloc_start)
-				vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
-			else
-				vwrite_user(user, "~FG~OL%s~FW momentalne vsetko ignoruje\n", u->name);
+			if (u->malloc_start) vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
+			else vwrite_user(user, "~FG~OL%s~FW momentalne vsetko ignoruje\n", u->name);
 			return;
 			}
 	#ifdef NETLINKS
@@ -1963,13 +1993,9 @@ void reply(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
-			case SBMIN:
-				inpstr=censor_swear_words(inpstr);
-				break;
-			case SBMAX:
-				write_user(user,noswearing);
-				return;
+		switch (amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
 			default : break; /* do nothing as ban_swearing is off */
 			}
 		}
@@ -2043,13 +2069,9 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
-			case SBMIN:
-				inpstr=censor_swear_words(inpstr);
-				break;
-			case SBMAX:
-				write_user(user,noswearing);
-				return;
+		switch (amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
 			default : break; /* do nothing as ban_swearing is off */
 			}
 		}
@@ -2235,10 +2257,8 @@ void kick(UR_OBJECT user)
 		return;
 		}
 	move_user(ur, rm, 0);
-	if (user->vis) vwrite_user(ur, "~OL~FG%s~FW ta vykop%s z miestnosti ~FY%s~FW !\n",
-		user->name, grm_gnd(5, user->gender), user->room->name);
-	else vwrite_user(ur, "~OL~FG%s~FW ta vykopol z miestnosti ~FY%s~FW !\n",
-		invisname, user->room->name);
+	if (user->vis) vwrite_user(ur, "~OL~FG%s~FW ta vykop%s z miestnosti ~FY%s~FW !\n", user->name, grm_gnd(5, user->gender), user->room->name);
+	else vwrite_user(ur, "~OL~FG%s~FW ta vykopol z miestnosti ~FY%s~FW !\n", invisname, user->room->name);
 	vwrite_user(user, "~OLVykop%s si ~FG%s~FW odtialto ...\n", grm_gnd(5, user->gender), ur->name);
 }
 

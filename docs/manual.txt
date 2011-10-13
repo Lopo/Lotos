@@ -1,4 +1,4 @@
-L o t o s   verzia 1.2.2
+L o t o s   verzia 1.2.3
 ==============================================================================
                  Instalacia, nastavenie, pouzivatelsky manual
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,7 +38,7 @@ POZN.: Pozri samostatne specializovane manualy
        Lotos je zalozeny na kode AmNUTS 2.2.1 od Andrew Collingtona
       chraneneho autorskym pravom. Okrem kodu AmNUTS 2.2.1 su v Lotos-e pouzite
       casti kodov z inych modifikacii NUTS-u.
-      Tu je ich zoznam s popisom co z nich bolo pouzite (verzie su tie z
+      Tu je ich zoznam s popisom co z nich bolo pouzite (pisane verzie su tie z
       ktorych som zacinal, odvtedy uz mam vacsinu aj novsie):
        1. TalkerOS 4.03
         - system plugin modulov
@@ -85,8 +85,8 @@ POZN.: Pozri samostatne specializovane manualy
       jedneho obrovskeho suboru by trvala nekonecne dlho. Ale aj ked som to
       rozdelil a kompilovalo mi to vzdy len zmeneny subor, trvalo to
       na takej konfiguracii strasne dlho a dost casto som mal `x' chuti
-      sa na to cele vy... (dopln podla uvazenia :). Do vianoc 1999 som toho moc
-      neurobil, v podstate som len podrobnejsie pozeral zdrojove kody
+      sa na to cele vy... (doplnit podla uvazenia :). Do vianoc 1999 som toho
+      moc neurobil, v podstate som len podrobnejsie pozeral zdrojove kody
       jednotlivych talkrov a vyberal si co vsetko pouzijem v mojom systeme.
       Ale potom to uz islo celkom rychlo, a tak davam na web nove verzie
       tak rychlo ako sa da.
@@ -104,14 +104,14 @@ POZN.: Pozri samostatne specializovane manualy
         UN*X konte. Takze najprv sa treba prihlasit na svoje konto.
         Potom nasledujte tieto kroky:
         `cd ~' - prepne do vasho domovskeho adresara
-        `cp <stary_adresar>/lotos122.tar.gz .' skopiruje balik do domovskeho
+        `cp <stary_adresar>/lotos123.tar.gz .' skopiruje balik do domovskeho
         adresara ak uz je balik stiahnuty z internetu. Ak nie je, tak ho
         treba najprv stiahnut z Lotos domovskej web stranky do vasho 
         domovskeho adresara.
-        `gzip -d lotos122.tar.gz' rozbali subor a premenuje ho na lotos122.tar
-        `tar -xvf lotos122.tar' rozbali subor na jednotlive subory a adresare
-        v jednom adresari lotos122. Ak chcete iny nazov adresara, treba pouzit
-        prikaz `mv ./lotos122 ./<novy_nazov>'. Po tomto je uz Lotos kompletne
+        `gzip -d lotos123.tar.gz' rozbali subor a premenuje ho na lotos122.tar
+        `tar -xvf lotos123.tar' rozbali subor na jednotlive subory a adresare
+        v jednom adresari lotos123. Ak chcete iny nazov adresara, treba pouzit
+        prikaz `mv ./lotos123 ./<novy_nazov>'. Po tomto je uz Lotos kompletne
         naistalovany.
 
     2. SYSTEM SUBOROV
@@ -137,7 +137,7 @@ POZN.: Pozri samostatne specializovane manualy
         KILLMSGS - subory s kill hlaskami
         MAILSPOOL - pouziva posta
         MAPFILES - mapy
-        MISCFILES - rozne doplnkove dokumenty a zoznamy
+        MISCFILES - rozne doplnkove subory
         MOTDS - prihlasovacie a odhlasovacie obrazovky
         PICTFILES - ascii obrazky na posielanie
         PLFILES - subory k plugin modulom
@@ -145,7 +145,7 @@ POZN.: Pozri samostatne specializovane manualy
         SCREENS - subory obsahujuce obrazovky najcastejsie pouzivane pri
                    nastavovani parametrov
         TEXTFILES - rozsirene napovedy
-        TRFILES - nastenky, popisy a po. k transportom
+        TRFILES - subory k transportom
         VOTEFILES - subory k volbam
 
     3. PRVE NASTAVENIE
@@ -156,11 +156,11 @@ POZN.: Pozri samostatne specializovane manualy
           POZNAMKA: hlavne nastavenia treba urobit v subore
            DATAFILES/CONFFILES/config podla suboru DOCS/config.txt.
         Dalej treba nastavit nasledujuce veci:
+        define.h - korenovy adresar > `ROOTDIR'
         globals.c - jednotlive polozky v strukture reg_sysinfo a signatury
         boots.h - nazvy levelov v strukture user_level
         prompts.c - kratke texty, hlasky, popisy a pod.
         star.h - nazvy defaultnych miestnosti
-        define.h - korenovy adresar > `ROOTDIR'
 
    4. PRVA KOMPILACIA A SPUSTENIE
       ---------------------------
@@ -194,11 +194,11 @@ POZN.: Pozri samostatne specializovane manualy
         tak popisem len tie najhlavnejsie. Su tam:
         PID - sidlo procesu, cas startu, cas prevadzky a porty.
         Ak by sa program vymkol konrole, staci napisat z UN*X konta kill <PID>.
-        Pripadne spustit skript star.kill v hlavnom adresari.
+        Pripadne spustit skript urceny definiciou KILLFILE v define.h.
         Inac pozor - PID cislo je pri kazdom starte systemu ine. Cisla portov
         uvadzaju, na ktorych portoch system akceptuje pripojenia.
         MAINport- pre vsetkych userov, WIZ - pre wizardov a adminov
-        a LINKport pre pripojenie dalsich talkrov.
+        a LINKport pre pripojenie dalsich talkrov (ak je povolene).
         MINLOGIN level urcuje, aky musi mat user minimalny level, aby sa mohol
         pripojit cez MAINport. Dalej su dolezite LEVEL hodnoty. Tie treba mat
         velmi starostlivo nastavene.
@@ -234,7 +234,7 @@ POZN.: Pozri samostatne specializovane manualy
         ACCREQ LOG - zaznamy ziadosti o prve promote
         DEBUG LOG - zaznamy pri odladovani systemu
         ERROR LOG - zaznamy vacsiny chyb
-         Je chodne ich pravidelne citat, hlavne ERRLOG.
+         Je vhodne ich pravidelne citat, hlavne ERRLOG.
 
      8. ONLINE UTILITY
         --------------
@@ -253,14 +253,14 @@ POZN.: Pozri samostatne specializovane manualy
          Pretoze sa casto doplnaju rozne hry, funkcie a pod z inych systemov,
         alebo sa do inych systemov exportuju, rozhodol som sa pridat rozsirenie
         (prebrate z TOS) na pridavanie takychto veci cez plugin moduly. Takze
-        ak je plugin napisane spravne a aj druhy system ma toto rozhranie,
+        ak je plugin napisany spravne a aj druhy system ma toto rozhranie,
         nie je potom problem prenasat ich medzi nimi bez akejkolvek upravy.
         Toto doplnenie plugin modulu potom spociva v dopisani 3-4 riadkov kodu
         pri mensich moduloch, alebo pri 5-6-.. riadkoch pri velkych moduloch.
         Aj tak je to ale velka uspora oproti desiatkam alebo stovkam riadkov
         pri tradicnom doplnani.
 
-     10. TECHNICKE ROZDIELY MEDZI PLUGINOM A `HARD-CODE´
+     10. TECHNICKE ROZDIELY MEDZI PLUGINOM A 'HARD-CODE'
         -----------------------------------------------
          V tradicnom programovani sa system rozsiroval dopisovanim do zdrojoveho
         kodu systemu. Musel byt pridany kod a obnovene struktury v EXEC_COM(),
@@ -291,8 +291,8 @@ POZN.: Pozri samostatne specializovane manualy
                    Place third-party plugin initialization calls HERE
                    -------------------------------------------------- */
          POZNAMKA: Nejaky vacsi (komplexnejsi) modul mozno bude pozadovat
-                    vlozenie dalsich riadkov napr. do ur_obj.h. Ak je to tak,
-                    je to napisane na zaciatku .C suboru plugin modulu.
+                    vlozenie dalsich riadkov napr. do obj_ur.h. Ak je to tak,
+                    je to napisane na zaciatku .c suboru plugin modulu.
 
      12. ODOBERANIE PLUGIN MODULOV ZO SYSTEMU
          ------------------------------------

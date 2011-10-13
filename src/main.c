@@ -2,11 +2,10 @@
 /*
  * main.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 /*****************************************************************************
              Amnuts version 2.2.1 - Copyright (C) Andrew Collington
@@ -106,7 +105,7 @@
 int main(int argc,char *argv[])
 {
 	fd_set readmask; 
-	int i,len; 
+	int i, len;
 	char inpstr[ARR_SIZE];
 	UR_OBJECT user,next;
 #ifdef NETLINKS
@@ -248,13 +247,16 @@ int main(int argc,char *argv[])
 			if (!FD_ISSET(user->socket,&readmask)) { user=next;  continue; }
     /* see if client (eg telnet) has closed socket */
 			inpstr[0]='\0';
-			if (!(len=read(user->socket,inpstr,sizeof(inpstr)))) {
+			if (!(len=read(user->socket, inpstr, sizeof(inpstr)))) {
 				disconnect_user(user);
 				user=next;
 				continue;
 				}
     /* ignore control code replies */
-			if ((unsigned char)inpstr[0]==255) { user=next;  continue; }
+			if ((unsigned char)inpstr[0]==255) {
+				user=next;
+				continue;
+				}
     /* Deal with input chars. If the following if test succeeds we
        are dealing with a character mode client so call function. */
 			if (inpstr[len-1]>=32 || user->buffpos) {
@@ -330,7 +332,7 @@ GOT_LINE:
 					}
 				else write_user(user,"You are no longer AFK.\n");  
 				user->afk_mesg[0]='\0';
-				if (user->afkbuff[0][0]) revafk(user);
+				if (user->afkbuff[0].buff[0]) revafk(user);
 				if (user->vis) vwrite_room_except(user->room,user,"%s~RS comes back from being AFK.\n",user->recap);
 				if (user->afk==2) {
 					user->afk=0;
@@ -517,9 +519,18 @@ strcpy(user->icq,"#UNSET");
 for (i=0; i<MAX_IGNORES; ++i) user->ignoreuser[i][0]='\0';
 for (i=0;i<MAX_COPIES;++i) user->copyto[i][0]='\0';
 for (i=0;i<MAX_FRIENDS;++i) user->friend[i][0]='\0';
-for(i=0;i<REVTELL_LINES;++i) user->afkbuff[i][0]='\0';
-for(i=0;i<REVTELL_LINES;++i) user->editbuff[i][0]='\0';
-for(i=0;i<REVTELL_LINES;++i) user->revbuff[i][0]='\0';
+for (i=0;i<REVTELL_LINES;++i) {
+	user->afkbuff[i].buff[0]='\0';
+	user->afkbuff[i].time=0;
+	}
+for (i=0;i<REVTELL_LINES;++i) {
+	user->editbuff[i].buff[0]='\0';
+	user->editbuff[i].time=0;
+	}
+for (i=0;i<REVTELL_LINES;++i) {
+	user->revbuff[i].buff[0]='\0';
+	user->revbuff[i].time=0;
+	}
 #ifdef NETLINKS
  user->netlink=NULL;
  user->pot_netlink=NULL; 
@@ -659,6 +670,8 @@ user->inctime=0;
 user->kradnutie=0;
 user->lynx=0;
 user->follow[0]='\0';
+user->next_ping=PINGINTERVAL;
+user->last_ping=-1;
 }
 
 
@@ -692,40 +705,48 @@ RM_OBJECT create_room(void)
 	int i;
 
 	set_crash();
-if ((room=(RM_OBJECT)malloc(sizeof(struct room_struct)))==NULL) {
-  fprintf(stderr,"Lotos: Memory allocation failure in create_room().\n");
-  boot_exit(1);
-  }
-/* Append object into linked list. */
-if (room_first==NULL) {  
-  room_first=room;  room->prev=NULL;  
-  }
-else {  
-  room_last->next=room;  room->prev=room_last;
-  }
-room->next=NULL;
-room_last=room;
+	if (!(room=(RM_OBJECT)malloc(sizeof(struct room_struct)))) {
+		fprintf(stderr,"Lotos: Memory allocation failure in create_room().\n");
+		boot_exit(1);
+		}
+	/* Append object into linked list. */
+	if (room_first==NULL) {  
+		room_first=room;
+		room->prev=NULL;  
+		}
+	else {  
+		room_last->next=room;
+		room->prev=room_last;
+		}
+	room->next=NULL;
+	room_last=room;
 
-room->name[0]='\0';
-room->label[0]='\0';
-room->desc[0]='\0';
-room->topic[0]='\0';
-room->map[0]='\0';
-room->access=-1;
-room->revline=0;
-room->mesg_cnt=0;
-room->transp=NULL;
+	room->name[0]='\0';
+	room->label[0]='\0';
+	room->desc[0]='\0';
+	room->topic[0]='\0';
+	room->map[0]='\0';
+	room->access=-1;
+	room->revline=0;
+	room->mesg_cnt=0;
+	room->transp=NULL;
+	strcpy(room->topicowner, "~CRSYSTEM~RS");
+	room->topiclock=0;
 #ifdef NETLINKS
-  room->inlink=0;
-  room->netlink=NULL;
-  room->netlink_name[0]='\0';
+	room->inlink=0;
+	room->netlink=NULL;
+	room->netlink_name[0]='\0';
 #endif
-room->next=NULL;
-for(i=0;i<MAX_LINKS;++i) {
-  room->link_label[i][0]='\0';  room->link[i]=NULL;
-  }
-for(i=0;i<REVIEW_LINES;++i) room->revbuff[i][0]='\0';
-return room;
+	room->next=NULL;
+	for (i=0;i<MAX_LINKS;++i) {
+		room->link_label[i][0]='\0';
+		room->link[i]=NULL;
+		}
+	for (i=0;i<REVIEW_LINES;++i) {
+		room->revbuff[i].buff[0]='\0';
+		room->revbuff[i].time=0;
+		}
+	return room;
 }
 
 
@@ -1156,7 +1177,7 @@ UR_OBJECT get_user_name(UR_OBJECT user, char *i_name)
 strncpy(name, i_name, USER_NAME_LEN);
 name[0]=toupper(name[0]);
 buff[0]='\0';
-if ((u=get_user(name))==NULL) return u;
+if ((u=get_user(name))!=NULL) return u;
 for (u=user_first;u!=NULL;u=u->next)
   if (!strcmp(u->name,name) && u->room!=NULL) return u;
 for (u=user_first;u!=NULL;u=u->next) {
@@ -1433,35 +1454,35 @@ void accept_connection(int lsock, int num)
 		}
 #endif
 /* Get addr */
-get_net_addresses(acc_addr, ip_site, named_site);
+	get_net_addresses(acc_addr, ip_site, named_site);
 
-if (site_banned(ip_site,0) || site_banned(named_site,0)) {
-  write_sock(accept_sock,"\n\rLoginy z tvojej sajty/domeny su zabanovane.\n\n\r");
-  close(accept_sock);
-  write_syslog(SYSLOG,1,"Pokus o login zo zabanovanej sajty %s (%s).\n",named_site,ip_site);
-  return;
-  }
-if (amsys->flood_protect && (login_port_flood(ip_site) || login_port_flood(named_site))) {
-  write_sock(accept_sock, flood_prompt_r);
-  close(accept_sock);
-  write_syslog(SYSLOG,1,"Pokus o vyfloodovanie portu zo sajty %s (%s).\n",named_site,ip_site);
-  auto_ban_site(ip_site);
-  return;
-  }
+	if (site_banned(ip_site,0) || site_banned(named_site,0)) {
+		write_sock(accept_sock,"\n\rLoginy z tvojej sajty/domeny su zabanovane.\n\n\r");
+		close(accept_sock);
+		write_syslog(SYSLOG, 1, "Pokus o login zo zabanovanej sajty %s (%s).\n",named_site,ip_site);
+		return;
+		}
+	if (amsys->flood_protect && (login_port_flood(ip_site) || login_port_flood(named_site))) {
+		write_sock(accept_sock, flood_prompt_r);
+		close(accept_sock);
+		write_syslog(SYSLOG, 1, "Pokus o vyfloodovanie portu zo sajty %s (%s).\n",named_site,ip_site);
+		auto_ban_site(ip_site);
+		return;
+		}
 /* get random motd1 and send pre-login message */
-if (amsys->motd1_cnt) {
-  sprintf(motdname,"%s/motd1/motd%d", MOTDFILES, (get_motd_num(1)));
-  more(NULL,accept_sock,motdname);
-  }
-else {
-  sprintf(text,"Wytay na %s!\n\n\rSorry, zda sa, ze logovacia obrazovka sa stratila\n\r",reg_sysinfo[TALKERNAME]);
-  write_sock(accept_sock,text);
-  }
-if (syspp->acounter[3]+amsys->num_of_logins>=amsys->max_users && !num) {
-  write_sock(accept_sock,"\n\rSorac, ale momentalne nemozeme akceptovat viac pripojeni.  Skus neskor.\n\n\r");
-  close(accept_sock);  
-  return;
-  }
+	if (amsys->motd1_cnt) {
+		sprintf(motdname,"%s/motd1/motd%d", MOTDFILES, (get_motd_num(1)));
+		more(NULL, accept_sock, motdname);
+		}
+	else {
+		sprintf(text,"Wytay na %s!\n\n\rSorry, zda sa, ze logovacia obrazovka sa stratila\n\r",reg_sysinfo[TALKERNAME]);
+		write_sock(accept_sock,text);
+		}
+	if (syspp->acounter[3]+amsys->num_of_logins>=amsys->max_users && !num) {
+		write_sock(accept_sock,"\n\rSorac, ale momentalne nemozeme akceptovat viac pripojeni.  Skus neskor.\n\n\r");
+		close(accept_sock);  
+		return;
+		}
 	if (!num && !syspp->sys_access) {
 		write_sock(accept_sock, sys_port_closed);
 		close(accept_sock);
@@ -1472,31 +1493,31 @@ if (syspp->acounter[3]+amsys->num_of_logins>=amsys->max_users && !num) {
 		close(accept_sock);
 		return;
 		}
-if ((user=create_user())==NULL) {
-  sprintf(text,"\n\r%s: nemozem vytvorit session.\n\n\r",syserror);
-  write_sock(accept_sock,text);
-  close(accept_sock);  
-  return;
-  }
-user->socket=accept_sock;
-user->auth_addr=acc_addr.sin_addr.s_addr;
-user->login=LOGIN_NAME;
-user->last_input=time(0);
-if (!num) user->port=port[0]; 
-else {
-  user->port=port[1];
-  write_user(user,"~FT~OL** Wizport login **~RS\n\n");
-  }
+	if ((user=create_user())==NULL) {
+		sprintf(text,"\n\r%s: nemozem vytvorit session.\n\n\r",syserror);
+		write_sock(accept_sock,text);
+		close(accept_sock);  
+		return;
+		}
+	user->socket=accept_sock;
+	user->auth_addr=acc_addr.sin_addr.s_addr;
+	user->login=LOGIN_NAME;
+	user->last_input=time(0);
+	if (!num) user->port=port[0]; 
+	else {
+		user->port=port[1];
+		write_user(user,"~FT~OL** Wizport login **~RS\n\n");
+		}
 #ifdef PUEBLO
-if (syspp->pueblo_enh)
-	vwrite_user(user, "~RS~OLLotos verzia %s - Tento system je \'~FRPueblo 1.10 Enhanced~RS~OL\'.\n\n", OSSVERSION);
+	if (syspp->pueblo_enh)
+		vwrite_user(user, "~RS~OLLotos verzia %s - Tento system je \'~FRPueblo 1.10 Enhanced~RS~OL\'.\n\n", OSSVERSION);
 #endif
-strcpy(user->site,named_site);
-strcpy(user->ipsite,ip_site);
-user->site_port=(int)ntohs(acc_addr.sin_port);
-echo_on(user);
-write_user(user, login_prompt);
-amsys->num_of_logins++;
+	strcpy(user->site,named_site);
+	strcpy(user->ipsite,ip_site);
+	user->site_port=(int)ntohs(acc_addr.sin_port);
+	echo_on(user);
+	write_user(user, login_prompt);
+	amsys->num_of_logins++;
 }
 
 
@@ -1545,6 +1566,9 @@ char *resolve_ip(char* host)
 void sig_handler(int sig)
 {
 	set_crash();
+#ifdef DEBUG
+	crash_dump();
+#endif
 	force_listen=1;
 	dump_commands(sig);
 	switch (sig) {
@@ -1557,14 +1581,11 @@ void sig_handler(int sig)
       return;
       }
     write_room(NULL,"\n\n~OLSYSTEM:~FR~LI SIGTERM prijaty, inicializujem vypnutie !\n\n");
-#ifdef DEBUG
-	crash_dump();
-#endif
     talker_shutdown(NULL,"ukoncovaci signal (SIGTERM)",0); 
     break; /* don't really need this here, but better safe... */
 
   case SIGSEGV:
-    switch(amsys->crash_action) {
+    switch (amsys->crash_action) {
       case 0:	
 	write_room(NULL,"\n\n\07~OLSYSTEM:~FR~LI SAKRA - Chyba segmentacie, inicializujem vypnutie!\n\n");
 #ifdef DEBUG
@@ -1588,6 +1609,24 @@ void sig_handler(int sig)
 	crash_dump();
 #endif
 	talker_shutdown(NULL,"Chyba segmentacie (SIGSEGV)",1); 
+	break;
+	
+      case 3: //restart
+	write_room(NULL,"\n\n\07~OLSYSTEM:~FR~LI POZOR - Vyskytla sa chyba segmentacie !\n\n");
+	write_syslog(SYSLOG,1,"POZOR: Vyskytla sa chyba segmentacie !\n");
+#ifdef DEBUG
+	crash_dump();
+#endif
+	restart(NULL);
+	break;
+
+      case 4: //shutdown
+	write_room(NULL,"\n\n\07~OLSYSTEM:~FR~LI POZOR - Vyskytla sa chyba segmentacie !\n\n");
+	write_syslog(SYSLOG,1,"POZOR: Vyskytla sa chyba segmentacie !\n");
+#ifdef DEBUG
+	crash_dump();
+#endif
+	talker_shutdown(NULL, "SIGSEG", 0);
 	break;
     } /* end switch */
 
@@ -1792,9 +1831,9 @@ int load_user_details(UR_OBJECT user)
 {
 	FILE *fp;
 	char user_words[16][40]; /* must be at least 1 longer than max words in the _options */
-	char line[ARR_SIZE],fname[FNAME_LEN],*str;
+	char line[ARR_SIZE], fname[FNAME_LEN], *str;
 	char *ver;
-	int  wn,wpos,wcnt,op,found,i,damaged;
+	int  wn, wpos, wcnt, op, found, i, damaged=0;
 	char *userfile_options[]={
 		"version","password","promote_date","times","levels","general","user_set",
 		"fighting","purging","last_site","mail_verify","description",
@@ -1806,7 +1845,6 @@ int load_user_details(UR_OBJECT user)
 	sprintf(fname,"%s/%s.D", USERFILES, user->name);
 	if (!(fp=fopen(fname,"r"))) return 0;
 
-damaged=0;
 fgets(line,ARR_SIZE-1,fp);
 line[strlen(line)-1]='\0';
 
@@ -1819,7 +1857,8 @@ if (strcmp(USERVER, ver=remove_first(line))) {
 while (!feof(fp)) {
   /* make this into the functions own word array.  This allows this array to
      have a different length from the general words array. */
-  wn=0; wpos=0;
+  wn=0;
+  wpos=0;
   str=line;
   do {
     while (*str<33) if (!*str++) goto LUOUT;
@@ -1831,7 +1870,8 @@ while (!feof(fp)) {
  LUOUT:
   wcnt=wn;
   /* now get the option we're on */
-  op=0;  found=1;
+  op=0;
+  found=1;
   while (strcmp(userfile_options[op],user_words[0])) {
     if (userfile_options[op][0]=='*') { found=0; break; }
     op++;
@@ -1996,7 +2036,7 @@ fclose(fp);
 	fclose(fp);
 
 if (damaged) write_syslog(SYSLOG,1,"Poskodeny userfajl '%s.D'\n",user->name);
-strcpy(user->recap,user->name);
+if (!user->recap[0]) strcpy(user->recap,user->name);
 strcpy(user->bw_recap,colour_com_strip(user->recap));
 user->real_level=user->level;
 if (user->level==ROOT && strcmp(user->name, reg_sysinfo[SYSOPUNAME])) {
@@ -3957,27 +3997,27 @@ void show_login_info(UR_OBJECT user)
 	int yes=0,cnt=0,phase,exline=0;
 
 	set_crash();
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
+write_user(user, ascii_tline);
 if (thour>=0 && thour<10) phase=0;
 else if (thour>=11 && thour<18) phase=1;
 else phase=2;
 sprintf(text,"Dobr%s %s, %s~RS, a witay v ~FT~OL%s~RS",
 	grm_gnd(1, (phase==0)?0:1), times[phase], user->recap, reg_sysinfo[TALKERNAME]);
 cnt=colour_com_count(text);
-vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
 sprintf(text,"prixadzas k nam ~OL%s~RS",long_date(1));
 cnt=colour_com_count(text);
-vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
-write_user(user,"+----------------------------------------------------------------------------+\n");
+vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
+write_user(user, ascii_line);
 if (user->last_site[0]) {
   sprintf(temp,"%s",ctime(&user->last_login));
   temp[strlen(temp)-1]='\0';
   sprintf(text,"posledny login : ~OL%-25s~RS   tvoj level : ~OL%s~RS",temp,user_level[user->level].name);
   cnt=colour_com_count(text);
-  vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+  vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
   sprintf(text,"posledna sajta : ~OL%s~RS",user->last_site);
   cnt=colour_com_count(text);
-  vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+  vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
   exline++;
   }
 if (user->level>=command_table[INVIS].level) {
@@ -3988,13 +4028,13 @@ if (user->level>=command_table[INVIS].level) {
     }
   else strcat(text,"\n");
   cnt=colour_com_count(text);
-  vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+  vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
   exline++;
   }
 else if (user->level>=command_table[MONITOR].level) {
   sprintf(text,"tvoj monitor je aktualne %s~RS",myoffon[user->monitor]);
   cnt=colour_com_count(text);
-  vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+  vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
   exline++;
   }
 yes=0;  text2[0]='\0';  text[0]='\0';  temp[0]='\0';
@@ -4012,20 +4052,22 @@ if (!yes) {
 if (yes) {
   sprintf(text,"ignorujes: ~OL%s~RS",text2);
   cnt=colour_com_count(text);
-  vwrite_user(user,"| %-*.*s |\n",74+cnt*3,74+cnt*3,text);
+  vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n",76+cnt*3,76+cnt*3,text);
   exline++;
   }
-if (exline) write_user(user,"+----------------------------------------------------------------------------+\n");
+if (exline) write_user(user, ascii_line);
 if (user->level>=command_table[REMINDER].level) {
   cnt=has_reminder_today(user);
   sprintf(text,"Mas ~OL%d~RS pripomien%s na dnes", cnt, grm_num(2, cnt));
-  vwrite_user(user,"| %-80.80s |\n",text);
+  cnt=colour_com_count(text);
+    vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n", 76+cnt*3, 76+cnt*3, text);
   cnt=remove_old_reminders(user);
   if (cnt) {
     sprintf(text, "~OL%d~RS pripomien%s zrusen%s kvoli staremu datumu", cnt, grm_num(2, cnt), grm_num(3, cnt));
-    vwrite_user(user,"| %-80.80s |\n",text);
+  cnt=colour_com_count(text);
+    vwrite_user(user,"~CT|~RS %-*.*s ~CT|\n", 76+cnt*3, 76+cnt*3, text);
     }
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_bline);
   }
 }
 
@@ -4609,7 +4651,7 @@ void editor_done(UR_OBJECT user)
 	user->ignore.all=user->ignore.all_store;
 	user->editing=0;
 	user->status='a';
-	if (user->editbuff[0][0]) revedit(user);
+	if (user->editbuff[0].buff[0]) revedit(user);
 	prompt(user);
 }
 
@@ -5197,6 +5239,7 @@ switch (com_num) {
 	case ROOMOWNER: room_owner(user); break;
 	case COLORS: switch_colors(user); break;
 	case ICQPAGE: send_icqpage(user, inpstr); break;
+	case PING: ping_user(user); break;
 #ifdef PUEBLO
   case 999:	pblo_exec(user, inpstr); break;
 #endif
@@ -5219,7 +5262,8 @@ void talker_shutdown(UR_OBJECT user, char *str, int reboot)
 	char *args[]={ progname,confile,NULL };
 
 	set_crash();
-if (user!=NULL) ptr=user->bw_recap; else ptr=str;
+if (user!=NULL) ptr=user->bw_recap;
+else ptr=str;
 if (reboot) {
   write_room(NULL,"\007\n~OLSYSTEM:~FY~LI Restartujem sa - fcul !!\n\n");
   write_syslog(SYSLOG,0,"*** REBOOT initiated by %s ***\n",ptr);
@@ -5260,9 +5304,10 @@ exit(0);
 void record(RM_OBJECT rm, char *str)
 {
 	set_crash();
-	strncpy(rm->revbuff[rm->revline],str,REVIEW_LEN);
-	rm->revbuff[rm->revline][REVIEW_LEN]='\n';
-	rm->revbuff[rm->revline][REVIEW_LEN+1]='\0';
+	strncpy(rm->revbuff[rm->revline].buff, str, REVIEW_LEN);
+	rm->revbuff[rm->revline].time=time(NULL);
+	rm->revbuff[rm->revline].buff[REVIEW_LEN]='\n';
+	rm->revbuff[rm->revline].buff[REVIEW_LEN+1]='\0';
 	rm->revline=(rm->revline+1)%REVIEW_LINES;
 }
 
@@ -5271,9 +5316,10 @@ void record(RM_OBJECT rm, char *str)
 void record_tell(UR_OBJECT user, char *str)
 {
 	set_crash();
-	strncpy(user->revbuff[user->revline],str,REVIEW_LEN);
-	user->revbuff[user->revline][REVIEW_LEN]='\n';
-	user->revbuff[user->revline][REVIEW_LEN+1]='\0';
+	strncpy(user->revbuff[user->revline].buff,str,REVIEW_LEN);
+	user->revbuff[user->revline].buff[REVIEW_LEN]='\n';
+	user->revbuff[user->revline].buff[REVIEW_LEN+1]='\0';
+	user->revbuff[user->revline].time=time(NULL);
 	user->revline=(user->revline+1)%REVTELL_LINES;
 }
 
@@ -5282,9 +5328,10 @@ void record_tell(UR_OBJECT user, char *str)
 void record_shout(char *str)
 {
 	set_crash();
-	strncpy(amsys->shoutbuff[amsys->sbuffline],str,REVIEW_LEN);
-	amsys->shoutbuff[amsys->sbuffline][REVIEW_LEN]='\n';
-	amsys->shoutbuff[amsys->sbuffline][REVIEW_LEN+1]='\0';
+	strncpy(amsys->shoutbuff[amsys->sbuffline].buff, str, REVIEW_LEN);
+	amsys->shoutbuff[amsys->sbuffline].time=time(NULL);
+	amsys->shoutbuff[amsys->sbuffline].buff[REVIEW_LEN]='\n';
+	amsys->shoutbuff[amsys->sbuffline].buff[REVIEW_LEN+1]='\0';
 	amsys->sbuffline=(amsys->sbuffline+1)%REVIEW_LINES;
 }
 
@@ -5293,9 +5340,10 @@ void record_shout(char *str)
 void record_afk(UR_OBJECT user, char *str)
 {
 	set_crash();
-	strncpy(user->afkbuff[user->afkline],str,REVIEW_LEN);
-	user->afkbuff[user->afkline][REVIEW_LEN]='\n';
-	user->afkbuff[user->afkline][REVIEW_LEN+1]='\0';
+	strncpy(user->afkbuff[user->afkline].buff, str, REVIEW_LEN);
+	user->afkbuff[user->afkline].time=time(NULL);
+	user->afkbuff[user->afkline].buff[REVIEW_LEN]='\n';
+	user->afkbuff[user->afkline].buff[REVIEW_LEN+1]='\0';
 	user->afkline=(user->afkline+1)%REVTELL_LINES;
 }
 
@@ -5304,9 +5352,10 @@ void record_afk(UR_OBJECT user, char *str)
 void record_edit(UR_OBJECT user, char *str)
 {
 	set_crash();
-	strncpy(user->editbuff[user->editline],str,REVIEW_LEN);
-	user->editbuff[user->editline][REVIEW_LEN]='\n';
-	user->editbuff[user->editline][REVIEW_LEN+1]='\0';
+	strncpy(user->editbuff[user->editline].buff, str, REVIEW_LEN);
+	user->editbuff[user->editline].time=time(NULL);
+	user->editbuff[user->editline].buff[REVIEW_LEN]='\n';
+	user->editbuff[user->editline].buff[REVIEW_LEN+1]='\0';
 	user->editline=(user->editline+1)%REVTELL_LINES;
 }
 
@@ -5317,8 +5366,10 @@ void clear_revbuff(RM_OBJECT rm)
 	int c;
 
 	set_crash();
-	for (c=0;c<REVIEW_LINES;++c)
-		rm->revbuff[c][0]='\0';
+	for (c=0;c<REVIEW_LINES;++c) {
+		rm->revbuff[c].buff[0]='\0';
+		rm->revbuff[c].time=0;
+		}
 	rm->revline=0;
 }
 
@@ -6054,14 +6105,14 @@ void help_commands_level(UR_OBJECT user, int is_wrap)
 	set_crash();
 	if (is_wrap==0) {
 	/* write out the header */
-		write_user(user,"\n+----------------------------------------------------------------------------+\n");
-		write_user(user,"| Vsetky prikazy zacinaju '.' (v ~FYkecacom~RS mode) a mozu byt skratene           |\n");
-		write_user(user,"| '.' samotna zopakuje posledny tvoj prikaz alebo rec                        |\n");
-		write_user(user,"+----------------------------------------------------------------------------+\n");
+		write_user(user, ascii_tline);
+		write_user(user,"~CT|~RS Vsetky prikazy zacinaju '.' (v ~FYkecacom~RS mode) a mozu byt skratene             ~CT|\n");
+		write_user(user,"~CT|~RS '.' samotna zopakuje posledny tvoj prikaz alebo rec                          ~CT|\n");
+		write_user(user, ascii_line);
 		sprintf(text, help_header,user_level[user->level].name);
-		sprintf(text2,"| %-89s |\n",text);
+		sprintf(text2,"~CT|~RS %-91s ~CT|\n",text);
 		write_user(user,text2);
-		write_user(user,"+----------------------------------------------------------------------------+\n\n");
+		write_user(user, ascii_bline);
 		/* set some defaults */
 		cmd=first_command;
 		plcom=cmds_first;
@@ -6221,14 +6272,14 @@ void help_commands_function(UR_OBJECT user, int is_wrap)
 	set_crash();
 if (!is_wrap) {
   /* write out the header */
-  write_user(user,"\n+----------------------------------------------------------------------------+\n");
-  write_user(user,"| All commands start with a '.' (when in ~FYspeech~RS mode) and can be abbreviated |\n");
-  write_user(user,"| Remember, a '.' by itself will repeat your last command or speech          |\n");
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_tline);
+  write_user(user,"~CT|~RS All commands start with a '.' (when in ~FYspeech~RS mode) and can be abbreviated   ~CT|\n");
+  write_user(user,"~CT|~RS Remember, a '.' by itself will repeat your last command or speech            ~CT|\n");
+  write_user(user, ascii_line);
   sprintf(text,help_header, user_level[user->level].name);
-  sprintf(text2,"| %-89s |\n",text);
+  sprintf(text2,"~CT|~RS %-91s ~CT|\n",text);
   write_user(user,text2);
-  write_user(user,"+----------------------------------------------------------------------------+\n");
+  write_user(user, ascii_bline);
   /* set some defaults */
   cmd=first_command;
   user->hwrap_func=0;
@@ -6417,14 +6468,14 @@ void help_commands_only(UR_OBJECT user, int is_wrap)
 	set_crash();
 	if (is_wrap==0) {
 	/* write out the header */
-		write_user(user,"\n+----------------------------------------------------------------------------+\n");
-		write_user(user,"| Vsetky prikazy zacinaju '.' (v ~FYkecacom~RS mode) a mozu byt skratene           |\n");
-		write_user(user,"| '.' samotna zopakuje posledny tvoj prikaz alebo rec                        |\n");
-		write_user(user,"+----------------------------------------------------------------------------+\n");
+		write_user(user, ascii_tline);
+		write_user(user,"~CT|~RS Vsetky prikazy zacinaju '.' (v ~FYkecacom~RS mode) a mozu byt skratene             ~CT|\n");
+		write_user(user,"~CT|~RS '.' samotna zopakuje posledny tvoj prikaz alebo rec                          ~CT|\n");
+		write_user(user, ascii_line);
 		sprintf(text, help_header,user_level[user->level].name);
-		sprintf(text2,"| %-89s |\n",text);
+		sprintf(text2,"~CT|~RS %-91s ~CT|\n",text);
 		write_user(user,text2);
-		write_user(user,"+----------------------------------------------------------------------------+\n\n");
+		write_user(user, ascii_bline);
 		/* set some defaults */
 		text[0]='\0';
 		cmd=first_command;

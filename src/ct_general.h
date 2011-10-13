@@ -2,11 +2,10 @@
 /*
  * ct_general.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __CT_GENERAL_H__
@@ -80,9 +79,13 @@ extern char *message_prompt, *single_message_prompt, *no_message_prompt;
 extern char *topic_prompt, *notopic_prompt, *no_exits;
 extern char *user_knock_prompt, *user_room_knock_prompt, *room_knock_prompt;
 extern char *private_review_prompt, *review_header, *no_review_prompt;
+extern char *review_end;
 extern char *entroom_edit_header, *prooms_disabled;
 extern char *continue2;
 extern char *priv_room_fix;
+extern char *splitscr_on, *splitscr_off;
+extern char *ascii_tline, *ascii_line, *ascii_bline;
+extern char *levels_on_talker, *actual_time;
 
 #endif /* __CT_GENERAL_H__ */
 

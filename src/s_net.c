@@ -2,11 +2,10 @@
 /*
  * s_net.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __S_NET_C__
@@ -22,6 +21,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <arpa/telnet.h>
 
 #include "define.h"
 #include "prototypes.h"
@@ -101,7 +101,7 @@ int ident_request(struct hostent *rhost, int rport, int lport, char *accname)
 	forident.sin_addr.s_addr=*((long *)rhost->h_addr_list[0]);
 	forident.sin_port=htons(113);
 
-	if((connect(sockid,(struct sockaddr *)&forident,sizeof(forident)))!=0) { /* ident is not running */
+	if (connect(sockid, (struct sockaddr *)&forident, sizeof(forident))) { /* ident is not running */
 		close(sockid);
 		return ID_NOFOUND;
 		}
@@ -122,7 +122,7 @@ int ident_request(struct hostent *rhost, int rport, int lport, char *accname)
 	read_count=0;
 	partial_nbread=0;
 	while (partial_nbread<2 && read_count<3) {
-		if(select(FD_SETSIZE,&readfds,NULL,NULL,&read_timeout)==-1) return ID_TIMEOUT;
+		if (select(FD_SETSIZE, &readfds, NULL, NULL, &read_timeout)==-1) return ID_TIMEOUT;
       /* There is no need to see if FD_ISSET(sockid,&readfds) is true because
          we have only one file descriptor in readfds, and a select error will
          refere only this file descriptor (sockid).
@@ -142,16 +142,19 @@ int ident_request(struct hostent *rhost, int rport, int lport, char *accname)
     a lasy ident daemon runs on a given host... and who can give us
     gigabytes of auth infos...
   */
-	while (temp!=NULL && n_msgs<4) {
-		if((msgs[n_msgs]=(char *)malloc(ID_BUFFLEN+1))==NULL) return ID_NOMEM;
+	while (temp && (n_msgs<4)) {
+		if (!(msgs[n_msgs]=(char *)malloc(ID_BUFFLEN+1))) return ID_NOMEM;
 		strcpy(msgs[n_msgs],temp);
       /* We'll clean the return ident messages...
          We wasted a lot of CPU time already...:-|
        */
-		while (strlen(msgs[n_msgs])>0 && !isalnum(msgs[n_msgs][0])) (msgs[n_msgs])++;
+		while ((strlen(msgs[n_msgs])>0) && !isalnum(msgs[n_msgs][0]))
+			(msgs[n_msgs])++;
 		i=strlen(msgs[n_msgs])-1;
-		while (i>0 && !isalnum(msgs[n_msgs][i])) msgs[n_msgs][i--]='\0';
-		if (msgs[n_msgs]!=NULL && strlen(msgs[n_msgs])>2) n_msgs++;
+		while ((i>0) && !isalnum(msgs[n_msgs][i]))
+			msgs[n_msgs][i--]='\0';
+		if (msgs[n_msgs] && (strlen(msgs[n_msgs])>2))
+			n_msgs++;
 		temp=strtok(NULL,":");
 		}
   /* The returned value should be like: "item1 : item2 : item3" in
@@ -197,8 +200,8 @@ int mail_id_request(struct hostent *rhost, char *accname, char *email)
 	fd_set readfds;
 
 	set_crash();
-	if ((inbuf=(char *)malloc(ID_BUFFLEN+1))==NULL) return ID_NOMEM;
-	if((sockmail=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))==-1) /* open a socket for mail ident */
+	if (!(inbuf=(char *)malloc(ID_BUFFLEN+1))) return ID_NOMEM;
+	if ((sockmail=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP))==-1) /* open a socket for mail ident */
 		return ID_CONNERR;
 
 	forident.sin_family=rhost->h_addrtype;
@@ -446,6 +449,48 @@ void get_net_addresses(struct sockaddr_in acc_addr, char *ip_site, char *named_s
 		}
 }
 
+void ping(UR_OBJECT user)
+{
+	char cmd[]={IAC, DO, TELOPT_STATUS};
+
+	if (user->type==CLONE_TYPE || user->type==BOT_TYPE) return;
+	write_sock(user->socket, cmd);
+	gettimeofday(&(user->ping_timer), NULL);
+}
+
+void ping_respond(UR_OBJECT user)
+{
+	struct timeval endtv;
+	long pt;
+
+	if (user->type==CLONE_TYPE || user->type==BOT_TYPE) return;
+	memset(&endtv, 0, sizeof(struct timeval));
+	gettimeofday(&endtv, NULL);
+	pt=((endtv.tv_sec-user->ping_timer.tv_sec)*1000000)+(endtv.tv_usec-user->ping_timer.tv_usec);
+	if (user->last_ping==-1) {
+		user->last_ping=pt;
+		user->next_ping=PINGINTERVAL;
+		return;
+		}
+	vwrite_user(user, "~CW- ~FTYou have about %ld.%.2ld seconds of lag. ~CB(~CR%s~CB)\n", pt/1000000, (pt/10000)%1000000, ping_string(user));
+}
+
+void ping_timed(UR_OBJECT user)
+{
+	if (user->type==CLONE_TYPE || user->type==BOT_TYPE) return;
+	user->last_ping=-1;
+	ping(user);
+}
+
+char * ping_string(UR_OBJECT user)
+{
+	int i;
+
+	if (user->type==CLONE_TYPE || user->type==BOT_TYPE) return("Spanked!");
+	for (i=0; speeds[i].text[0]; i++)
+		if ((user->last_ping/10000)<=speeds[i].lag) return speeds[i].text;
+	return("Spanked!");
+}
 
 #endif /* __S_NET_C__ */
 

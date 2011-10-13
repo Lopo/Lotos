@@ -2,11 +2,10 @@
 /*
  * s_net.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __S_NET_H__
@@ -15,6 +14,10 @@
 extern SYS_OBJECT amsys;
 
 extern int use_hostsfile;
+extern struct {
+	char *text;
+	int lag;
+	} speeds[];
 
 #endif /* __S_NET_H__ */
 

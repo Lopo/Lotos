@@ -2,11 +2,10 @@
 /*
  * prompts.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 /***************************************************************************
    Please be CAREFUL when editing some of the prompts, especially the Style
@@ -47,8 +46,19 @@ char *unknown_command        ="~FTNeznamy prikaz. Ak xces vytvorit novy napis na
 char *no_message_prompt      ="\nNa nastenke neni su spravy.\n";
 char *single_message_prompt  ="\nNa nastenke je len jedna sprava.\n";
 char *message_prompt         =" a pocet sprav na nastenke: ~OL~FM%d~RS.\n";
-char *topic_prompt           ="~FG~OLAktualny topic:~RS %s\n";
-char *notopic_prompt         ="~FGTopic este nebol nastaveny.\n";
+char *topic_prompt           ="~FG~OLAktualna tema:~RS %s~RS [%s~RS]\n";
+char *notopic_prompt         ="~FGTema este nebola nastavena.\n";
+char *room_topic_clrd        ="\n~FY~OLTema bola zrusena.\n";
+char *ctopic_in_room         ="Temu mozes zmazat len v ruume v ktorej sa nachadzas.\n";
+char *topic_toolong          ="Pridlha tema.\n";
+char *topic_hasbeenset       ="Tema nastavena na: %s\n";
+char *room_topic_hasbeenset  ="%s~RS nastavuje temu na: %s~RS\n";
+char *topic_locked           ="Tema bola uzamknuta na level %s.\n";
+char *room_topic_unlocked    ="%s~RS odomkol aktualnu temu.\n";
+char *topic_unlocked         ="Odomykas aktualnu temu.\n";
+char *topic_cantlock         ="~CRNemozes uzamykat temy.~RS\n";
+char *topic_locknoexist      ="~CYUzamknut neexistujucu temu ? Hmmmm...~RS\n";
+char *room_topic_locked      ="%s~RS uzamyka temu na level %s.\n";
 char *no_exits               ="\n~FTNeni su tu vychody.~RS";
 char *people_here_prompt     ="~FG~OLMozes tu videt:\n";
 char *no_people_here_prompt  ="\n~FROkrem teba tu nikdo neni.\n";
@@ -126,6 +136,7 @@ char *shout_cbuff_prompt     ="~FGMazes zaznam celotalkrovych skrekov\n";
 char *no_review_prompt       ="~FTNevidim tu nic na zobrazenie.\n";
 char *private_review_prompt  ="~OL~FRTa ruuma je privat, nemozes si pozret zaznam kecov.\n";
 char *review_header          ="~FM-~OL=~FR[ ~FTZaznam kecov pre: ~FG%s ~FR]~FM=~RS~FM-\n";
+char *review_end             ="~BB~FG*** Koniec ***\n";
 
 /* Tell Review */
 char *tell_review_header    ="\n~FM-~OL=~FR[ ~FTZaznam tellov ~FR]~FM=~RS~FM-\n";
@@ -216,8 +227,11 @@ char *user_bch_setup   ="~CRTak volba neexistuje ...\n";
 /* netriedene */
 char *muzzled_cannot   ="~FRMas zalepenu tlamu, nemozes %s !\n";
 char *priv_room_fix    ="~FROsobne ruumky sa nedaju fixovat ~RS\n";
-char *room_topic_clrd  ="\n~FY~OLThe topic has been cleared.\n";
-char *ctopic_in_room   ="You can only clear the topic of the room you are in.\n";
+char *ascii_tline       ="~CT.------------------------------------------------------------------------------.~RS\n";
+char *ascii_line       ="~CT+------------------------------------------------------------------------------+~RS\n";
+char *ascii_bline       ="~CT`------------------------------------------------------------------------------'~RS\n";
+char *levels_on_talker  ="   ~CTLevely na talkri\n";
+char *actual_time       ="   ~CTAktualny cas\n";
 
 #endif /* __PROMPTS_C__ */
 

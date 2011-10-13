@@ -2,11 +2,10 @@
 /*
  * boots.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __BOOTS_C__
@@ -864,8 +863,10 @@ switch (op) {
     if (!strcmp(wrd[1],"NONE")) amsys->crash_action=0;
     else if (!strcmp(wrd[1],"IGNORE")) amsys->crash_action=1;
     else if (!strcmp(wrd[1],"REBOOT")) amsys->crash_action=2;
+	else if (!strcmp(wrd[1],"RESTART")) amsys->crash_action=3;
+	else if (!strcmp(wrd[1],"SHUTDOWN")) amsys->crash_action=4;
     else {
-      fprintf(stderr,"Lotos: Crash_action must be NONE, IGNORE or REBOOT on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Crash_action must be NONE, IGNORE, REBOOT, RESTART or SHUTDOWN on line %d.\n",config_line);
       boot_exit(1);
       }
     return;

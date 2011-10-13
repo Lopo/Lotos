@@ -2,11 +2,10 @@
 /*
  * restart.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __RESTART_C__
@@ -83,8 +82,8 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "auth       %lu\n", user->auth_addr);
 	fprintf(fp, "afkbuff\n");
 		for (i=0; i<REVTELL_LINES; i++) {
-			if (user->afkbuff[i][0]!='\0')
-				fprintf(fp, "%s", user->afkbuff[i]);
+			if (user->afkbuff[i].buff[0]!='\0')
+				fprintf(fp, "%ld %s", (long int)user->afkbuff[i].time, user->afkbuff[i].buff);
 			}
 	fprintf(fp, "/afkbuff\n");
 	fprintf(fp, "buff       %d\n%s\n/buff\n", strlen(user->buff), user->buff);
@@ -97,8 +96,8 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "pos        %ld %d\n", user->filepos, user->buffpos);
 	fprintf(fp, "revbuff\n");
 		for (i=0; i<REVTELL_LINES; i++) {
-			if (user->revbuff[i][0]!='\0')
-				fprintf(fp, "%s", user->revbuff[i]);
+			if (user->revbuff[i].buff[0]!='\0')
+				fprintf(fp, "%ld %s", (long int)user->revbuff[i].time, user->revbuff[i].buff);
 			}
 	fprintf(fp, "/revbuff\n");
 	fprintf(fp, "inpstr     %d %s\n", strlen(user->inpstr_old), user->inpstr_old);
@@ -117,8 +116,8 @@ int reinit_save_user(UR_OBJECT user)
 	fprintf(fp, "/ign_ur\n");
 	fprintf(fp, "editbuff\n");
 		for (i=0; i<REVTELL_LINES; i++) {
-			if (user->editbuff[i][0]!='\0')
-				fprintf(fp, "%s", user->editbuff[i]);
+			if (user->editbuff[i].buff[0]!='\0')
+				fprintf(fp, "%ld %s", (long int)user->editbuff[i].time, user->editbuff[i].buff);
 			}
 	fprintf(fp, "/editbuff\n");
 	fprintf(fp, "samesite   %d %d %s\n", user->samesite_all_store, strlen(user->samesite_check_store), user->samesite_check_store);
@@ -167,10 +166,11 @@ int reinit_save_room(RM_OBJECT room)
 		return 0;
 		}
 	fprintf(fp, "topic      %s\n", room->topic);
+	fprintf(fp, "topicprms  %d %s\n", room->topiclock, room->topicowner);
 	fprintf(fp, "revbuff\n");
 		for (i=0; i<REVTELL_LINES; i++) {
-			if (room->revbuff[i][0]!='\0')
-				fprintf(fp, "%s", room->revbuff[i]);
+			if (room->revbuff[i].buff[0]!='\0')
+				fprintf(fp, "%ld %s", room->revbuff[i].time, room->revbuff[i].buff);
 			}
 	fprintf(fp, "/revbuff\n");
 	fprintf(fp, "access     %d\n", room->access);
@@ -277,6 +277,9 @@ int reinit_load_user_malloc(UR_OBJECT user)
 		}
 	user->malloc_end=user->malloc_start+i;
 	fclose(fp);
+#if !defined DEBUG
+	unlink(fname);
+#endif
 	return 1;
 }
 
@@ -303,7 +306,7 @@ int reinit_load_user(UR_OBJECT user, int stage)
 		"*"};
 
 	set_crash();
-	if (stage==1) {
+	if (stage==1) { //main
 		sprintf(fname, "%s/%s.ri_ur", TEMPFILES, user->name);
 		if ((fp=fopen(fname, "r"))==NULL) return 0;
 		fgets(line, (ARR_SIZE*5)-1, fp);
@@ -403,7 +406,10 @@ RLUOUT:
 					fgets(line, ARR_SIZE*5-1, fp);
 					c=0;
 					while (strcmp(line, "/afkbuff\n")) {
-						if (c<REVTELL_LINES) strncpy(user->afkbuff[c], line, REVIEW_LEN+1);
+						if (c<REVTELL_LINES) {
+							user->afkbuff[c].time=(time_t)strtoul(line, NULL, 10);
+							strncpy(user->afkbuff[c].buff, remove_first(line), REVIEW_LEN+1);
+							}
 						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
@@ -473,7 +479,10 @@ RLUOUT:
 					fgets(line, ARR_SIZE*5-1, fp);
 					c=0;
 					while (strcmp(line, "/revbuff\n")) {
-						if (c<REVTELL_LINES) strncpy(user->revbuff[c], line, REVIEW_LEN+1);
+						if (c<REVTELL_LINES) {
+							user->revbuff[c].time=(time_t)strtoul(line, NULL, 10);
+							strncpy(user->revbuff[c].buff, remove_first(line), REVIEW_LEN+1);
+							}
 						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
@@ -485,7 +494,7 @@ RLUOUT:
 					fgets(line, ARR_SIZE*5-1, fp);
 					c=0;
 					while (strcmp(line, "/copyto\n")) {
-						if (c<MAX_COPIES) strncpy(user->revbuff[c], line, USER_NAME_LEN);
+						if (c<MAX_COPIES) strncpy(user->copyto[c], line, USER_NAME_LEN);
 						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
@@ -509,7 +518,10 @@ RLUOUT:
 					fgets(line, ARR_SIZE*5-1, fp);
 					c=0;
 					while (strcmp(line, "/editbuff\n")) {
-						if (c<REVTELL_LINES) strncpy(user->editbuff[c], line, REVIEW_LEN+1);
+						if (c<REVTELL_LINES) {
+							user->editbuff[c].time=(time_t)strtoul(line, NULL, 10);
+							strncpy(user->editbuff[c].buff, remove_first(line), REVIEW_LEN+1);
+							}
 						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
@@ -630,7 +642,7 @@ RLUOUT:
 						break;
 					case 37: /* malloc */
 						reinit_load_user_malloc(user);
-					break;
+						break;
 				}
 			}
 		else damaged++;
@@ -638,6 +650,9 @@ RLUOUT:
 		line[strlen(line)-1]='\0';
 		}
 		fclose(fp);
+#if !defined DEBUG
+		unlink(fname);
+#endif
 		return 1;
 	} /* stage 1 */
 
@@ -658,7 +673,7 @@ int reinit_load_room(RM_OBJECT room)
 	char rm_words[10][ARR_SIZE];
 	int i, found, wn, wpos, wcnt, c, op, damaged=0;
 	char *options[]={
-		"topic", "revbuff", "access", "revline", "mesg_cnt",
+		"topic", "topicprms", "revbuff", "access", "revline", "mesg_cnt",
 		"transport",
 		"*"
 		};
@@ -695,25 +710,32 @@ RLROUT:
 					strcpy(room->topic, remove_first(line));
 					break;
 				case  1:
+					if (wcnt>=2) room->topiclock=atoi(rm_words[1]);
+					if (wcnt>=3) strncpy(room->topicowner, rm_words[2], 1+USER_NAME_LEN*4);
+					break;
+				case  2:
 					fgets(line, ARR_SIZE*5-1, fp);
 					c=0;
 					while (strcmp(line, "/revbuff\n")) {
-						if (c<REVTELL_LINES) strncpy(room->revbuff[c], line, REVIEW_LEN+1);
+						if (c<REVTELL_LINES) {
+							strncpy(room->revbuff[c].buff, remove_first(line), REVIEW_LEN+1);
+							room->revbuff[c].time=(time_t)strtoul(line, NULL, 10);
+							}
 						c++;
 						fgets(line, ARR_SIZE*5-1, fp);
 						}
 					break;
-				case  2:
+				case  3:
 					if (wcnt>=2) room->access=atoi(rm_words[1]);
 					else room->access=PERSONAL_UNLOCKED;
 					break;
-				case  3:
+				case  4:
 					if (wcnt>=2) room->revline=atoi(rm_words[1]);
 					break;
-				case  4:
+				case  5:
 					if (wcnt>=2) room->mesg_cnt=atoi(rm_words[1]);
 					break;
-				case  5:
+				case  6:
 					for (i=1; i<wcnt; i++) {
 						switch (i) {
 							case 1: room->transp->place=atoi(rm_words[i]); break;
@@ -732,6 +754,9 @@ RLROUT:
 		line[strlen(line)-1]='\0';
 		}
 	fclose(fp);
+#if !defined DEBUG
+	unlink(fname);
+#endif
 	return 1;
 }
 
@@ -844,7 +869,9 @@ void restore_structs(void)
 		}
 
 	fclose(fp);
+#if !defined DEBUG
 	unlink(RESTARTFILE);
+#endif
 /* reload plugins */
 	for (u=user_first; u!=NULL; u=u->next)
 		reinit_load_user(u, 2);

@@ -2,11 +2,10 @@
 /*
  * main.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __MAIN_H__
@@ -135,7 +134,12 @@ struct {
     { "\033[1;34m","CB"},
     { "\033[1;35m","CM"},
     { "\033[1;36m","CT"},
-    { "\033[1;37m","CW"}
+    { "\033[1;37m","CW"},
+	/* Reset Standard stuff */
+    { "\033[21m", "RO" }, /* bold */
+    { "\033[24m", "RU" }, /* underline */
+    { "\033[25m", "RL" }, /* blink */
+    { "\033[27m", "RR" } /* reverse */
   };
 #define NUM_COLS SIZEOF(colour_codes)
 
@@ -227,6 +231,7 @@ extern char *continue2;
 extern char *auto_afk_mesg;
 extern char *default_personal_room_desc, *default_personal_room_topic;
 extern char *room_setup_enter;
+extern char *ascii_tline, *ascii_line, *ascii_bline;
 
 #endif /* __MAIN_H__ */
 

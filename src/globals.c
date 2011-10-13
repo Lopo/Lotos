@@ -2,11 +2,10 @@
 /*
  * globals.c
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __GLOBALS_C__
@@ -378,6 +377,26 @@ struct {
 		{'S', "send", "send", "posle peniaze z uctu na iny ucet"},
 		{'*', "*", "*", ""}
 		};
+
+struct {
+	char *text;
+	int lag;
+	} speeds[]={
+	{"Pending",		-1	},
+	{"Direct",		20	},
+	{"Blazing",		30	},
+	{"Fast",		60	},
+	{"Speedy",		80	},
+	{"Decent",		100	},
+	{"Sluggish",	120	},
+	{"Slow",		150	},
+	{"Painful",		180	},
+	{"Constipated",	220	},
+	{"Unbearable",	300	},
+	{"Horrid",		500	},
+	{"Lag Attack",	999999},
+	{"\0",			0	}
+	};
 
 #endif /* __GLOBALS_C__ */
 

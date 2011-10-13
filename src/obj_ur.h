@@ -2,17 +2,17 @@
 /*
  * obj_ur.h
  *
- *   Lotos v1.2.2  : (c) 1999-2002 Pavol Hluchy (Lopo)
- *   last update   : 16.5.2002
- *   email         : lopo@losys.sk
- *   homepage      : lopo.losys.sk
- *   Lotos homepage: lotos.losys.sk
+ *   Lotos v1.2.3  : (c) 1999-2003 Pavol Hluchy (Lopo)
+ *   last update   : 30.1.2003
+ *   email         : lotos@losys.sk
+ *   homepage      : lotos.losys.sk
  */
 
 #ifndef __OBJ_UR_H__
 #define __OBJ_UR_H__ 1
 
 #include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 
 typedef struct user_ignore_struct {
@@ -45,18 +45,23 @@ typedef struct user_terminal_struct {
 	unsigned pager		: 13;
 	} USER_TERMINAL;
 
+typedef struct {
+	time_t time;
+	char buff[REVIEW_LEN+2];
+	} revtell_buffer;
+
 /* user variables - some are saved in the user file, and some are not */
 struct user_struct {
   char name[USER_NAME_LEN+1],desc[USER_DESC_LEN+1],pass[PASS_LEN+6];
   char in_phrase[PHRASE_LEN+1],out_phrase[PHRASE_LEN+1];
   char buff[BUFSIZE],site[81],ipsite[81],last_site[81],page_file[500];
-  char mail_to[WORD_LEN+1],revbuff[REVTELL_LINES][REVIEW_LEN+2];
+  char mail_to[WORD_LEN+1];
   char afk_mesg[AFK_MESG_LEN+1],inpstr_old[REVIEW_LEN+1];
   char logout_room[ROOM_NAME_LEN+1],version[10];
   char copyto[MAX_COPIES][USER_NAME_LEN+1],invite_by[USER_NAME_LEN+1],date[80];
   char email[81],homepage[81],ignoreuser[MAX_IGNORES][USER_NAME_LEN+1],recap[USER_NAME_LEN+USER_NAME_LEN*3];
   char bw_recap[USER_NAME_LEN+1],call[USER_NAME_LEN+1],friend[MAX_FRIENDS][USER_NAME_LEN+1];
-  char verify_code[80],afkbuff[REVTELL_LINES][REVIEW_LEN+2],editbuff[REVTELL_LINES][REVIEW_LEN+2];
+  char verify_code[80];
   char samesite_check_store[ARR_SIZE];
   char *malloc_start,*malloc_end,icq[ICQ_LEN+1];
   int type,login,attempts,vis,prompt,command_mode,muzzled;
@@ -119,6 +124,13 @@ struct user_struct {
 
 	USER_IGNORE ignore;
 	USER_TERMINAL terminal;
+	revtell_buffer revbuff[REVTELL_LINES];
+	revtell_buffer afkbuff[REVTELL_LINES];
+	revtell_buffer editbuff[REVTELL_LINES];
+
+	int next_ping;
+	long last_ping;
+	struct timeval ping_timer;
 	};
 typedef struct user_struct *UR_OBJECT;
 

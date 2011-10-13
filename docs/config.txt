@@ -1,5 +1,5 @@
 +------------------------------------------------------------------------------+
-             LOTOS 1.2.2 - konfiguracny subor
+             LOTOS 1.2.3 - popis konfiguracneho suboru
 +------------------------------------------------------------------------------+
 
  Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
