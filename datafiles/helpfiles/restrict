@@ -4,7 +4,7 @@
 Prikaz sluzi na nastavenie roznych obmedzeni pre usera. Napr zakaz pohybu,
 prezerania review bufferu, ...  Bud sa zadaju vsetky parametre naraz v
 jednom retazci, alebo sa nastavuju po jednej hodnote. Ak sa zada len user,
-zobrazi sa aktualny stav jeho moznosti. Parameter 'R' - run je zatial
-bez efektu.
+zobrazi sa aktualny stav jeho moznosti s popisom jednotlivych obmedzeni.
+Parameter 'R' - run je zatial bez efektu.
 
 ~OLPouzitie :~RS xcom, gcom

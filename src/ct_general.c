@@ -1,6 +1,6 @@
 /*****************************************************************************
-              Funkcie OS Star v1.0.0 skupiny hlavnych, verejnych
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+              Funkcie OS Star v1.1.0 skupiny hlavnych, verejnych
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -117,10 +117,9 @@ for(i=0;i<MAX_LINKS;++i) {
   if (rm->link[i]->access & PRIVATE) sprintf(temp,"  ~FR%s",rm->link[i]->name);
   else {
   	if (user->pueblo)
-  		sprintf(temp,"  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">~FG%s~RS</a></b><xch_mudtext>",
-  			rm->link[i]->name,rm->link[i]->name);
-  	else
-	  	sprintf(temp,"  ~FG%s",rm->link[i]->name);
+  		sprintf(temp,"  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">%s</a></b><xch_mudtext>",
+  			rm->link[i]->name, rm->link[i]->name);
+  	else sprintf(temp, "  ~FG%s", rm->link[i]->name);
   	}
   strcat(text,temp);
   ++exits;
@@ -130,7 +129,11 @@ for (rm2=room_first; rm2!=NULL; rm2=rm2->next) {
 	if (rm2->go) continue;
 	if (rm2->link[rm2->out]!=rm) continue;
 	if (rm2->access & PRIVATE) sprintf(temp,"  ~RS~OL*~RS~FR%s",rm2->name);
-	else sprintf(temp,"  ~RS~OL*~RS~FG%s",rm2->name);
+	else {
+		if (user->pueblo) sprintf(temp, "  </xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">*%s</a></b><xch_mudtext>",
+  			rm2->name, rm2->name);
+		else sprintf(temp, "  ~RS~OL*~RS~FG%s",rm2->name);
+		}
 	strcat(text,temp);
 	++exits;
 	break;
@@ -150,7 +153,7 @@ if (rm->tr) {
 		if (rm->link[rm->out]->access & PRIVATE) sprintf(text,"\n~FTExit:  ~RS~OL*~RS~FR%s",rm->link[rm->out]->name);
 		else {
 			if (user->pueblo)
-				sprintf(text,"\n~FTExit:  ~RS~OL*~RS</xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">~FG%s~RS</a></b><xch_mudtext>",
+				sprintf(text,"\n~FTExit:  ~RS~OL*~RS</xch_mudtext><b><a xch_cmd=\".go %s\" xch_hint=\"Go to this room.\">%s</a></b><xch_mudtext>",
 		  			rm->link[rm->out]->name,rm->link[rm->out]->name);
 			else
 				sprintf(text,"\n~FTExit:  ~RS~OL*~RS~FG%s",
@@ -170,7 +173,9 @@ for(u=user_first;u!=NULL;u=u->next) {
   }
 if (!users) write_user(user,"~FGYou are all alone here.\n");
 write_user(user,"\n");
-strcpy(text,"Access is ");
+
+if (user->pueblo) strcpy(text, "</xch_mudtext><b><a xch_cmd\".pbloenh RoomConfig_setOpt\" xch_hint=\"Access Options\">Access</a></b><xch_mudtext> is ");
+else strcpy(text,"Access is ");
 switch(rm->access) {
   case PUBLIC:  strcat(text,"set to ~FGPUBLIC~RS");  break;
   case PRIVATE: strcat(text,"set to ~FRPRIVATE~RS");  break;
@@ -366,7 +371,7 @@ strcpy(u->invite_by,user->name);
 void who(UR_OBJECT user, int type)
 {
 UR_OBJECT u;
-int cnt,total,invis,mins,idle,logins,friend;
+int cnt,total,invis,mins,idle,logins,friend,wholen;
 char line[(USER_NAME_LEN+USER_DESC_LEN*2)+110];
 char rname[ROOM_NAME_LEN+1],portstr[5],idlestr[20],sockstr[3];
 #ifdef NETLINKS
@@ -391,17 +396,28 @@ if ((type==2) && !strcmp(word[1],"key")) {
   write_user(user,"+----------------------------------------------------------------------------+\n\n");
   return;
   }
-write_user(user,"\n+----------------------------------------------------------------------------+\n");
-write_user(user,center_string(78,0,NULL,"%sCurrent users %s",(user->login)?"":"~FG",long_date(1)));
-switch(type) {
+if ((user->who_type==2 && type==0) || type!=0) {
+	write_user(user,"\n+----------------------------------------------------------------------------+\n");
+	write_user(user,center_string(78,0,NULL,"%sCurrent users %s",(user->login)?"":"~FG",long_date(1)));
+	}
+switch (type) {
  case 0:
+	switch (user->who_type) {
+		case  1: who_nuts333(user); return;
+/*		case  2: original Amnuts 221 */
+		case  3: who_short(user); return;
+		case  4: who_moebyroom(user); return;
+		case  5: who_hope(user); return;
+		case  6: who_stairway(user); return;
+		default: break;
+		};
    vwrite_user(user,"%s  Name                                           : Room            : Tm/Id\n",(user->login)?"":"~FT");
    break;
  case 1:
    write_user(user,"~FTFriend                                           : Room            : Tm/Id\n");
    break;
  case 2:
-   write_user(user,"~FTName            : Lev Line Ignall Visi Idle Mins  Port  Site/Service\n");
+   write_user(user,"~FTName            :Lev Line Ignall Vis Idle Mins Port Site/Service\n");
    break;
   }
 write_user(user,"+----------------------------------------------------------------------------+\n\n");
@@ -420,7 +436,7 @@ for(u=user_first;u!=NULL;u=u->next) {
 #endif
   if (u->login) {
     if (type!=2) continue;
-    vwrite_user(user,"~FY[Login stage %d]~RS :  -      %2d   -    -  %4d    -  %s  %s:%d\n",u->login,u->socket,idle,portstr,u->site,u->site_port);
+    vwrite_user(user,"~FY[Login stage %d]~RS : -   %2d    -     -  %4d    - %s %s:%d\n",u->login,u->socket,idle,portstr,u->site,u->site_port);
     logins++;
     continue;
     }
@@ -442,16 +458,16 @@ for(u=user_first;u!=NULL;u=u->next) {
     else
 #endif
       sprintf(sockstr,"%2d",u->socket);
-    vwrite_user(user,"%-15s :  %s   %s  %s    %s %s %4d   %s  %s\n",u->name,user_level[u->level].alias,sockstr,noyes1[u->ignall],noyes1[u->vis],idlestr,mins,portstr,u->site);
+    vwrite_user(user,"%-15s : %s   %s   %s   %s %s %4d %s %s\n",u->name,user_level[u->level].alias,sockstr,noyes1[u->ignall],noyes1[u->vis],idlestr,mins,portstr,u->site);
     continue;
     }
   /* Pueblo enhanced to examine users by clicking their name */
 	if (user->pueblo && !user->login)
 		sprintf(line,
-			"  </xch_mudtext><b><a xch_cmd=\".examine %s\" xch_hint=\"Examine this user.\">[]</a></b><xch_mudtext> %s%s~RS %s~RS",
-			u->name, colors[CWHOUSER], u->recap, u->desc
-			);
+			"   </xch_mudtext><b><a xch_cmd=\".examine %s\" xch_hint=\"Examine this user.\">[]</a></b><xch_mudtext> %s%s %s~RS",
+			u->name, colors[CWHOUSER], u->recap, u->desc);
 	else sprintf(line,"  %s%s~RS %s~RS",colors[CWHOUSER],u->recap,u->desc);
+	wholen=152-(12-strlen(u->name));
   if (!u->vis) line[0]='*';
 #ifdef NETLINKS
   if (u->type==REMOTE_TYPE) line[1]='@';
@@ -465,7 +481,8 @@ for(u=user_first;u!=NULL;u=u->next) {
   else if (u->editing) strcpy(idlestr,"~FTEDIT~RS");
   else if (idle>=30) strcpy(idlestr,"~FYIDLE~RS");
   else sprintf(idlestr,"%d/%d",mins,idle);
-          sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",44+cnt*3,44+cnt*3,line,user_level[u->level].alias,rname,idlestr);
+	if (!user->pueblo) sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",44+cnt*3,44+cnt*3,line,user_level[u->level].alias,rname,idlestr);
+	else sprintf(text,"%-*.*s~RS   %s : %-15.15s : %s\n",wholen+cnt*3,44+cnt*3,line,user_level[u->level].alias,rname,idlestr);
   if ((strlen(word[1]) && strstr(text, word[1])) || !strlen(word[1]))
           write_user(user, text);
   }
@@ -500,11 +517,11 @@ void search_boards(UR_OBJECT user)
 {
 RM_OBJECT rm;
 FILE *fp;
-char filename[100],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[USER_NAME_LEN];
+char filename[500],line[82],buff[(MAX_LINES+1)*82],w1[81],rmname[USER_NAME_LEN];
 int w,cnt,message,yes,room_given;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <word list>\n", command_table[SEARCH].name);
+  write_usage(user,"%s <word list>\n", command_table[SEARCH].name);
   return;
   }
 /* Go through rooms */
@@ -513,9 +530,12 @@ for(rm=room_first;rm!=NULL;rm=rm->next) {
   if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
     sscanf(rm->name,"%s",rmname);
     rmname[0]=toupper(rmname[0]);
-    sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR,USERFILES,USERROOMS,rmname);
+    sprintf(filename,"%s/%s.B", USERROOMS,rmname);
     }
-  else sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR,DATAFILES, ROOMFILES, rm->name);
+  else {
+  	if (!rm->tr) sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
+	else sprintf(filename,"%s/%s.B", TRFILES, rm->name);
+	}
   if (!(fp=fopen(filename,"r"))) continue;
   if (!has_room_access(user,rm)) {  fclose(fp);  continue;  }
   /* Go through file */
@@ -644,8 +664,8 @@ if (word_count<2) {
         ) continue;
     if (rm_cnt==user->pager-4) {   /* -4 for the 'Room name...' header */
       switch (show_topics) {
-	case 0: user->misc_op=10; break;
-	case 1: user->misc_op=11; break;
+	case 0: user->misc_op=10; user->status='R'; break;
+	case 1: user->misc_op=11; user->status='R'; break;
 	}
       write_user(user,"~BB~FG-=[*]=- PRESS <RETURN>, E TO EXIT:~RS ");
       return;
@@ -683,6 +703,7 @@ if (word_count<2) {
     ++rm_cnt;  user->wrap_room=rm->next;
     }
   user->misc_op=0;
+  user->status='a';
   rm_pub=rm_priv=0;
   rm_tr=0;
   for (rm=room_first;rm!=NULL;rm=rm->next) {
@@ -711,7 +732,7 @@ if (!strcasecmp(word[1],"level")) {
   else write_user(user,"\nThere are no level specific rooms currently availiable.\n\n");
   return;
   }
-vwrite_usage(user,"%s [level]", command_table[RMST].name);
+write_usage(user,"%s [level]", command_table[RMST].name);
 }
 
 
@@ -762,11 +783,9 @@ void cls(UR_OBJECT user)
 {
 	int i;
 
-	if (user->colour)
-		write_user(user, "~CS~CS\n");
-	else
-		for(i=0;i<5;++i)
-			write_user(user,"\n\n\n\n\n\n\n\n\n\n");		
+	if (user->colour) write_user(user, "~CS\n");
+	else for(i=0;i<5;++i)
+		write_user(user,"\n\n\n\n\n\n\n\n\n\n");		
 }
 
 
@@ -887,7 +906,7 @@ char name[USER_NAME_LEN+1],pat[ARR_SIZE];
 struct user_dir_struct *entry;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <retazec>", command_table[GREPUSER].name);
+  write_usage(user,"%s <retazec>", command_table[GREPUSER].name);
   return;
   }
 if (strstr(word[1],"**")) {
@@ -1044,7 +1063,7 @@ unsigned yr,mo;
 char temp[ARR_SIZE];
 
 if (word_count>3) {
-  vwrite_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
+  write_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
   write_user(user,"   kde <m> = mesiac od 1 po 12\n");
   write_user(user,"       <y> = rok od 1 po 99, alebo 1800 az 3000\n");
   return;
@@ -1055,7 +1074,7 @@ if (word_count==3) {
   mo=atoi(word[1]);
   if (yr<100) yr+=1900;
   if ((yr>3000) || (yr<1800) || !mo || (mo>12)) {
-    vwrite_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
+    write_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
     write_user(user,"   kde <m> = mesiac od 1 po 12\n");
     write_user(user,"       <y> = rok od 1 po 99, alebo 1800 po 3000\n");
     return;
@@ -1066,7 +1085,7 @@ else if (word_count==2) {
   yr=tyear;
   mo=atoi(word[1]);
   if (!mo || (mo>12)) {
-    vwrite_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
+    write_usage(user,"%s [<m> [<y>]]", command_table[CALENDAR].name);
     write_user(user,"   kde <m> = mesiac od 1 po 12\n");
     write_user(user,"       <y> = rok od 1 po 99, alebo 1800 po 3000\n");
     return;
@@ -1200,7 +1219,7 @@ if (!personal_room_store(user->name,1,rm))
      has been locked
      ***/
 void personal_room_key(UR_OBJECT user) {
-char name[ROOM_NAME_LEN+1],filename[100],line[USER_NAME_LEN+2],text2[ARR_SIZE];
+char name[ROOM_NAME_LEN+1],filename[500],line[USER_NAME_LEN+2],text2[ARR_SIZE];
 RM_OBJECT rm;
 FILE *fp;
 int cnt=0;
@@ -1218,7 +1237,7 @@ if ((rm=get_room_full(name))==NULL) {
   }
 /* if no name was given then display keys given */
 if (word_count<2) {
-  sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
+  sprintf(filename,"%s/%s.K", USERROOMS,user->name);
   if (!(fp=fopen(filename,"r"))) {
     write_user(user,"You have not given anyone a personal room key yet.\n");
     return;
@@ -1299,7 +1318,7 @@ if (!amsys->personal_rooms) {
   return;
   }
 if (word_count<2) {
-  vwrite_usage(user,"%s <user>/all", command_table[MYBGONE].name);
+  write_usage(user,"%s <user>/all", command_table[MYBGONE].name);
   return;
   }
 sprintf(name,"(%s)",user->name);
@@ -1355,12 +1374,12 @@ move_user(u,rmto,0);
 ***/
 void display_files(UR_OBJECT user,int admins)
 {
-char filename[100],*c;
+char filename[500],*c;
 int ret;
 
 if (word_count<2) {
-  if (!admins) sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES,SHOWFILES);
-  else sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SHOWAFILES);
+  if (!admins) strcpy(filename, SHOWFILES);
+  else strcpy(filename, SHOWAFILES);
   if (!(ret=more(user,user->socket,filename))) {
     if (!admins) write_user(user,"There is no list of files at the moment.\n");
     else write_user(user,"There is no list of admin files at the moment.\n");
@@ -1379,8 +1398,8 @@ while(*c) {
     }
   }
 /* show the file */
-if (!admins) sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, TEXTFILES,word[1]);
-else sprintf(filename,"%s/%s/%s/%s/%s", ROOTDIR, DATAFILES, TEXTFILES, ADMINFILES, word[1]);
+if (!admins) sprintf(filename,"%s/%s", TEXTFILES,word[1]);
+else sprintf(filename,"%s/%s", ADMINFILES, word[1]);
 if (!(ret=more(user,user->socket,filename))) {
   if (!admins) write_user(user,"Sorry, there are no files with that name.\n");
   else write_user(user,"Sorry, there are no admin files with that name.\n");
@@ -1397,11 +1416,9 @@ return;
 
 void main_help(UR_OBJECT user)
 {
-	char filename[80];
 	int ret;
 	
-	sprintf(filename,"%s/%s/%s/mainhelp", ROOTDIR, DATAFILES, HELPFILES);
-	if (!(ret=more(user,user->socket,filename))) {
+	if (!(ret=more(user,user->socket,MAINHELP))) {
 		write_user(user,"Sorrac, momentalne neni help.\n");
 		return;
 		}
@@ -1417,12 +1434,11 @@ void volby(UR_OBJECT user)
 	struct dirent *dp;
 	int ret, i, p1, p2, pm, v=0;
 	int pochlasov;
-	char filename[280], dirname[200];
+	char filename[500], dirname[500];
 	char *pn;
 
 	if (word_count<2) {
-		sprintf(filename, "%s/%s/%s/mainlist",
-			ROOTDIR, DATAFILES, VOTEFILES);
+		sprintf(filename, "%s/mainlist", VOTEFILES);
 		if (!(ret=more(user,user->socket,filename))) {
 			write_user(user,"Sorrac, momentalne nenisu volby.\n");
 			return;
@@ -1436,12 +1452,12 @@ void volby(UR_OBJECT user)
 			return;
 			}
 		p1=atoi(word[1]);
-		sprintf(filename,"%s/%s/%s/vote_%s", ROOTDIR, DATAFILES, VOTEFILES, word[1]);
+		sprintf(filename,"%s/vote_%s", VOTEFILES, word[1]);
 		if (!more(user,user->socket,filename)) {
 			write_user(user, "Nemozem najst subor s inf. o hlasovani - asi take prave neprebieha ...\n");
 			return;
 			}
-		sprintf(dirname, "%s/%s/%s/%d", ROOTDIR, DATAFILES, VOTEFILES, p1);
+		sprintf(dirname, "%s/%d", VOTEFILES, p1);
 		if (!(dirp=opendir(dirname))) {
 			write_user(user, "Nemozem otvorit adresar s vysledkami hlasovania - asi take prave neprebieha ...\n");
 			return;
@@ -1459,8 +1475,7 @@ void volby(UR_OBJECT user)
 			}
 		(void)closedir(dirp);
 		for(i=1; i<=pm; i++) {
-			sprintf(filename,"%s/%s/%s/%d/v_%d",
-				ROOTDIR, DATAFILES, VOTEFILES, p1 ,i);
+			sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1 ,i);
 			if(fp=fopen(filename,"r")) {
 				pochlasov=0;
 				while(!feof(fp)) {
@@ -1481,8 +1496,7 @@ void volby(UR_OBJECT user)
 		return;
 		}
 
-
-	sprintf(dirname, "%s/%s/%s/%d", ROOTDIR, DATAFILES, VOTEFILES, p1);
+	sprintf(dirname, "%s/%d", VOTEFILES, p1);
 	if (!(dirp=opendir(dirname))) {
 		write_user(user, "Nemozem otvorit adresar s vysledkami hlasovania - asi take prave neprebieha ...\n");
 		return;
@@ -1507,9 +1521,7 @@ void volby(UR_OBJECT user)
 	p1=atoi(word[1]);
 	p2=atoi(word[2]);
 	for(i=1; i<pm; i++) {
-		sprintf(filename,"%s/%s/%s/%d/v_%d",
-			ROOTDIR, DATAFILES, VOTEFILES, p1 , i);
-
+		sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1 , i);
 		if (fp=fopen(filename,"r")) {
 			while(!feof(fp)) {
 				fscanf(fp,"%s\n",text);
@@ -1523,8 +1535,7 @@ void volby(UR_OBJECT user)
 		fclose(fp);
 		}
 
-	sprintf(filename,"%s/%s/%s/%d/v_%d",
-		ROOTDIR, DATAFILES, VOTEFILES, p1, p2);
+	sprintf(filename,"%s/%d/v_%d", VOTEFILES, p1, p2);
 	if (!(fp=fopen(filename,"r"))) {
 		write_user(user,"Sorry, taka moznost neexisuje.\n");
 		return;
@@ -1570,14 +1581,14 @@ void show_map(UR_OBJECT user)
 	DIR *dirp;
 	struct dirent *dp;
 	int i, cnt;
-	char dirname[100], filename[200], mapname[ROOM_NAME_LEN+1];
+	char dirname[500], filename[500], mapname[ROOM_NAME_LEN+1];
 
 	if (word_count<2 || user->level<ARCH) {
 		if (user->room==NULL) {
 			write_user(user,"You don't need no map - where you are is where it's at!\n");
 			return;
 			}
-		sprintf(filename, "%s/%s/%s/%s.map", ROOTDIR, DATAFILES, MAPFILES, user->room->map);
+		sprintf(filename, "%s/%s.map", MAPFILES, user->room->map);
 		switch(more(user,user->socket,filename)) {
 			case 0:
 				write_user(user,">>>There is no map. Sorry...\n");
@@ -1590,8 +1601,7 @@ void show_map(UR_OBJECT user)
 
 	if(!strcmp(word[1],"-l")) {
 		write_user(user,"~BB--->>> Zoznam map <<<---\n");
-		sprintf(dirname, "%s/%s/%s", ROOTDIR, DATAFILES, MAPFILES);
-		if (!(dirp=opendir(dirname))) {
+		if (!(dirp=opendir(MAPFILES))) {
 			write_user(user, "Nemozem otvorit adresar s mapami - nie su mapy :(\n");
 			return;
 			}
@@ -1620,7 +1630,7 @@ void show_map(UR_OBJECT user)
 		return;
 		}
 
-	sprintf(filename, "%s/%s/%s/%s.map", ROOTDIR, DATAFILES, MAPFILES, word[1]);
+	sprintf(filename, "%s/%s.map", MAPFILES, word[1]);
 	vwrite_user(user, "\nMapa '~FT~OL%s~RS' :\n", word[1]);
 	switch(more(user, user->socket, filename)) {
 		case 0:
@@ -1644,5 +1654,3 @@ void list_cmdas(UR_OBJECT user)
 			command_table[i].name, command_table[i].alias);
 		}
 }
-
-

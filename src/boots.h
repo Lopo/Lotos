@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -41,24 +41,24 @@ extern char susers_restrict[];
 extern char *no_leave;
 
 struct {
-  char *name;
-  char *alias;
-  } user_level[]={
-    { "VAZEN",       "J" },
-    { "PP06",        "N" },
-    { "286",         "2" },
-    { "386",         "3" },
-    { "486",         "4" },
-    { "PENTIUM",     "5" },
-    { "PENTIUM_MMX", "6" },
-    { "CELERON",     "7" },
-    { "PENTIUM_II",  "8" },
-    { "PENTIUM_III", "9" },
-    { "XEON",        "X" },
-    { "BOT",         "B" },
-    { "ROOT",        "R" }
-  };
+	char *name;
+	char *alias;
+	} user_level[]={
+		{ "VAZEN",       "J" },
+		{ "PP06",        "N" },
+		{ "286",         "2" },
+		{ "386",         "3" },
+		{ "486",         "4" },
+		{ "PENTIUM",     "5" },
+		{ "PENTIUM_MMX", "6" },
+		{ "CELERON",     "7" },
+		{ "PENTIUM_II",  "8" },
+		{ "PENTIUM_III", "9" },
+		{ "XEON",        "X" },
+		{ "BOT",         "B" },
+		{ "ROOT",        "R" }
+	};
 
 extern struct {
-  char *name,*alias; int level,function;
-  } command_table[];
+	char *name,*alias; int level,function;
+	} command_table[];

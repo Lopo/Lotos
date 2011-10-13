@@ -1,6 +1,10 @@
-Vitajte v OS Star verzie 1.0.0. Toto je prva plna verzia OS Star.
++------------------------------------------------------------------------------+
+                       Lopov Talkrovy OS Star (Lotos)
++------------------------------------------------------------------------------+
 
-Vsetky textove dokumenty tykajuce sa OS Star su umiestnene v adresari docs.
+   Vitajte v OS Star verzie 1.1.0.
+
+ Vsetky textove dokumenty tykajuce sa OS Star su umiestnene v adresari docs.
 Su tam nasledujuce:
 COPYRIGHT - informacie o autorstve, autorskej licencii a dalsom sireni OS Star
 manual.txt - hlavna napoveda k OS Star
@@ -13,6 +17,8 @@ changes.txt - zoznam zmien v jednotlivych verziach
 
 
 Vdaka za pouzivanie OS Star !
+
                                                                    Pavol Hluchy
 +------------------------------------------------------------------------------+
 email: osstar@star.sjf.stuba.sk            web: http://star.sjf.stuba.sk/osstar
++------------------------------------------------------------------------------+

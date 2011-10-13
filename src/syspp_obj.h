@@ -1,6 +1,6 @@
 /*****************************************************************************
-                Struktura rozsireneho systemu v OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                Struktura rozsireneho systemu v OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -15,5 +15,6 @@ struct syspp_struct {
 	int num_of_www, max_www;
 	int sys_access, wiz_access, www_access;
 	long tcounter[4], bcounter[4], acounter[4], mcounter[4];
+	int auto_afk, auto_afk_time;
 	};
 typedef struct syspp_struct *SYSPP_OBJECT;

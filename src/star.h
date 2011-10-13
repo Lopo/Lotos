@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -79,14 +79,6 @@ struct {
     { "*", 0 } /* stopping clause */
     };
 
-/* you can set a standard room desc for those people who are creating a new
-   personal room */
-char *default_personal_room_desc=
-"The walls are stark and the floors are bare.  Either the owner is new\n\
-or just plain lazy.  Perhaps they just don't know how to use the .mypaint\n\
-command yet?\n";
-
-
 /* colour code values */
 struct {
   char *esc_code;
@@ -119,10 +111,20 @@ struct {
     /* Beep - ascii bell */
     { "\07",      "BP" }, /* beep */
     /* Clear screen */
-    { "\033[2J",  "CS" }, /* Clear screen */
+//    { "\033[2J",  "CS" },
+    { "\033[H\033[J","CS"},
     /* Ansi music */
     { "\033[M",   "MS" },
     { "\0x0E",    "ME" },
+    /* Bolded colors */
+    { "\033[1;30m","CK"},
+    { "\033[1;31m","CR"},
+    { "\033[1;32m","CG"},
+    { "\033[1;33m","CY"},
+    { "\033[1;34m","CB"},
+    { "\033[1;35m","CM"},
+    { "\033[1;36m","CT"},
+    { "\033[1;37m","CW"}
   };
 #define NUM_COLS SIZEOF(colour_codes)
 
@@ -182,15 +184,26 @@ extern char *reg_sysinfo[];
 extern char susers_restrict[];
 extern char *restrict_string;
 
+extern char *help_style[];
+extern char *who_style[];
+
+extern struct {
+	char cmenu, *type, *name, *desc;
+	} set_tab[];
+
+extern struct {
+	char *name, *str;
+	} prompt_tab[];
 /* prompts */
 extern char *help_levelname_style, *help_header, *help_footer1, *help_footer2;
-extern char *more_prompt, *more_prompt_n, *enterprompt;
-extern char *session_swap, *unknown_command, *edit_markers;
+extern char *more_prompt, *enterprompt;
+extern char *session_swap, *unknown_command, *edit_markers, *edit_prompt;
 extern char *default_inphr, *default_outphr, *default_desc;
 extern char *login_timeout, *login_quit, *login_welcome, *login_attempts;
 extern char *login_shortname, *login_longname, *login_swname;
 extern char *login_prompt, *login_lettersonly, *login_rules_prompt;
-extern char *login_pbloname;
+extern char *login_pbloname, *login_nonewatwiz, *login_nonewacc, *login_nonewatbanned;
+extern char *login_new_user, *login_minlev, *login_minwizlev;
 extern char *password_short, *password_long, *password_again;
 extern char *password_wrong, *password_nomatch, *password_prompt;
 extern char *password_bad;
@@ -199,3 +212,6 @@ extern char *flood_prompt, *flood_prompt_r, *autopromo_prompt;
 extern char *eq_hi_lev_prompt, *this_m_ban_prompt;
 extern char *nuts_credits, *amnuts_credits, *star_credits;
 extern char *sys_port_closed, *wiz_port_closed;
+extern char *continue2;
+extern char *auto_afk_mesg;
+extern char *default_personal_room_desc, *default_personal_room_topic;

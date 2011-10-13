@@ -1,6 +1,6 @@
 /*****************************************************************************
-                   Funkcie OS Star v1.0.0 pre start systemu
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                   Funkcie OS Star v1.1.0 pre start systemu
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -58,7 +58,9 @@ amsys->num_of_logins=0;
 amsys->logging=BIT_SET(amsys->logging,SYSLOG);
 amsys->logging=BIT_SET(amsys->logging,REQLOG);
 amsys->logging=BIT_SET(amsys->logging,NETLOG);
-amsys->logging=BIT_SET(amsys->logging,DEBLOG);
+#ifdef DEBUG
+	amsys->logging=BIT_SET(amsys->logging,DEBLOG);
+#endif
 amsys->logging=BIT_SET(amsys->logging,ERRLOG);
 amsys->password_echo=0;
 amsys->ignore_sigterm=0;
@@ -176,7 +178,7 @@ SIGNAL(SIGTTOU,SIG_IGN);
 void load_and_parse_config(void) {
 FILE *fp;
 char line[81]; /* Should be long enough */
-char c,filename[200];
+char filename[500], c;
 int i,section_in,got_init,got_rooms,got_topics, got_transport;
 RM_OBJECT rm1,rm2;
 #ifdef NETLINKS
@@ -189,9 +191,8 @@ got_rooms=0;
 got_topics=0;
 got_transport=0;
 
-sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, CONFFILES, confile);
-printf("Parsing config file \"%s\"...\n",filename);
-if (!(fp=fopen(filename,"r"))) {
+printf("Parsing config file \"%s\"...\n", confile);
+if (!(fp=fopen(confile,"r"))) {
   perror("OS Star: Can't open config file\n");  boot_exit(1);
   }
 /* Main reading loop */
@@ -268,7 +269,6 @@ if (!port[1]) {
   fprintf(stderr,"OS Star: Wiz port number not set in config file.\n");
   boot_exit(1);
   }
-
 #ifdef NETLINKS
 	if (!port[2]) {
 		fprintf(stderr,"OS Star: Link port number not set in config file.\n");
@@ -296,6 +296,11 @@ if (!syspp->auto_save) {
   fprintf(stderr,"OS Star: autosave period not set in config file.\n");
   boot_exit(1);
   }
+	if (syspp->auto_afk && syspp->auto_afk_time>=(amsys->user_idle_time-60)) {
+		fprintf(stderr, "OS Star: Auto_afk_time musi byt vacsie ako user_idle_time-60.\n");
+		exit(1);
+		}
+
 /* Parsing done, now check data is valid. Check room stuff first. */
 for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
   if (rm1->tr && rm1->link_label[1]=='\0') {
@@ -357,8 +362,8 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
 
 /* Load room descriptions */
 for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
- if (rm1->tr) sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR, DATAFILES, TRFILES, rm1->name);
- else sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR, DATAFILES, ROOMFILES, rm1->name);
+ if (rm1->tr) sprintf(filename,"%s/%s.R", TRFILES, rm1->name);
+ else sprintf(filename,"%s/%s.R", ROOMFILES, rm1->name);
   if (!(fp=fopen(filename,"r"))) {
     fprintf(stderr,"OS Star: Can't open description file for room %s.\n",rm1->name);
     write_syslog(SYSLOG,0,"ERROR: Couldn't open description file for room %s.\n",rm1->name);
@@ -386,11 +391,10 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
 void parse_user_rooms(void) {
 DIR *dirp;
 struct dirent *dp;
-char dirname[100],name[USER_NAME_LEN];
+char name[USER_NAME_LEN];
 RM_OBJECT rm;
 
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERROOMS);
-if (!(dirp=opendir(dirname))) {
+if (!(dirp=opendir(USERROOMS))) {
   fprintf(stderr,"OS Star: Directory open failure in parse_user_rooms().\n");
   boot_exit(19);
   }
@@ -419,7 +423,6 @@ while((dp=readdir(dirp))!=NULL) {
 void check_directories(void) {
 struct stat stbuf;
 int levels,found,i,j;
-char dirname[1000];
 
 levels=found=0;
 /* Check for unique directory names */
@@ -433,50 +436,42 @@ for (i=0; i<NUM_LEVELS; ++i) {
   }
 i=0;
 /* check the directories needed exist */
-sprintf(dirname, "%s/%s", ROOTDIR, USERFILES);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERFILES, &stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERMAILS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERMAILS, &stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERPROFILES);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERPROFILES,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERFRIENDS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERFRIENDS,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERHISTORYS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERHISTORYS,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERCOMMANDS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERCOMMANDS,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERMACROS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERMACROS,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
-sprintf(dirname,"%s/%s/%s", ROOTDIR, USERFILES, USERROOMS);
-if (stat(dirname,&stbuf)==-1) {
+if (stat(USERROOMS,&stbuf)==-1) {
   fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
@@ -497,11 +492,9 @@ char name[USER_NAME_LEN+3];
 DIR *dirp;
 struct dirent *dp;
 UR_OBJECT u;
-char dirname[100];
 
 /* open the directory file up */
-sprintf(dirname, "%s/%s", ROOTDIR, USERFILES);
-dirp=opendir(dirname);
+dirp=opendir(USERFILES);
 if (dirp==NULL) {
   fprintf(stderr,"OS Star: Directory open failure in process_users().\n");
   boot_exit(12);
@@ -556,12 +549,11 @@ void parse_commands(void)
 /* needs only doing once when booting */
 void count_suggestions(void)
 {
-	char filename[100],line[82],id[20];
+	char line[82],id[20];
 	FILE *fp;
 	int valid;
 
-	sprintf(filename,"%s/%s/%s", ROOTDIR, MISCFILES, SUGBOARD);
-	if (!(fp=fopen(filename,"r"))) return;
+	if (!(fp=fopen(SUGBOARD, "r"))) return;
 	valid=1;
 	fgets(line,82,fp);
 	while(!feof(fp)) {
@@ -632,7 +624,7 @@ char *options[]={
   "colour_def","time_out_afks","charecho_def","time_out_maxlevel","auto_purge",
   "allow_recaps","auto_promote","personal_rooms","random_motds","startup_room_parse",
   "resolve_ip","flood_protect", "pueblo_enh", "auto_save", "susers_restrict",
-  "*"
+  "auto_afk", "*"
   };
 
 if (!strcmp(wrd[0],"INIT:")) { 
@@ -659,7 +651,7 @@ if (wrd[2][0] && wrd[2][0]!='#') {
   boot_exit(1);
   }
 val=atoi(wrd[1]);
-switch(op) {
+switch (op) {
   case 0: /* main port */
   case 1: /* wiz */
 #ifdef NETLINKS
@@ -681,7 +673,9 @@ switch(op) {
       amsys->logging=BIT_SET(amsys->logging,SYSLOG);
       amsys->logging=BIT_SET(amsys->logging,REQLOG);
       amsys->logging=BIT_SET(amsys->logging,NETLOG);
+#ifdef DEBUG
       amsys->logging=BIT_SET(amsys->logging,DEBLOG);
+#endif
       amsys->logging=BIT_SET(amsys->logging,ERRLOG);
       }
     else amsys->logging=0;
@@ -964,6 +958,16 @@ switch(op) {
   case 39: /* default restrictions mask for superior users */
     strcpy(susers_restrict, wrd[1]);
     return;
+  case 40: /* auto_afk */
+    if (!is_number(wrd[1])) {
+      	fprintf(stderr, "OS Star: Auto_afk na riadku %d musi byt cele kladne cislo\n", config_line);
+      	boot_exit(1);
+      	}
+    syspp->auto_afk_time=atoi(wrd[1]);
+    if (syspp->auto_afk_time>0) syspp->auto_afk=1;
+    else syspp->auto_afk=0;
+    return;
+    
   } /* end switch */
 }
 
@@ -1244,19 +1248,18 @@ while(1) {
 
 void clear_temps(void)
 {
-	char dirname[200], filename[250];
+	char filename[250];
 	DIR *dirp;
 	struct dirent *dp;
 
 	printf("Removing temp files ... ");
-	sprintf(dirname, "%s/%s", ROOTDIR, TEMPFILES);
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(TEMPFILES))) {
 		printf("Nemozem otvorit TEMPFILES adresar\n");
 		return;
 		}
 	while ((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name,".") || !strcmp(dp->d_name,"..")) continue;
-		sprintf(filename, "%s/%s", dirname, dp->d_name);
+		sprintf(filename, "%s/%s", TEMPFILES, dp->d_name);
 		unlink(filename);
 		printf(".");
 		}

@@ -1,6 +1,6 @@
 /*****************************************************************************
-                     Hlavne definicie pre OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                     Hlavne definicie pre OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -8,73 +8,79 @@
    ostatne musia byt nezmenene */
 
 #define TVERSION "2.0.1"
-#define OSSVERSION "1.0.0"
+#define OSSVERSION "1.1.0"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
-#define USERVER "0.1"
-#define RUN_VER "100"
+#define USERVER "0.11"
+#define RUN_VER "110"
 
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/osstar100"
-#define DATAFILES "datafiles"
-#define CONFFILES "conffiles"
-#define MAPFILES "mapfiles"
-#define HELPFILES "helpfiles"
-#define MAILSPOOL "mailspool"
-#define MISCFILES "miscfiles"
-#define PICTFILES "pictfiles"
-#define MOTDFILES "motds"
-#define DUMPFILES "dumpfiles"
-#define TEXTFILES "textfiles"
-#define ADMINFILES "adminfiles"
-#define LOGFILES "logfiles"
-#define BOTFILES "botfiles"
-#define ROOMFILES "roomfiles"
-#define PLFILES "plfiles"
-#define TRFILES "trfiles"
-#define VOTEFILES "votefiles"
-#define TEMPFILES "tempfiles"
-#define FIGLET_FONTS "fonts"
-#define KILLMSGS "killmsgs"
-#define COUNTFILES "counters"
+#define ROOTDIR "/home/osstar110"
+#define DATAFILES ROOTDIR"/datafiles"
+#define CONFFILES DATAFILES"/conffiles"
+#define MAPFILES DATAFILES"/mapfiles"
+#define HELPFILES DATAFILES"/helpfiles"
+#define PLHELPFILES PLFILES"/helpfiles"
+#define MAILSPOOL DATAFILES"/mailspool"
+#define MISCFILES DATAFILES"/miscfiles"
+#define PICTFILES DATAFILES"/pictfiles"
+#define MOTDFILES DATAFILES"/motds"
+#define DUMPFILES ROOTDIR"/dumpfiles"
+#define TEXTFILES DATAFILES"/textfiles"
+#define ADMINFILES TEXTFILES"/adminfiles"
+#define LOGFILES ROOTDIR"/logfiles"
+#define ROOMFILES DATAFILES"/roomfiles"
+#define PLFILES DATAFILES"/plfiles"
+#define TRFILES DATAFILES"/trfiles"
+#define VOTEFILES DATAFILES"/votefiles"
+#define TEMPFILES ROOTDIR"/tempfiles"
+#define FIGLET_FONTS DATAFILES"/fonts"
+#define KILLMSGS DATAFILES"/killmsgs"
+#define COUNTFILES DATAFILES"/counters"
+#define SCRFILES DATAFILES"/screens"
 
 /* user directories */
-#define USERFILES "userfiles"
-#define USERMAILS "mail"
-#define USERPROFILES "profiles"
-#define USERFRIENDS "friends"
-#define USERHISTORYS "historys"
-#define USERCOMMANDS "xgcoms"
-#define USERMACROS "macros"
-#define USERROOMS "rooms"
-#define USERREMINDERS "reminders"
-#define USERPLDATAS "pldatas"
+#define USERFILES ROOTDIR"/userfiles"
+#define USERMAILS USERFILES"/mail"
+#define USERPROFILES USERFILES"/profiles"
+#define USERFRIENDS USERFILES"/friends"
+#define USERHISTORYS USERFILES"/historys"
+#define USERCOMMANDS USERFILES"/xgcoms"
+#define USERMACROS USERFILES"/macros"
+#define USERROOMS USERFILES"/rooms"
+#define USERREMINDERS USERFILES"/reminders"
+#define USERPLDATAS USERFILES"/pldatas"
 
 /* files */
-#define CONFIGFILE "config"
-#define NEWSFILE "newsfile"
-#define SITEBAN "siteban"
-#define USERBAN "userban"
-#define NEWBAN "newban"
-#define SUGBOARD "suggestions"
-#define RULESFILE "rules"
-#define WIZRULESFILE "wizrules"
-#define SHOWFILES "showfiles"
-#define SHOWAFILES "showafiles"
-#define SWEARFILE "swears"
-#define LEVELFILE "levels"
-#define FAQFILE "faq"
-#define TALKERSFILE "talkers"
-#define TCOUNTER "tcounter"
-#define MCOUNTER "mcounter"
-#define RESTARTFILE "restartx"
+#define CONFIGFILE CONFFILES"/config"
+#define NEWSFILE MISCFILES"/newsfile"
+#define SITEBAN MISCFILES"/siteban"
+#define USERBAN MISCFILES"/userban"
+#define NEWBAN MISCFILES"/newban"
+#define SUGBOARD MISCFILES"/suggestions"
+#define RULESFILE MISCFILES"/rules"
+#define WIZRULESFILE MISCFILES"/wizrules"
+#define SHOWFILES MISCFILES"/showfiles"
+#define SHOWAFILES MISCFILES"/showafiles"
+#define SWEARFILE MISCFILES"/swears"
+#define LEVELFILE MISCFILES"/levels"
+#define FAQFILE MISCFILES"/faq"
+#define TALKERSFILE MISCFILES"/talkers"
+#define TCOUNTER COUNTFILES"/tcounter"
+#define MCOUNTER COUNTFILES"/mcounter"
+#define RESTARTFILE TEMPFILES"/restartx"
+#define KILLLIST MISCFILES"/killmsgs"
+#define PICTLIST MISCFILES"/pictlist"
+#define MAINHELP HELPFILES"/mainhelp"
+#define FONTLIST MISCFILES"/fontslist"
+#define CREDITS MISCFILES"/credits"
 
 /* fun files */
-#define HUGFILE "hug"
-#define KISSFILE "kiss"
-#define WAKEFILE "wake"
+#define HUGFILE MISCFILES"/hug"
+#define KISSFILE MISCFILES"/kiss"
+#define WAKEFILE MISCFILES"/wake"
 
 /* system logs */
 #define LAST_CMD   "last_command"
@@ -82,12 +88,16 @@
 #define MAINSYSLOG "syslog"
 #define NETSYSLOG  "netlog"
 #define REQSYSLOG  "reqlog"
-#define DEBSYSLOG  "deblog"
+#ifdef DEBUG
+	#define DEBSYSLOG  "deblog"
+#endif
 #define ERRSYSLOG  "errlog"
 #define SYSLOG 0
 #define REQLOG 1
 #define NETLOG 2
-#define DEBLOG 3
+#ifdef DEBUG
+	#define DEBLOG 3
+#endif
 #define ERRLOG 4			/* errors */
 
 /* general defines */
@@ -189,7 +199,7 @@
 #define BOT 11
 #define ROOT 12
 #define SYSOP 12
-#define RETIRE_LIST "retired_wiz"
+#define RETIRE_LIST USERFILES"/retired_wiz"
 
 /* user and clone types */
 #define USER_TYPE 0
@@ -326,5 +336,17 @@
 #define MIN_LEV_NOSWR   GOD	/* minimum level to ignore swear_action() */
 
 /* pre zalohovanie talkra */
-#define BACKUPDIR "backups"
+#define BACKUPDIR ROOTDIR"/backups"
 #define BACKUPFILE "backup"
+
+/* pre menu screens */
+#define MENU_BANK 1
+#define MENU_SET 2
+#define MENU_SETUP 3
+#define MENU_BANKOPS 4
+#define MENU_BUY 5
+#define MENU_SELL 6
+
+#define NUM_HELP 3
+#define NUM_PROMPT 2
+#define NUM_WHO 6

@@ -1,7 +1,7 @@
-################################################################################
-#              Makefile subor na kompilaciu OS Star po castiach                #
-#        Copyright (C) 2000 Pavol Hluchy - posledny update: 2.5.2000           #
-#         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar           #
+###############################################################################
+#              Makefile subor na kompilaciu OS Star po castiach               #
+#        Copyright (C) 2000 Pavol Hluchy - posledny update: 15.8.2000         #
+#         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar          #
 ################################################################################
 
 #umiestnenie vysledneho spustitelneho suboru
@@ -20,7 +20,7 @@ HDRS          		=
 #definicie
 DEFS			=
 #kniznice
-LIBS    		=
+LIBS    		= -lcrypt
 #
 # You'll need these libs for a Solaris build
 #
@@ -50,13 +50,15 @@ OBJS          = $(OBJECT-DIR)/star.o \
 		$(OBJECT-DIR)/pueblo.o \
 		$(OBJECT-DIR)/fonts.o \
 		$(OBJECT-DIR)/poc_zoz.o \
-		$(OBJECT-DIR)/netlinks.o \
+		$(OBJECT-DIR)/who.o \
+#		$(OBJECT-DIR)/netlinks.o
+# predchadzajuci riadok odkomentovat pri pouziti NETLINKS
 
 
 all:   			$(BIN)/$(BINARY)
 		@echo 'Hotovo'
 
-$(BIN)/$(BINARY):   	$(OBJS) Makefile
+$(BIN)/$(BINARY):   	$(OBJS) makefile
 		$(CC) $(CFLAGS) -o $(BIN)/$(BINARY) $(DEFS) $(OBJS) $(LIBS)
 		@strip $(BIN)/$(BINARY)
 
@@ -66,8 +68,10 @@ $(OBJECT-DIR)/%.o:	prototypes.h define.h *_obj.h commands.h
 clean:
 		@echo 'Mazem binarky'
 		@rm $(OBJECT-DIR)/*
+		@echo zmazane
 
 reall:
+		@kompilujem vsetko od zaciatku
 		@make clean
 		@make all
 
@@ -75,7 +79,7 @@ reall:
 $(OBJECT-DIR)/star.o: star.c star.h
 $(OBJECT-DIR)/globals.o: globals.c commands.h
 $(OBJECT-DIR)/prompts.o: prompts.c
-$(OBJECT-DIR)/plugin.o: plugin.c plugin.h ./plugins/*.c ./plugins/*.h
+$(OBJECT-DIR)/plugin.o: plugin.c plugin.h ./plugins/*
 $(OBJECT-DIR)/adds.o: adds.c adds.h
 $(OBJECT-DIR)/boots.o: boots.c boots.h
 $(OBJECT-DIR)/ct_general.o: ct_general.c ct_general.h
@@ -91,7 +95,9 @@ $(OBJECT-DIR)/email.o: email.c email.h
 $(OBJECT-DIR)/boards.o: boards.c boards.h
 $(OBJECT-DIR)/transport.o: transport.c transport.h
 $(OBJECT-DIR)/macros.o: macros.c macros.h
-$(OBJECT-DIR)/pueblo.o: pueblo.c pueblo.h
+$(OBJECT-DIR)/pueblo.o: pueblo.c pueblo.h music.h
 $(OBJECT-DIR)/fonts.o: fonts.c fonts.h
 $(OBJECT-DIR)/poc_zoz.o: poc_zoz.c poc_zoz.h
-$(OBJECT-DIR)/netlinks.o: netlinks.c netlinks.h
+$(OBJECT-DIR)/who.o: who.c who.h
+#$(OBJECT-DIR)/netlinks.o: netlinks.c netlinks.h
+# predchadzajuci riadok odkomentovat pri pouziti NETLINKS

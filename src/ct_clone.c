@@ -1,6 +1,6 @@
 /*****************************************************************************
-                   Funkcie OS Star v1.0.0 suvisiace s klonmi
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                   Funkcie OS Star v1.1.0 suvisiace s klonmi
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -18,7 +18,6 @@ UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
 char * colour_com_strip(char *str);
 UR_OBJECT create_user(void);
 /* ------------------------------------------------------------- */
-
 
 
 /*** Clone a user in another room ***/
@@ -79,7 +78,7 @@ u->vis=1;
 strcpy(u->name,user->name);
 strcpy(u->recap,u->name);
 strcpy(u->bw_recap,colour_com_strip(u->recap));
-strcpy(u->desc,"~BR~OL(CLONE)");
+strcpy(u->desc, clone_desc);
 if (rm==user->room)
 	write_user(user, clone_here_prompt);
 else
@@ -323,5 +322,3 @@ for(u=user_first;u!=NULL;u=u->next) {
   }
 write_user(user,"You do not have a clone in that room.\n");
 }
-
-

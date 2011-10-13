@@ -1,6 +1,6 @@
 /*****************************************************************************
-                     hodnoty prikazov pre OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                     hodnoty prikazov pre OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -8,7 +8,6 @@
 enum comvals {
   QUIT,
   LOOK,
-  MODE,
   SAY,
   SHOUT,
   TELL,
@@ -17,7 +16,6 @@ enum comvals {
   PEMOTE,
   ECHO,
   GO,
-  PROMPT,
   DESC,
   INPHRASE,
   OUTPHRASE,
@@ -213,5 +211,9 @@ enum comvals {
   KISS,
   RESTART,
   MYXTERM,
-  ALLXTERM
+  ALLXTERM,
+#ifdef DEBUG
+  TEST,
+#endif
+  JUKEBOX
 } com_num;

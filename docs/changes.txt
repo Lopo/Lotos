@@ -1,11 +1,37 @@
-t a l k r o v y  O S  S t a r v1.0.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Informacie o zmenach v jednotlivych verziach OS Star
-----------------------------------------------------
+20.8.2000 v1.1.0
+----------------
+(-; zacatie pouzivania nazvu LOTOS (skratka z `Lopov Talkrovy OS Star') ;-)
+pridany prikaz .test pre potreby odladovania - funguje len pri -DDEBUG
+doplneny zabudnuty prikaz jukebox
+dlzky nazvov suborov zvacsene na 500 (vdaka Dusky)
+dorobeny restart
+system pluginov vylepseny o funkcie pouzite pri restarte
+povodna funkcia write_usage() zrusena - miesto nej zostala vwrite_usage()
+ premenovana na write_usage()
+odstraneny adresar src/miscprogs
+write_transport_except - opravene vypisovanie, uz nepise ak user ma misc_op
+ alebo set_op
+user je po urcenom case automaticky dany na autoAFK - cas sa nastavuje v configu
+doplnena premenna status do user_struct - obsahuje stav usera: citanie,
+ editor, afk, ...
+doplnene rozne typy .who - nastavuje sa cez .set
+zrusene prikazy .prompt a .mode - presunute pod .set
+autopromote umoznene az po verifikacii emailu nastaveneho pomocou .accreq
+totalne prerobeny prikaz .set - moznost menu
+doplneny system roznych menu obrazoviek a s tym suvisiace doplnenia a zmeny
+prerobene show_file()
+load_user_details() - zvacsena dlzka user_words[][] kvoli last_site
+define.h - upravene definicie adresarov a suborov - netreba vsade v programe
+ vypisovat celu cestu k suboru, aktualizovane plug-in moduly
+SEARCH_BOARDS() - doplnene prehladavanie nasteniek v transportoch
+doplnena funkcia load_user_olddetails() na nahranie userfajlov z verzie 1.0.0
+logovanie do suborov s priponou datumu a nie PID - adekvatne prerobeny
+ a doplneny prikaz vielog
+debug logovanie do suboru len ak je definovana konstanta DEBUG - podobne
+ ako NETLINKS
 
 2.5.2000 v1.0.0 - prva full verzia
 ---------------
-forward_email() - opravena dlzka nazvu suboru a jeho umiestnenia
 pueblo.c - includ nl_obj.h dany medzi #ifdef NETLINKS
 load_and_parse_config() - opravena chyba s #ifdef
 arrest() - opravena chyba umoznujuca cez suicide utiect z vazenia
@@ -15,13 +41,12 @@ tell() - opraveny prikaz call
 disconnect_user() - doplnenie oznamu o odhlaseni usera v notify liste
 doplnenie v promote() - nemozem promotnut az na moj level
 oprava v suggestions(), delete_suggestions(), suggestions_from() - zvacsena
- dlzka nazvu suboru SUGBORAD a jeho umiestnenia
+ dlzka nazvu subora a oprava umiestnenia
 clear_files() - doplnene zmazanie userovych dat z pluginov
 nick_grm() - oprava a doplnenie sklonovania nicku
 load_user_details() - opravene nastavenie icq
-zopar malych bugfixov, kozmetickych uprav a doplneni textov
+zopar bugfixov, kozmetickych uprav a doplneni textov
 
 
 28.3.2000 v1.0.0b - prva volne dostupna verzia
 -----------------
-velmi vela zmien oproti povodnemu Amnuts 2.2.1

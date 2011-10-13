@@ -1,6 +1,6 @@
 /*****************************************************************************
-          Funkcie OS Star v1.0.0 suvisiace s podporou Pueblo klienta
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+          Funkcie OS Star v1.1.0 suvisiace s podporou Pueblo klienta
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 /*****************************************************************************
@@ -153,8 +153,7 @@ void pblo_exec(UR_OBJECT user, char *inpstr)
 		return;
 		}
 if (!strcmp(word[1],"RoomConfig_setOpt")) {
-        if (user->room->access==PERSONAL_UNLOCKED
-            || user->room->access==PERSONAL_LOCKED) {
+        if (user->room->access==PERSONAL_UNLOCKED || user->room->access==PERSONAL_LOCKED) {
         	write_user(user,"Personal rooms do not have access controls.\n");
         	return;
         	}
@@ -173,20 +172,16 @@ if (!strcmp(word[1],"RoomConfig_setOpt")) {
                         }
         sprintf(text,"\n ---- Room Configuration Options : %s ----\n\n",user->room->name);  write_user(user,text);
         if (user->level >= command_table[FIX].level && user->level >= command_table[UNFIX].level) {
-                sprintf(text,"        Room Type:  </xch_mudtext><b><a xch_cmd=\".fix %s\" xch_hint=\"Set this room's type to FIXED access.\">FIXED</a> / <a xch_cmd=\".unfix %s\" xch_hint=\"Set this room's type to VARIABLE access.\">VARIABLE</a></b><xch_mudtext>\n",user->room->name,user->room->name);
-                write_user(user,text);
-                }
+		vwrite_user(user, "        Room Type:  </xch_mudtext><b><a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to FIXED access.\">FIXED</a> / <a xch_cmd=\".%s %s\" xch_hint=\"Set this room's type to VARIABLE access.\">VARIABLE</a></b><xch_mudtext>\n", command_table[FIX].name, command_table[UNFIX].name, user->room->name,user->room->name);
+		}
         if (user->level >= command_table[PUBCOM].level && user->level >= command_table[PRIVCOM].level) {
-                sprintf(text,"           Access:  </xch_mudtext><b><a xch_cmd=\".pbloenh rmAccess PUBLIC %s\" xch_hint=\"Set this room's access to PUBLIC.\">PUBLIC</a> / <a xch_cmd=\".pbloenh rmAccess PRIVATE %s\" xch_hint=\"Set this room's access to PRIVATE.\">PRIVATE</a></b><xch_mudtext>\n",user->room->name,user->room->name);
-                write_user(user,text);
+		vwrite_user(user, "           Access:  </xch_mudtext><b><a xch_cmd=\".pbloenh rmAccess PUBLIC %s\" xch_hint=\"Set this room's access to PUBLIC.\">PUBLIC</a> / <a xch_cmd=\".pbloenh rmAccess PRIVATE %s\" xch_hint=\"Set this room's access to PRIVATE.\">PRIVATE</a></b><xch_mudtext>\n", user->room->name,user->room->name);
                 }
         if (user->level >= command_table[REVCLR].level) {
-                sprintf(text,"    Review Buffer:  </xch_mudtext><b><a xch_cmd=\".revclr %s\" xch_hint=\"Clear this room's speech review buffer.\">CLEAR REVIEW BUFFER NOW</a></b><xch_mudtext>\n",user->room->name);
-                write_user(user,text);
+		vwrite_user(user, "    Review Buffer:  </xch_mudtext><b><a xch_cmd=\".%s %s\" xch_hint=\"Clear this room's speech review buffer.\">CLEAR REVIEW BUFFER NOW</a></b><xch_mudtext>\n", command_table[REVCLR].name, user->room->name);
                 }                
         if (user->level >= command_table[CTOPIC].level) {
-                sprintf(text,"       Room Topic:  </xch_mudtext><b><a xch_cmd=\".clrtopic %s\" xch_hint=\"Clear this room's topic.\">CLEAR TOPIC NOW</a></b><xch_mudtext>\n",user->room->name);
-                write_user(user,text);
+		vwrite_user(user, "       Room Topic:  </xch_mudtext><b><a xch_cmd=\".%s %s\" xch_hint=\"Clear this room's topic.\">CLEAR TOPIC NOW</a></b><xch_mudtext>\n", command_table[CTOPIC].name, user->room->name);
                 }
 /*        if (user->level >= command_table[MYPAINT].level
 	      && user->can_edit_rooms
@@ -195,26 +190,24 @@ if (!strcmp(word[1],"RoomConfig_setOpt")) {
                 sprintf(text," Room Description:  </xch_mudtext><b><a xch_cmd=\".rmdesc %s\" xch_hint=\"EDIT this room's description.\">EDIT DESCRIPTION</a></b><xch_mudtext>\n",user->room->name);
                 write_user(user,text);
                 }
-  */      sprintf(text, "(%s)", user->name);
-        strtolower(text);
+*/	sprintf(text, "(%s)", user->name);
+	strtolower(text);
 	if (user->level >= command_table[MYPAINT].level
             && (user->room->access==PERSONAL_UNLOCKED
                 || user->room->access==PERSONAL_LOCKED)
             && !strcmp(user->room->name, text)) {
-                sprintf(text," Room Description:  </xch_mudtext><b><a xch_cmd=\".mypaint\" xch_hint=\"Edit your PERSONAL ROOM description.\">EDIT DESCRIPTION</a></b><xch_mudtext>\n");
-                write_user(user,text);
+                vwrite_user(user, " Room Description:  </xch_mudtext><b><a xch_cmd=\".%s\" xch_hint=\"Edit your PERSONAL ROOM description.\">EDIT DESCRIPTION</a></b><xch_mudtext>\n", command_table[MYPAINT].name);
                 }
         write_user(user,"\n");
         return;
         }
 if (word_count<3) return;
 if (!strcmp(word[1],"vpic")) {
-        sprintf(text,"</xch_mudtext><br><img src=\"%s\"><br><xch_mudtext>",inpstr);
-        write_user(user,text);
+        vwrite_user(user, "</xch_mudtext><br><img src=\"%s\"><br><xch_mudtext>",inpstr);
         return;
         }
 if (!strcmp(word[1],"audioPLAY")) {
-        sprintf(text,"</xch_mudtext><img xch_sound=play href=\"%s\"><xch_mudtext>",inpstr);        write_user(user,text);
+	vwrite_user(user, "</xch_mudtext><img xch_sound=play href=\"%s\"><xch_mudtext>",inpstr);
         return;
         }
 if (!strcmp(word[1],"audioVOL")) {
@@ -446,5 +439,3 @@ void query_aud(UR_OBJECT user, char *inpstr)
 		return;
 		}
 }
-
-

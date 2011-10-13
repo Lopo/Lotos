@@ -1,11 +1,12 @@
-     COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT
-                  Copyright informacie pre OS Star v1.0.0
 +------------------------------------------------------------------------------+
-Tento dokument obsahuje copyright informacie pre OS Star 1.0.0 a dalsie systemy
+     COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT
+                  Copyright informacie pre LOTOS 1.1.0
++------------------------------------------------------------------------------+
+Tento dokument obsahuje copyright informacie pre LOTOS 1.1.0 a dalsie systemy
 pouzite pri jeho tvorbe.
 
-Copyright pre OS Star
-~~~~~~~~~~~~~~~~~~~~~
+Copyright pre LOTOS
+~~~~~~~~~~~~~~~~~~~
 OS Star je distribuovany ako freeware. Copyright sa vztahuje na vsetky subory
 okrem nasledovnych: ASCII obrazky v datafiles/pictfiles, fonty
 v datafiles/fonts a originalnu dokumentaciu k Amnuts, NUTS a dalsim pouzitym
@@ -19,13 +20,13 @@ credits o Amnuts, NUTS a OS Star zobrazovane v `.help credits'. K tomu musia byt
 zachovane hlavicky na vrchu kazdeho zdrojoveho suboru obsahujuce informacie
 o OS Star.
 OS Star je distribuovany tak ako je a nie je poskytovana ziadna zaruka na skody
-sposobene jeho pouzivanim - jeho pouzivanie je na vlastne riziko.
+sposobene jeho pouzivanim.
 Tento copyright sa vztahuje len na tuto verziu.
 Ak mate problemy s touto copyright licenciou, tak nepouzivajte OS Star.
-V pripade potreby kontakt cez osstar@star.sjf.stuba.sk.
+Pripadne kontaktujte cez osstar@star.sjf.stuba.sk.
 
 Pavol Hluchy
-marec, 2000
+august, 2000
 
 
 Copyright for Amnuts code

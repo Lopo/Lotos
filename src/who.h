@@ -4,17 +4,17 @@
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
-extern char word[MAX_WORDS][WORD_LEN+1];
-extern int word_count;
-
-extern char *invisname, *notloggedon;
-extern char *noyes2[];
+extern UR_OBJECT user_first;
+extern RM_OBJECT room_first;
+extern SYSPP_OBJECT syspp;
 
 extern struct {
-  char *name,*alias; int level,function;
-  } command_table[];
+	char *name;
+	char *alias;
+	} user_level[];
 
-extern struct {
-	char *type;
-	char *desc;
-	} ignstr[];
+extern char *sex[];
+extern char text[];
+extern int port[];
+
+extern char *reg_sysinfo[];

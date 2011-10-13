@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -63,7 +63,6 @@ extern char *colors[];
 extern char *restrict_string;
 
 extern char *reg_sysinfo[];
-
 
 /* prompts */
 extern char *people_here_prompt, *no_people_here_prompt;

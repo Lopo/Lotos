@@ -1,6 +1,6 @@
 /*****************************************************************************
-                  Funkcie OS Star v1.0.0 suvisiace s pohybom
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                  Funkcie OS Star v1.1.0 suvisiace s pohybom
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -18,12 +18,11 @@
 #include "ct_move.h"
 #include "comvals.h"
 
-/* */
+/* prototypy */
 RM_OBJECT get_room_full(char *name);
 RM_OBJECT create_room(void);
 UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
 RM_OBJECT get_room(char *name);
-
 
 
 /*** Move to another room ***/
@@ -173,7 +172,7 @@ void move(UR_OBJECT user)
 	int i, mur=0;
 
 	if (word_count<2) {
-		vwrite_usage(user,"%s <user> [<room>]", command_table[MOVE].name);  return;
+		write_usage(user,"%s <user> [<room>]", command_table[MOVE].name);  return;
 		}
 	if (word_count<3) rm=user->room;
 	else {
@@ -262,7 +261,7 @@ RM_OBJECT rm;
 char *name;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <user>", command_table[JOIN].name);
+  write_usage(user,"%s <user>", command_table[JOIN].name);
   return;
   }
 if (user->lroom==2) {
@@ -311,7 +310,7 @@ UR_OBJECT u;
 RM_OBJECT rm;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <user>", command_table[BRING].name);
+  write_usage(user,"%s <user>", command_table[BRING].name);
   return;
   }
 if (!(u=get_user_name(user,word[1]))) {
@@ -344,7 +343,7 @@ prompt(u);
 
 /* lets a user enter their own room.  It creates the room if !exists */
 void personal_room(UR_OBJECT user) {
-char name[ROOM_NAME_LEN+1],filename[100];
+char name[ROOM_NAME_LEN+1],filename[500];
 RM_OBJECT rm;
 int pcnt=0;
 
@@ -357,7 +356,7 @@ strtolower(name);
 /* if the user wants to delete their room */
 if (word_count>=2) {
   if (strcmp(word[1],"-d")) {
-    vwrite_usage(user,"%s [-d]", command_table[MYROOM].name);
+    write_usage(user,"%s [-d]", command_table[MYROOM].name);
     return;
     }
   /* move to the user out of the room if they are in it */
@@ -373,11 +372,11 @@ if (word_count>=2) {
   write_user(user,"~OL~FRYou whistle a sharp spell and watch your room crumble into dust.~RS\n");
   destruct_room(rm);
   /* delete the files */
-  sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR,USERFILES,USERROOMS,user->name);
+  sprintf(filename,"%s/%s.R", USERROOMS,user->name);
   unlink(filename);
-  sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR,USERFILES,USERROOMS,user->name);
+  sprintf(filename,"%s/%s.B", USERROOMS,user->name);
   unlink(filename);
-  sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
+  sprintf(filename,"%s/%s.K", USERROOMS,user->name);
   unlink(filename);
   write_syslog(SYSLOG,1,"%s destructed their personal room.\n",user->name);
   return;
@@ -425,7 +424,7 @@ char name[ROOM_NAME_LEN+1];
 RM_OBJECT rm;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <name>", command_table[VISIT].name);
+  write_usage(user,"%s <name>", command_table[VISIT].name);
   return;
   }
 if (!amsys->personal_rooms) {
@@ -457,5 +456,3 @@ if (!has_room_access(user,rm)) {
   }
 move_user(user,rm,1);
 }
-
-

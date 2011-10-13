@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -15,4 +15,4 @@ extern int word_count;
 
 extern char *invisenter, *invisleave;
 
-char *nosuchtr="Taky transport neni\n";
+extern char *nosuchtr;

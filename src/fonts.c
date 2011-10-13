@@ -1,6 +1,6 @@
 /*****************************************************************************
-                  Funkcie OS Star v1.0.0 pre pracu s fontami
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                  Funkcie OS Star v1.1.0 pre pracu s fontami
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -102,10 +102,9 @@ int readfont(char *fontname)
 	int maxlen,cmtlines,ffright2left;
 	char *fileline,magicnum[5];
 	FILE *fontfile;
-	char fontpath[256];
+	char fontpath[500];
 
-	sprintf(fontpath, "%s/%s/%s/%s.flf",
-		ROOTDIR, DATAFILES, FIGLET_FONTS, fontname);
+	sprintf(fontpath, "%s/%s.flf", FIGLET_FONTS, fontname);
 
 	fontfile=fopen(fontpath,"r");
 
@@ -406,9 +405,7 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 		return;
 		}
 	if (!strcmp(inpstr, "/l")) {
-		sprintf(filename, "%s/%s/%s/fontslist",
-			ROOTDIR, DATAFILES, MISCFILES);
-		show_file(user, filename);
+		show_file(user, FONTLIST);
 		return;
 		}
 	if (typ==0) rm=user->room;

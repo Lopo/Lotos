@@ -2,8 +2,8 @@
      MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE - MAIN CODE
  *****************************************************************************/
 /*****************************************************************************
-                       Zakladne funkcie OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                       Zakladne funkcie OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -114,16 +114,16 @@ int main(int argc,char *argv[])
 #endif
 	load_and_parse_config();
 
-	(amsys->flood_protect) ? printf("Flood ochrana je ZAP.\n") : printf("Flood ochrana je VYP.\n");
+	printf("Flood ochrana je %s.\n", offon[amsys->flood_protect]);
 	if (amsys->personal_rooms) {
 		if (amsys->startup_room_parse) parse_user_rooms();
 		else printf("Osobne miestnosti su aktivne, ale neskontrolovane pri boote.\n");
 		}
 	else printf("Osobne miestnosti zakazane.\n");
-	printf("Kontrolujem strukturu user adresarov\n");	check_directories();
-	printf("Processing user list\n");					process_users();
-	printf("Pocitam userov\n");							count_users();
-	printf("Rozbor struktury prikazov\n");				parse_commands();
+	printf("Kontrolujem strukturu user adresarov\n"); check_directories();
+	printf("Processing user list\n"); process_users();
+	printf("Pocitam userov\n"); count_users();
+	printf("Rozbor struktury prikazov\n"); parse_commands();
 
 	purge(0,NULL,0);
 	if (!amsys->auto_purge) printf("PURGE: Auto-purge je vyp.\n");
@@ -153,8 +153,8 @@ int main(int argc,char *argv[])
 	load_counters();
 	reloads(NULL);
 	load_swear_file(NULL);
-	if (!strcmp(argv[argc-1], "-reinit")) reconnect_users();
-	clear_temps();
+	if (!strcmp(argv[argc-1], "-reinit")) restore_structs();
+//	clear_temps();
 	printf("------------------------------------------------------------------------------\n");
 	printf("Nabootovane s PID %u\n",amsys->pid);
 	printf("------------------------------------------------------------------------------\n\n");
@@ -202,7 +202,7 @@ int main(int argc,char *argv[])
     /* If remote user or clone ignore */
 			if (user->type!=USER_TYPE) {  user=next;  continue; }
     /* see if any data on socket else continue */
-			if (!FD_ISSET(user->socket,&readmask)) { user=next;  continue; }    
+			if (!FD_ISSET(user->socket,&readmask)) { user=next;  continue; }
     /* see if client (eg telnet) has closed socket */
 			inpstr[0]='\0';
 			if (!(len=read(user->socket,inpstr,sizeof(inpstr)))) {
@@ -250,10 +250,12 @@ GOT_LINE:
     
     /* Main input check */
 			clear_words();
-			if (!check_macros(user,inpstr)) {
-				prompt(user);
-				user=next;
-				continue;
+			if (!user->misc_op && !user->edit_op && !user->set_mode) {
+				if (!check_macros(user,inpstr)) {
+					prompt(user);
+					user=next;
+					continue;
+					}
 				}
 			clear_words();
 			word_count=wordfind(inpstr);
@@ -280,14 +282,17 @@ GOT_LINE:
 				if (user->vis) vwrite_room_except(user->room,user,"%s~RS comes back from being AFK.\n",user->recap);
 				if (user->afk==2) {
 					user->afk=0;
+					user->status='a';
 					prompt(user);
 					user=next;
 					continue;
 					}
 				user->afk=0;
+				user->status='a';
 				}
 			if (!word_count) {
 				if (misc_ops(user,inpstr))  {  user=next;  continue;  }
+				if (set_ops(user,inpstr))  {  user=next;  continue;  }
 #ifdef NETLINKS
 				if (user->room==NULL) {
 					sprintf(text,"ACT %s NL\n",user->name);
@@ -298,6 +303,7 @@ GOT_LINE:
 				user=next;  continue;
 				}
 			if (misc_ops(user,inpstr))  {  user=next;  continue;  }
+			if (set_ops(user,inpstr))  {  user=next;  continue;  }
 			com_num=-1;
 			if (user->command_mode || strchr(".>;:</&![@'*+-,?#",inpstr[0]))
 				exec_com(user,inpstr);
@@ -311,8 +317,6 @@ GOT_LINE:
 						case HOME:
 #endif
 						case QUIT:
-						case MODE:
-						case PROMPT: 
 						case SUICIDE:
 						case REBOOT:
 						case SHUTDOWN: prompt(user);
@@ -485,7 +489,7 @@ int contains_swearing(char *str)
 	int i;
 
 	if ((s=(char *)malloc(strlen(str)+1))==NULL) {
-		write_syslog(SYSLOG,0,"CHYBA: Chyba pri alokacii pamate v contains_swearing().\n");
+		write_syslog(ERRLOG,0,"CHYBA: Chyba pri alokacii pamate v contains_swearing().\n");
 		return 0;
 		}
 	strcpy(s,str);
@@ -867,9 +871,6 @@ user->page_file[0]='\0';
 user->mail_to[0]='\0';
 user->inpstr_old[0]='\0';
 user->buff[0]='\0'; 
-user->tname[0]='\0';
-user->tsite[0]='\0';
-user->tport[0]='\0';
 user->call[0]='\0';
 user->samesite_check_store[0]='\0';
 user->invite_by[0]='\0';
@@ -959,7 +960,7 @@ user->samesite_all_store=0;
 user->hwrap_id=0;
 user->hwrap_same=0;
 user->hwrap_func=0;
-user->cmd_type=0;
+user->cmd_type=1;
 user->show_rdesc=1;
 user->lmail_lev=-3; /* has to be -3 */
 for (i=0;i<MAX_REMINDERS;i++) {
@@ -976,13 +977,11 @@ for (i=0;i<MAX_XCOMS;i++) user->xcoms[i]=-1;
 for (i=0;i<MAX_GCOMS;i++) user->gcoms[i]=-1;
 for (i=0;i<MAX_PAGES;i++) user->pages[i]=0;
 user->pagecnt=0;
-user->login_prompt=1;
 user->user_page_pos=0;
 user->user_page_lev=0;
 user->tmp_int=0;
 user->first_macro=NULL;
 user->last_macro=NULL;
-user->prompt_typ=0;
 user->prompt_str[0]='\0';
 user->ltell[0]='\0';
 user->nameg[0]='\0';
@@ -993,7 +992,7 @@ user->namei[0]='\0';
 user->pueblo=0;
 user->pueblo_mm=0;
 user->pueblo_pg=0;
-user->voiceprompt=0;
+user->voiceprompt=1;
 user->pblodetect=1;
 user->alarm=0;
 user->atime=0;
@@ -1002,6 +1001,10 @@ user->restrict[0]='\0';
 user->ign_word=NULL;
 user->xterm=0;
 user->auth_addr=0;
+user->set_mode=0;
+user->set_op=0;
+user->who_type=1;
+user->status='a';
 }
 
 
@@ -1055,7 +1058,7 @@ room->access=-1;
 room->revline=0;
 room->mesg_cnt=0;
 room->tr=0;
-room->place=room->route=room->at_place=room->at_route=0;
+room->place=room->route=room->time=0;
 room->out=room->go=0;
 room->smer=1;
 #ifdef NETLINKS
@@ -1393,10 +1396,10 @@ return(0);
 /*** See if users site is banned ***/
 int site_banned(char *sbanned, int new) {
 FILE *fp;
-char line[82],filename[200];
+char line[82],filename[500];
 
-if (new) sprintf(filename,"%s/%s/%s", ROOTDIR, DATAFILES, NEWBAN);
-else sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
+if (new) strcpy(filename, NEWBAN);
+else strcpy(filename, SITEBAN);
 if (!(fp=fopen(filename,"r"))) return (0);
 fscanf(fp,"%s",line);
 while(!feof(fp)) {
@@ -1430,10 +1433,9 @@ return 0;
 /*** See if user is banned ***/
 int user_banned(char *name) {
 FILE *fp;
-char line[82],filename[200];
+char line[82];
 
-sprintf(filename,"%s/%s/%s", ROOTDIR, DATAFILES, USERBAN);
-if (!(fp=fopen(filename,"r"))) return 0;
+if (!(fp=fopen(USERBAN, "r"))) return 0;
 fscanf(fp,"%s",line);
 while(!feof(fp)) {
   if (!strcmp(line,name)) {  fclose(fp);  return 1;  }
@@ -1532,8 +1534,9 @@ return NULL;
 /*** See if a user has access to a room. If room is fixed to private then
 	it is considered a wizroom so grant permission to any user of WIZ and
 	above for those. ***/
-int has_room_access(UR_OBJECT user, RM_OBJECT rm) {
-int i=0;
+int has_room_access(UR_OBJECT user, RM_OBJECT rm)
+{
+	int i=0;
 
 /* level room checks */
 while (priv_room[i].name[0]!='*') {
@@ -1566,30 +1569,31 @@ return 1;
 
 
 /* Check the room you're logging into isn't private */
-void check_start_room(UR_OBJECT user) {
-RM_OBJECT rm;
+void check_start_room(UR_OBJECT user)
+{
+	RM_OBJECT rm;
 
-if (!user->logout_room[0] || !user->lroom) {
-  user->room=room_first;
-  return;
-  }
-rm=get_room(user->logout_room);
-if (rm==NULL) {
-  user->room=room_first;
-  return;
-  }
-if (rm->access==PRIVATE || (rm->access==FIXED_PRIVATE && user->level<WIZ) || (rm->access==ROOT_CONSOLE && user->level<ROOT)) {
-  vwrite_user(user,"\nRuuma v ktorej si sa odlogoval%s je teraz ~FRPRIVAT~RS - pripajam ta do %s.\n\n", gnd_grm(4, user->gender), room_first->name);
-  user->room=room_first;
-  return;
-  }
-user->room=rm;
-if (user->lroom==2)
-	vwrite_user(user,"\nBol%s si ~FRprilepen%s~RS do ruumy ~FG%s~RS\n\n",
-		gnd_grm(4, user->gender), gnd_grm(1, user->gender), rm->name);
-else
-	vwrite_user(user,"\nYou are connecting into the ~FG%s~RS room.\n\n",
-		rm->name);
+	if (!user->logout_room[0] || !user->lroom) {
+		user->room=room_first;
+		return;
+		}
+	rm=get_room(user->logout_room);
+	if (rm==NULL) {
+		user->room=room_first;
+		return;
+		}
+	if (rm->access==PRIVATE || (rm->access==FIXED_PRIVATE && user->level<WIZ) || (rm->access==ROOT_CONSOLE && user->level<ROOT)) {
+		vwrite_user(user,"\nRuuma v ktorej si sa odlogoval%s je teraz ~FRPRIVAT~RS - pripajam ta do %s.\n\n", gnd_grm(4, user->gender), room_first->name);
+		user->room=room_first;
+		return;
+		}
+	user->room=rm;
+	if (user->lroom==2)
+		vwrite_user(user,"\nBol%s si ~FRprilepen%s~RS do ruumy ~FG%s~RS\n\n",
+			gnd_grm(4, user->gender), gnd_grm(1, user->gender), rm->name);
+	else
+		vwrite_user(user,"\nYou are connecting into the ~FG%s~RS room.\n\n",
+			rm->name);
 }
 
 
@@ -1649,13 +1653,14 @@ int is_personal_room(RM_OBJECT rm) {
 
 
 /**** find out if the room given is the perosnal room of the user ***/
-int is_my_room(UR_OBJECT user,RM_OBJECT rm) {
-char name[ROOM_NAME_LEN+1];
+int is_my_room(UR_OBJECT user,RM_OBJECT rm)
+{
+	char name[ROOM_NAME_LEN+1];
 
-sprintf(name,"(%s)",user->name);
-strtolower(name);
-if (!strcmp(name,rm->name)) return 1;
-return 0;
+	sprintf(name,"(%s)",user->name);
+	strtolower(name);
+	if (!strcmp(name,rm->name)) return 1;
+	return 0;
 }
 
 
@@ -1671,23 +1676,27 @@ return cnt;
 
 
 /*** See if user is banned ***/
-int has_room_key(char *visitor,RM_OBJECT rm) {
-FILE *fp;
-char line[82],filename[200],rmname[USER_NAME_LEN];
+int has_room_key(char *visitor,RM_OBJECT rm)
+{
+	FILE *fp;
+	char line[82],filename[500],rmname[USER_NAME_LEN];
 
-/* get user's name from room name */
-midcpy(rm->name,rmname,1,strlen(rm->name)-2);
-rmname[0]=toupper(rmname[0]);
-/* check if user is listed */
-sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR, USERFILES, USERROOMS, rmname);
-if (!(fp=fopen(filename,"r"))) return 0;
-fscanf(fp,"%s",line);
-while(!feof(fp)) {
-  if (!strcmp(line,visitor)) {  fclose(fp);  return 1;  }
-  fscanf(fp,"%s",line);
-  }
-fclose(fp);
-return 0;
+	/* get user's name from room name */
+	midcpy(rm->name,rmname,1,strlen(rm->name)-2);
+	rmname[0]=toupper(rmname[0]);
+	/* check if user is listed */
+	sprintf(filename,"%s/%s.K", USERROOMS, rmname);
+	if (!(fp=fopen(filename,"r"))) return 0;
+	fscanf(fp,"%s",line);
+	while(!feof(fp)) {
+		if (!strcmp(line,visitor)) {
+			fclose(fp);
+			return 1;
+			}
+		fscanf(fp,"%s",line);
+		}
+	fclose(fp);
+	return 0;
 }
 
 
@@ -1774,7 +1783,7 @@ if (amsys->flood_protect && (login_port_flood(ip_site) || login_port_flood(named
   }
 /* get random motd1 and send  pre-login message */
 if (amsys->motd1_cnt) {
-  sprintf(motdname,"%s/%s/%s/motd1/motd%d", ROOTDIR, DATAFILES, MOTDFILES, (get_motd_num(1)));
+  sprintf(motdname,"%s/motd1/motd%d", MOTDFILES, (get_motd_num(1)));
   more(NULL,accept_sock,motdname);
   }
 else {
@@ -1917,7 +1926,7 @@ switch(sig) {
 /*** Exit because of error during bootup ***/
 void boot_exit(int code)
 {
-switch(code) {
+switch (code) {
   case 1:
     write_syslog(SYSLOG,1,"BOOT FAILURE: Chyba pri rozbore config fajlu.\n");
     exit(1);
@@ -2026,8 +2035,8 @@ switch(code) {
     exit(101);
 
   case 102:
-    perror("OS Star: nemozem vytvorit tempfajl v TEMPFILES");
-    write_syslog(SYSLOG, 1, "BOOT FAILURE: nemozem vytvorit tempfajl v TEMPFILES.\n");
+    perror("OS Star: nemozem vytvorit tempfajl v TMPFILES");
+    write_syslog(SYSLOG, 1, "BOOT FAILURE: nemozem vytvorit tempfajl v TMPFILES.\n");
     exit(102);
 
   case 103:
@@ -2104,58 +2113,64 @@ if (amsys->rs_countdown<60 && (secs>=10 || amsys->rs_countdown<=10)) {
      Also ups users total login time. ***/
 void check_idle_and_timeout(void)
 {
-UR_OBJECT user,next;
-int tm;
+	UR_OBJECT user,next;
+	int tm;
 
 /* Use while loop here instead of for loop for when user structure gets
    destructed, we may lose ->next link and crash the program */
-user=user_first;
-while(user) {
-  next=user->next;
-  if (user->type==CLONE_TYPE) {  user=next;  continue;  }
-  user->total_login+=amsys->heartbeat; 
-  if (user->level>amsys->time_out_maxlevel) {  user=next;  continue;  }
-  tm=(int)(time(0) - user->last_input);
-  if (user->login && tm>=amsys->login_idle_time) {
-    write_user(user, login_timeout);
-    disconnect_user(user);
-    user=next;
-    continue;
-    }
-  if (user->warned) {
-    if (tm<amsys->user_idle_time-60) {  user->warned=0;  continue;  }
-    if (tm>=amsys->user_idle_time) {
-      write_user(user,"\n\n\07~FR~OL~LI*** You have been timed out. ***\n\n");
-      disconnect_user(user);
-      user=next;
-      continue;
-      }
-    }
-  if ((!user->afk || (user->afk && amsys->time_out_afks)) 
-      && !user->login 
-      && !user->warned
-      && tm>=amsys->user_idle_time-60) {
-    vwrite_user(user,"\n\07~FY~OL~LI*** POZOR - Mas 1 minutu aby si nieco napisal%s lebo ta vydrbkam !***\n\n", gnd_grm(4, user->gender));
-    user->warned=1;
-    }
-  user=next;
-  }
+	user=user_first;
+	while (user) {
+		next=user->next;
+		if (user->type==CLONE_TYPE) {  user=next;  continue;  }
+		user->total_login+=amsys->heartbeat; 
+		if (user->level>amsys->time_out_maxlevel) {  user=next;  continue;  }
+		tm=(int)(time(0) - user->last_input);
+		if (user->login && tm>=amsys->login_idle_time) {
+			write_user(user, login_timeout);
+			disconnect_user(user);
+			user=next;
+			continue;
+			}
+		if (syspp->auto_afk
+		    && tm>=syspp->auto_afk_time
+		    && !user->afk
+		    && !user->login)
+			afk(user, auto_afk_mesg);
+		if (user->warned) {
+			if (tm<amsys->user_idle_time-60) {  user->warned=0;  continue;  }
+			if (tm>=amsys->user_idle_time) {
+				write_user(user,"\n\n\07~FR~OL~LI*** You have been timed out. ***\n\n");
+				disconnect_user(user);
+				user=next;
+				continue;
+				}
+			}
+		if ((!user->afk || (user->afk && amsys->time_out_afks)) 
+		    && !user->login 
+		    && !user->warned
+		    && tm>=amsys->user_idle_time-60) {
+			audioprompt(user, 4, 0);
+			vwrite_user(user,"\n\07~FY~OL~LI*** POZOR - Mas 1 minutu aby si nieco napisal%s lebo ta vydrbkam !***\n\n", gnd_grm(4, user->gender));
+			user->warned=1;
+			}
+		user=next;
+		}
 }
 
 
 /*** Records when the user last logged on for use with the .last command ***/
 void record_last_login(char *name)
 {
-int i;
+	int i;
 
-for (i=LASTLOGON_NUM;i>0;i--) {
-  strcpy(last_login_info[i].name,last_login_info[i-1].name);
-  strcpy(last_login_info[i].time,last_login_info[i-1].time);
-  last_login_info[i].on=last_login_info[i-1].on;
-  }    
-strcpy(last_login_info[0].name,name);
-strcpy(last_login_info[0].time,long_date(1));
-last_login_info[0].on=1;
+	for (i=LASTLOGON_NUM; i>0; i--) {
+		strcpy(last_login_info[i].name,last_login_info[i-1].name);
+		strcpy(last_login_info[i].time,last_login_info[i-1].time);
+		last_login_info[i].on=last_login_info[i-1].on;
+		}    
+	strcpy(last_login_info[0].name,name);
+	strcpy(last_login_info[0].time,long_date(1));
+	last_login_info[0].on=1;
 }
 
 
@@ -2177,16 +2192,13 @@ if (i!=LASTLOGON_NUM) last_login_info[i].on=0;
 /******************************************************************************
  Initializing of globals and other stuff
  *****************************************************************************/
-
-
 /*** Load the users details ***/
-int 
-load_user_details(UR_OBJECT user)
+int load_user_details(UR_OBJECT user)
 {
 FILE *fp;
-char user_words[15][20]; /* must be at least 1 longer than max words in the _options */
-char line[ARR_SIZE],filename[200],*str;
-int  wn,wpos,wcnt,op,found,i,damaged,version_found;
+char user_words[16][40]; /* must be at least 1 longer than max words in the _options */
+char line[ARR_SIZE],filename[500],*str;
+int  wn,wpos,wcnt,op,found,i,damaged;
 char *userfile_options[]={
   "version","password","promote_date","times","levels","general","user_set",
   "user_ignores","fighting","purging","last_site","mail_verify","description",
@@ -2194,7 +2206,234 @@ char *userfile_options[]={
   "prompt", "nick_grm", "pueblo", "restrict", "ign_word", "*" /* KEEP HERE! */
   };
 
-sprintf(filename,"%s/%s/%s.D", ROOTDIR, USERFILES, user->name);
+sprintf(filename,"%s/%s.D", USERFILES, user->name);
+if (!(fp=fopen(filename,"r"))) return 0;
+
+damaged=0;
+fgets(line,ARR_SIZE-1,fp);
+line[strlen(line)-1]='\0';
+
+if (strcmp(USERVER, remove_first(line))) {
+	fclose(fp);
+	i=load_user_olddetails(user);
+	return i;
+	}
+
+while(!feof(fp)) {
+  /* make this into the functions own word array.  This allows this array to
+     have a different length from the general words array. */
+  wn=0; wpos=0;
+  str=line;
+  do {
+    while(*str<33) if (!*str++) goto LUOUT;
+    while(*str>32 && wpos<40) user_words[wn][wpos++]=*str++;
+    user_words[wn++][wpos]='\0';
+    wpos=0;
+  } while (wn<16);
+  wn--;
+ LUOUT:
+  wcnt=wn;
+  /* now get the option we're on */
+  op=0;  found=1;
+  while(strcmp(userfile_options[op],user_words[0])) {
+    if (userfile_options[op][0]=='*') { found=0; break; }
+    op++;
+    }
+  if (found) {
+    switch(op) {
+      case 0:
+	if (wcnt>=2) {      /* make sure more than just option string was there */
+	  strcpy(user->version,remove_first(line));
+	  }
+	break;
+      case 1:
+	if (wcnt>=2) strcpy(user->pass,remove_first(line));
+	break;
+      case 2:
+	if (wcnt>=2) strcpy(user->date,remove_first(line));
+	break;
+      case 3:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: user->last_login=(time_t)atoi(user_words[i]);  break;
+	    case 2: user->total_login=(time_t)atoi(user_words[i]);  break;
+	    case 3: user->last_login_len=atoi(user_words[i]);  break;
+	    case 4: user->read_mail=(time_t)atoi(user_words[i]);  break;
+	    }
+	break;
+      case 4:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: user->level=atoi(user_words[i]);  break;
+	    case 2: user->unarrest=atoi(user_words[i]);  break;
+	    case 3: user->arrestby=atoi(user_words[i]);  break;
+	    case 4: user->muzzled=atoi(user_words[i]);  break;
+	    }
+	break;
+      case 5:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: user->accreq=atoi(user_words[i]);  break;
+	    case 2: user->charmode_echo=atoi(user_words[i]);  break;
+	    case 3: user->command_mode=atoi(user_words[i]);  break;
+	    case 4: user->prompt=atoi(user_words[i]);  break;
+	    case 5: user->vis=atoi(user_words[i]);  break;
+	    case 6: user->monitor=atoi(user_words[i]);  break;
+	    case 7: user->mail_verified=atoi(user_words[i]);  break;
+	    case 8: user->logons=atoi(user_words[i]);  break;
+		case 9: user->xterm=atoi(user_words[i]);  break;
+	    }
+	break;
+      case 6:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1 : user->gender=atoi(user_words[i]);  break;
+	    case 2 : user->age=atoi(user_words[i]);  break;
+	    case 3 : user->wrap=atoi(user_words[i]);  break;
+	    case 4 : user->pager=atoi(user_words[i]);  break;
+	    case 5 : user->hideemail=atoi(user_words[i]);  break;
+	    case 6 : user->colour=atoi(user_words[i]);  break;
+	    case 7 : user->lroom=atoi(user_words[i]);  break;
+	    case 8 : user->alert=atoi(user_words[i]);  break;
+	    case 9 : user->autofwd=atoi(user_words[i]);  break;
+	    case 10: user->show_pass=atoi(user_words[i]);  break;
+	    case 11: user->show_rdesc=atoi(user_words[i]);  break;
+	    case 12: user->cmd_type=atoi(user_words[i]);  break;
+	    case 13: strcpy(user->icq, user_words[i]);  break;
+	    case 14: user->who_type=atoi(user_words[i]); break;
+	    }
+	break;
+      case 7:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case  1: user->ignall=atoi(user_words[i]);  break;
+	    case  2: user->igntells=atoi(user_words[i]);  break;
+	    case  3: user->ignshouts=atoi(user_words[i]);  break;
+	    case  4: user->ignpics=atoi(user_words[i]);  break;
+	    case  5: user->ignlogons=atoi(user_words[i]);  break;
+	    case  6: user->ignwiz=atoi(user_words[i]);  break;
+	    case  7: user->igngreets=atoi(user_words[i]);  break;
+	    case  8: user->ignbeeps=atoi(user_words[i]);  break;
+	    case  9: user->igntr=atoi(user_words[i]); break;
+	    case 10: user->ignfuns=atoi(user_words[i]); break;
+	    }
+	break;
+      case 8:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: user->hits=atoi(user_words[i]);  break;
+	    case 2: user->misses=atoi(user_words[i]);  break;
+	    case 3: user->deaths=atoi(user_words[i]);  break;
+	    case 4: user->kills=atoi(user_words[i]);  break;
+	    case 5: user->bullets=atoi(user_words[i]);  break;
+	    case 6: user->hps=atoi(user_words[i]);  break;
+	    }
+	break;
+      case 9:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: user->expire=atoi(user_words[i]);  break;
+	    case 2: user->t_expire=(time_t)atoi(user_words[i]);  break;
+	    }
+	break;
+      case 10:
+	for (i=1;i<wcnt;i++)
+	  switch(i) {
+	    case 1: strcpy(user->last_site,user_words[i]);  break;
+	    case 2: strcpy(user->logout_room,user_words[i]);  break;
+	    }
+	break;
+      case 11:
+	if (wcnt>=2) strcpy(user->verify_code,remove_first(line));
+	break;
+      case 12:
+	if (wcnt>=2) strcpy(user->desc,remove_first(line));
+	break;
+      case 13:
+	if (wcnt>=2) strcpy(user->in_phrase,remove_first(line));
+	break;
+      case 14:
+	if (wcnt>=2) strcpy(user->out_phrase,remove_first(line));
+	break;
+      case 15:
+	if (wcnt>=2) strcpy(user->email,remove_first(line));
+	break;
+      case 16:
+	if (wcnt>=2) strcpy(user->homepage,remove_first(line));
+	break;
+      case 17:
+	if (wcnt>=2) strcpy(user->recap,remove_first(line));
+	break;
+      case 18:
+        for (i=1; i<wcnt; i++)
+          switch(i) {
+            case 1: strcpy(user->prompt_str, user_words[i]); break;
+            }
+        break;
+      case 19:
+        for (i=1; i<wcnt; i++)
+          switch(i) {
+            case 1: strcpy(user->nameg, user_words[i]); break;
+            case 2: strcpy(user->named, user_words[i]); break;
+            case 3: strcpy(user->namea, user_words[i]); break;
+            case 4: strcpy(user->namel, user_words[i]); break;
+            case 5: strcpy(user->namei, user_words[i]); break;
+            }
+        break;
+      case 20:
+        for (i=1; i<wcnt; i++)
+          switch(i) {
+            case 1: user->pueblo_mm=atoi(user_words[i]); break;
+            case 2: user->pueblo_pg=atoi(user_words[i]); break;
+            case 3: user->voiceprompt=atoi(user_words[i]); break;
+            }
+        break;
+      case 21:
+        if (wcnt>=2) strcpy(user->restrict, remove_first(line));
+        else strcpy(user->restrict, RESTRICT_MASK);
+        break;
+      case 22:
+        if (wcnt>=2) user->ign_word=strdup(remove_first(line));
+	break;
+      default: damaged++; break;
+      }
+    }
+  else damaged++;
+  fgets(line,ARR_SIZE-1,fp);
+  line[strlen(line)-1]=0;
+  }
+fclose(fp);
+if (damaged) write_syslog(SYSLOG,1,"Poskodeny userfajl '%s.D'\n",user->name);
+if (!amsys->allow_recaps || !user->recap[0]) strcpy(user->recap,user->name);
+strcpy(user->bw_recap,colour_com_strip(user->recap));
+user->real_level=user->level;
+if (user->level>NEW) user->accreq=-1;   /* compensate for new accreq change */
+get_macros(user);
+get_xgcoms(user);
+get_friends(user);
+read_user_reminders(user);
+return 1;
+}
+
+
+/*** Load the old users details ***/
+int load_user_olddetails(UR_OBJECT user)
+{
+FILE *fp;
+char user_words[15][20]; /* must be at least 1 longer than max words in the _options */
+char line[ARR_SIZE],filename[500],*str;
+int  wn,wpos,wcnt,op,found,i,damaged,version_found;
+float ver;
+char *userfile_options[]={
+  "version","password","promote_date","times","levels","general","user_set",
+  "user_ignores","fighting","purging","last_site","mail_verify","description",
+  "in_phrase","out_phrase","email","homepage","recap_name",
+  "prompt", "nick_grm", "pueblo", "restrict", "ign_word", "*" /* KEEP HERE! */
+  };
+
+write_syslog(SYSLOG, 0, "Nahravam staru verziu userfajlu pre %s, v0.1 - 1.0.0\n", user->name);
+
+sprintf(filename,"%s/%s.D", USERFILES, user->name);
 if (!(fp=fopen(filename,"r"))) return 0;
 
 damaged=version_found=0;
@@ -2259,7 +2498,7 @@ while(!feof(fp)) {
 	    case 1: user->accreq=atoi(user_words[i]);  break;
 	    case 2: user->charmode_echo=atoi(user_words[i]);  break;
 	    case 3: user->command_mode=atoi(user_words[i]);  break;
-	    case 4: user->prompt=atoi(user_words[i]);  break;
+	    case 4: /*user->prompt=atoi(user_words[i]); */ break;
 	    case 5: user->vis=atoi(user_words[i]);  break;
 	    case 6: user->monitor=atoi(user_words[i]);  break;
 	    case 7: user->mail_verified=atoi(user_words[i]);  break;
@@ -2281,7 +2520,10 @@ while(!feof(fp)) {
 	    case 9 : user->autofwd=atoi(user_words[i]);  break;
 	    case 10: user->show_pass=atoi(user_words[i]);  break;
 	    case 11: user->show_rdesc=atoi(user_words[i]);  break;
-	    case 12: user->cmd_type=atoi(user_words[i]);  break;
+	    case 12:
+	    	user->cmd_type=atoi(user_words[i]);
+		if (user->cmd_type==0) user->cmd_type=1;
+		break;
 	    case 13: strcpy(user->icq, user_words[i]);  break;
 	    }
 	break;
@@ -2349,7 +2591,7 @@ while(!feof(fp)) {
       case 18:
         for (i=1; i<wcnt; i++)
           switch(i) {
-            case 1: user->prompt_typ=atoi(user_words[i]); break;
+            case 1: user->prompt=atoi(user_words[i]); break;
             case 2: strcpy(user->prompt_str, user_words[i]); break;
             }
         break;
@@ -2403,14 +2645,14 @@ return 1;
 int save_user_details(UR_OBJECT user, int save_current)
 {
 	FILE *fp;
-	char filename[200];
+	char filename[500];
 	int i;
 
 	if (user->type==REMOTE_TYPE || user->type==CLONE_TYPE) return 0;
-	sprintf(filename,"%s/%s/%s.D", ROOTDIR, USERFILES, user->name);
+	sprintf(filename,"%s/%s.D", USERFILES, user->name);
 	if (!(fp=fopen(filename,"w"))) {
 		vwrite_user(user,"%s: chyba pri ukladani tvojich detailov.\n",syserror);
-		write_syslog(SYSLOG,1,"SAVE_USER_STATS: chyba pri ukladani detaijlov pre %s\n",user->name);
+		write_syslog(ERRLOG,1,"SAVE_USER_STATS: chyba pri ukladani detaijlov pre %s\n",user->name);
 		return 0;
 		}
 	/* reset normal level */
@@ -2433,11 +2675,11 @@ int save_user_details(UR_OBJECT user, int save_current)
 		user->accreq, user->charmode_echo, user->command_mode,
 		user->prompt, user->vis, user->monitor, user->mail_verified,
 		user->logons, user->xterm);
-	fprintf(fp,"user_set      %d %d %d %d %d %d %d %d %d %d %d %d %s\n",
+	fprintf(fp,"user_set      %d %d %d %d %d %d %d %d %d %d %d %d %s %d\n",
 		user->gender, user->age, user->wrap, user->pager,
 		user->hideemail, user->colour, user->lroom, user->alert,
 		user->autofwd, user->show_pass, user->show_rdesc,
-		user->cmd_type, user->icq);
+		user->cmd_type, user->icq, user->who_type);
 	fprintf(fp,"user_ignores  %d %d %d %d %d %d %d %d %d %d\n",
 		user->ignall, user->igntells, user->ignshouts, user->ignpics,
 		user->ignlogons, user->ignwiz, user->igngreets, user->ignbeeps,
@@ -2469,8 +2711,7 @@ int save_user_details(UR_OBJECT user, int save_current)
 	fprintf(fp,"email         %s\n",user->email);
 	fprintf(fp,"homepage      %s\n",user->homepage);
 	fprintf(fp,"recap_name    %s\n",user->recap);
-	fprintf(fp,"prompt        %d %s\n",
-		user->prompt_typ, user->prompt_str);
+	fprintf(fp,"prompt        %s\n",user->prompt_str);
 	fprintf(fp,"nick_grm      %s %s %s %s %s\n",
 		user->nameg, user->named, user->namea, user->namel, user->namei);
 	fprintf(fp,"pueblo        %d %d %d\n",
@@ -2538,7 +2779,7 @@ for (entry=first_dir_entry;entry!=NULL;entry=entry->next) {
    */
 int count_motds(int forcecnt)
 {
-char filename[100];
+char filename[500];
 DIR *dirp;
 struct dirent *dp; 
 int i;
@@ -2546,7 +2787,7 @@ int i;
 amsys->motd1_cnt=0;  amsys->motd2_cnt=0;
 for (i=1;i<=2;i++) {
   /* open the directory file up */
-  sprintf(filename,"%s/%s/%s/motd%d", ROOTDIR, DATAFILES, MOTDFILES, i);
+  sprintf(filename,"%s/motd%d", MOTDFILES, i);
   if ((dirp=opendir(filename))==NULL) {
     switch(forcecnt) {
       case 0:
@@ -2591,32 +2832,32 @@ void clean_files(char *name)
 {
 	DIR *dirp;
 	struct dirent *dp;
-	char filename[200];
+	char filename[500];
 
 	name[0]=toupper(name[0]);
-	sprintf(filename,"%s/%s/%s.D", ROOTDIR, USERFILES, name);
+	sprintf(filename,"%s/%s.D", USERFILES, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR, USERFILES, USERMAILS, name);
+	sprintf(filename,"%s/%s.M", USERMAILS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR, USERFILES, USERPROFILES, name);
+	sprintf(filename,"%s/%s.P", USERPROFILES, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.H", ROOTDIR, USERFILES, USERHISTORYS, name);
+	sprintf(filename,"%s/%s.H", USERHISTORYS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR, USERFILES, USERCOMMANDS, name);
+	sprintf(filename,"%s/%s.C", USERCOMMANDS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.MAC", ROOTDIR, USERFILES, USERMACROS, name);
+	sprintf(filename,"%s/%s.MAC", USERMACROS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.F", ROOTDIR, USERFILES, USERFRIENDS, name);
+	sprintf(filename,"%s/%s.F", USERFRIENDS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR, USERFILES, USERROOMS, name);
+	sprintf(filename,"%s/%s.R", USERROOMS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.B", ROOTDIR, USERFILES, USERROOMS, name);
+	sprintf(filename,"%s/%s.B", USERROOMS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR, USERFILES, USERROOMS, name);
+	sprintf(filename,"%s/%s.K", USERROOMS, name);
 	unlink(filename);
-	sprintf(filename,"%s/%s/%s/%s.REM", ROOTDIR, USERFILES, USERREMINDERS, name);
+	sprintf(filename,"%s/%s.REM", USERREMINDERS, name);
 	unlink(filename);
-	sprintf(filename, "%s/%s/%s", ROOTDIR, USERFILES, USERPLDATAS);
+	strcpy(filename, USERPLDATAS);
 	if ((dirp=opendir(filename))==NULL) {
 		write_syslog(ERRLOG, 1, "Chyba pri otvarani adresara v clean_files()\n");
 		return;
@@ -2624,7 +2865,7 @@ void clean_files(char *name)
 	sprintf(filename, "%s.", name);
 	while ((dp=readdir(dirp))!=NULL)
 		if (!strncmp(dp->d_name, filename, strlen(filename))) {
-			sprintf(text, "%s/%s/%s/%s", ROOTDIR, USERFILES, USERPLDATAS, dp->d_name);
+			sprintf(text, "%s/%s", USERPLDATAS, dp->d_name);
 			unlink(text);
 			}
 	(void) closedir(dirp);
@@ -2637,13 +2878,12 @@ void clean_files(char *name)
  */
 int remove_top_bottom(char *filename, int where)
 {
-char line[ARR_SIZE], tempfile[200];
+char line[ARR_SIZE];
 FILE *fpi, *fpo;
 int i,cnt;
 
 if (!(fpi=fopen(filename,"r"))) return 0;
-sprintf(tempfile, "%s/%s/temp_file", ROOTDIR, TEMPFILES);
-if (!(fpo=fopen(tempfile,"w"))) {
+if (!(fpo=fopen("temp_file","w"))) {
   fclose(fpi);  return 0;
   }
 /* remove from top */
@@ -2925,7 +3165,8 @@ write_room_except(rm,vtext,user);
      to all rooms. ***/
 void write_room_except(RM_OBJECT rm, char *str, UR_OBJECT user)
 {
-UR_OBJECT u;
+	UR_OBJECT u;
+	char text2[ARR_SIZE*2];
 
 for(u=user_first;u!=NULL;u=u->next) {
   if (u->login 
@@ -2945,8 +3186,8 @@ for(u=user_first;u!=NULL;u=u->next) {
     if (u->clone_hear==CLONE_HEAR_SWEARS) {
       if (!contains_swearing(str)) continue;
       }
-    sprintf(text, "~FT[ %s ]:~RS %s",u->room->name,str);
-    write_user(u->owner, text);
+    sprintf(text2, "~FT[ %s ]:~RS %s",u->room->name,str);
+    write_user(u->owner, text2);
     }
   else write_user(u,str);
   } /* end for */
@@ -2982,48 +3223,51 @@ for(u=user_first;u!=NULL;u=u->next) {
 ***/
 void write_syslog(int type, int write_time, char *str, ...)
 {
-FILE *fp;
-int i=0;
-va_list args;
-char filename[200];
+	FILE *fp;
+	int i=0;
+	va_list args;
+	char filename[500];
 
-fp=NULL;  vtext[0]='\0';
-switch(type) {
-  case SYSLOG:
-    sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,MAINSYSLOG,amsys->pid);
-    if (!BIT_TEST(amsys->logging,SYSLOG) || !(fp=fopen(filename,"a"))) return;
-    break;
-  case REQLOG:
-    sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,REQSYSLOG,amsys->pid);
-    if (!BIT_TEST(amsys->logging,REQLOG) || !(fp=fopen(filename,"a"))) return;
-    break;
-  case DEBLOG:
-    sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,DEBSYSLOG,amsys->pid);
-    if (!BIT_TEST(amsys->logging,DEBLOG) || !(fp=fopen(filename,"a"))) return;
-    break;
-  case ERRLOG:
-    sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,ERRSYSLOG,amsys->pid);
-    if (!BIT_TEST(amsys->logging,ERRLOG) || !(fp=fopen(filename,"a"))) return;
-    break;
-  case NETLOG:
-#ifdef NETLINKS
-    sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,NETSYSLOG,amsys->pid);
-    if (!BIT_TEST(amsys->logging,NETLOG) || !(fp=fopen(filename,"a"))) return;
-    break;
-#else
-    return;
+	fp=NULL;
+	vtext[0]='\0';
+	switch(type) {
+		case SYSLOG:
+			sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,MAINSYSLOG,tmday,tmonth+1,tyear);
+			if (!BIT_TEST(amsys->logging,SYSLOG) || !(fp=fopen(filename,"a"))) return;
+			break;
+		case REQLOG:
+			sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,REQSYSLOG,tmday,tmonth+1,tyear);
+			if (!BIT_TEST(amsys->logging,REQLOG) || !(fp=fopen(filename,"a"))) return;
+			break;
+#ifdef DEBUG
+		case DEBLOG:
+			sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,DEBSYSLOG,tmday,tmonth+1,tyear);
+			if (!BIT_TEST(amsys->logging,DEBLOG) || !(fp=fopen(filename,"a"))) return;
+			break;
 #endif
-  }
-va_start(args,str);
-if (write_time) {
-  sprintf(vtext,"%02d/%02d %02d:%02d:%02d: ",tmday,tmonth+1,thour,tmin,tsec);
-  i=strlen(vtext);
-  vsprintf(vtext+i,str,args);
-  }
-else vsprintf(vtext,str,args);
-va_end(args);
-fputs(vtext,fp);
-fclose(fp);
+		case ERRLOG:
+			sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,ERRSYSLOG,tmday,tmonth+1,tyear);
+			if (!BIT_TEST(amsys->logging,ERRLOG) || !(fp=fopen(filename,"a"))) return;
+			break;
+		case NETLOG:
+#ifdef NETLINKS
+			sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,NETSYSLOG,tmday,tmonth+1,tyear);
+			if (!BIT_TEST(amsys->logging,NETLOG) || !(fp=fopen(filename,"a"))) return;
+			break;
+#else
+			return;
+#endif
+		}
+	va_start(args,str);
+	if (write_time) {
+		sprintf(vtext,"%02d/%02d %02d:%02d:%02d: ",tmday,tmonth+1,thour,tmin,tsec);
+		i=strlen(vtext);
+		vsprintf(vtext+i,str,args);
+		}
+	else vsprintf(vtext,str,args);
+	va_end(args);
+	fputs(vtext,fp);
+	fclose(fp);
 }
 
 
@@ -3042,9 +3286,9 @@ amsys->last_cmd_cnt++;
 /* write the commands to the files */
 void dump_commands(int foo) {
 FILE *fp;
-char filename[200];
+char filename[500];
 
-sprintf(filename,"%s/%s/%s.%u", ROOTDIR,LOGFILES,LAST_CMD,amsys->pid);
+sprintf(filename,"%s/%s.%02u%02u%04d", LOGFILES,LAST_CMD,tmday, tmonth+1, tyear);
 if((fp=fopen(filename, "w"))) {
   int i,j;
   for (i=((j=amsys->last_cmd_cnt-16)>0?j:0);i<amsys->last_cmd_cnt;i++) fprintf(fp, "%s\n", cmd_history[i&15]);
@@ -3286,9 +3530,10 @@ if (user->user_page_lev==-1) {
   lines=0;
   while (entry!=NULL) {
     if (lines>=user->pager) {
-      write_user(user, more_prompt_n);
+      write_user(user, continue2);
       no_prompt=1;
       user->misc_op=16;
+      user->status='R';
       return retval;
       }
     vwrite_user(user,"%d) %-*s : %s\n",entry->level,USER_NAME_LEN,entry->name,entry->date);
@@ -3298,6 +3543,7 @@ if (user->user_page_lev==-1) {
     } /* end while */
   retval=2;
   user->user_page_pos=0;  user->user_page_lev=0;  user->misc_op=0;
+  user->status='a';
   return retval;
   } /* end if for listing all users */
 
@@ -3325,7 +3571,7 @@ while (entry!=NULL) {
     continue;
     }
   if (lines>=user->pager) {
-    write_user(user, more_prompt_n);
+    write_user(user, continue2);
     no_prompt=1;
     return retval;
     }
@@ -3338,6 +3584,7 @@ while (entry!=NULL) {
 write_user(user,"\n");
 retval=2;
 user->user_page_pos=0;  user->user_page_lev=0;  user->misc_op=0;
+user->status='a';
 return retval;
 }
 
@@ -3346,11 +3593,11 @@ return retval;
 void add_history(char *name, int showtime, char *str)
 {
 FILE *fp;
-char filename[200];
+char filename[500];
 
 name[0]=toupper(name[0]);
 /* add to actual history listing */
-sprintf(filename,"%s/%s/%s/%s.H", ROOTDIR,USERFILES,USERHISTORYS,name);
+sprintf(filename,"%s/%s.H", USERHISTORYS,name);
 if ((fp=fopen(filename,"a"))) {
   if (!showtime) fprintf(fp,"%s",str);
   else fprintf(fp,"%02d/%02d %02d:%02d: %s",tmday,tmonth+1,thour,tmin,str);
@@ -3370,7 +3617,7 @@ void login(UR_OBJECT user, char *inpstr)
 {
 UR_OBJECT u;
 int i;
-char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
+char name[ARR_SIZE],passwd[ARR_SIZE],motdname[500];
 
 	name[0]='\0';
 	passwd[0]='\0';
@@ -3385,7 +3632,7 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
 					vwrite_user(user, "</xch_mudtext><br><br><center><b><font size=+3>Welcome to %s v%s !</font></b><br><font size=+1>OS Star verzia %s</font></center><br><xch_mudtext>\n",reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION);
 					sprintf(text,"%s<>~RS %sMultimedia client has been Auto-detected.\n",colors[CWARNING],colors[CSYSBOLD]);
 					write_duty(ARCH,text,NULL,NULL,2);
-//					user->login=LOGIN_NAME;
+					user->login=LOGIN_NAME;
 					name[0]='\0';
 					write_user(user, login_prompt);
 					return; 
@@ -3408,20 +3655,22 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
 				write_user(user, login_prompt);
 				return;
 				}
-    if (!strcasecmp(name,"version")) {
-      vwrite_user(user,"\ntalker %s v%s (OS Star v%s (AmNUTS v%s (NUTS v%s)))\n",
-		reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION, AMNUTSVER, NUTSVER);
-	write_user(user, login_prompt);
-      return;
-      }
-    if (strlen(name)<USER_MIN_LEN) {
-      write_user(user, login_shortname);  
-      attempts(user);  return;
-      }
-    if (strlen(name)>USER_NAME_LEN) {
-      write_user(user, login_longname);
-      attempts(user);  return;
-      }
+			if (!strcasecmp(name,"version")) {
+				vwrite_user(user,"\n%s v%s (OS Star v%s (AmNUTS v%s (NUTS v%s)))\n",
+					reg_sysinfo[TALKERNAME], TVERSION, OSSVERSION, AMNUTSVER, NUTSVER);
+				write_user(user, login_prompt);
+				return;
+				}
+			if (strlen(name)<USER_MIN_LEN) {
+				write_user(user, login_shortname);  
+				attempts(user);
+				return;
+				}
+			if (strlen(name)>USER_NAME_LEN) {
+				write_user(user, login_longname);
+				attempts(user);
+				return;
+				}
     /* see if only letters in login */
     for (i=0;i<strlen(name);++i) {
       if (!isalpha(name[i])) {
@@ -3433,15 +3682,19 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
       write_user(user, login_swname);
       attempts(user);  return;
       }
-    strtolower(name);
+    if (!amsys->allow_recaps) strtolower(name);
     name[0]=toupper(name[0]);
     if (user_banned(name) && strcmp(name, reg_sysinfo[SYSOPUNAME])) {
       write_user(user, user_banned_prompt);
+      sprintf(text, "%s<>~RS %sPokus o login zabanovaneho usera!~RS%s [%s] (%s:%d)\n",
+		colors[CWARNING], colors[CSYSBOLD], colors[CSYSTEM], name, user->site, user->site_port);
+	write_duty(ARCH, text, NULL, NULL, 2);
       disconnect_user(user);
       write_syslog(SYSLOG,1,"Pokus o login zabanovaneho usera %s.\n",name);
       return;
       }
     strcpy(user->name,name);
+    strtolower(name);
     if (!strcmp(name, "puebloclient")) {
     	write_user(user, login_pbloname);
     	return;
@@ -3460,35 +3713,35 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
       	}
       /* we presume that port 1 is the wizport */
       if (user->port==port[1]) {
-	write_user(user,"\nSorac, nove konta nemozu byt vytvorene na tomto porte.\n\n");
+	write_user(user, login_nonewatwiz);
 	disconnect_user(user);  
 	return;
         }
       if (amsys->minlogin_level>-1) {
-	write_user(user,"\nSorac, momentalne nemozu byt vytvorene nove konta.\n\n");
+	write_user(user, login_nonewacc);
 	disconnect_user(user);  
 	return;
         }
       if (site_banned(user->site,1) && user->level<ROOT) {
-	write_user(user,"\nSorac, nove konta z tvojej sajty su zabanovane.\n\n");
+	write_user(user, login_nonewatbanned);
 	write_syslog(SYSLOG,1,"Attempted login by a new user from banned new users site %s.\n",user->site);
 	disconnect_user(user);
 	return;
         }
       if (user->level<ROOT) {
         vwrite_user(user, login_welcome, reg_sysinfo[TALKERNAME]);
-        write_user(user,"Novy juzer...\n");
+        write_user(user, login_new_user);
         }
       }
     else {
       if (!strcmp(user->name, reg_sysinfo[SYSOPUNAME])) user->level=ROOT;
       if (user->port==port[1] && user->level<amsys->wizport_level) {
-	vwrite_user(user,"\nSorac, len useri s levelom %s a vyssim sa mozu nalogovat na tento port.\n\n",user_level[amsys->wizport_level].name);
+	vwrite_user(user, login_minwizlev,user_level[amsys->wizport_level].name);
 	disconnect_user(user);  
 	return;
         }
       if (user->level<amsys->minlogin_level) {
-	write_user(user,"\nSorac, talker je prave zavrety pre userov tvojho levelu.\n\n");
+	write_user(user, login_minlev);
 	disconnect_user(user);  
 	return;
         }
@@ -3504,7 +3757,8 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
     sscanf(inpstr,"%s",passwd);
     if (strlen(passwd)<PASS_MIN_LEN) {
       write_user(user, password_short);  
-      attempts(user);  return;
+      attempts(user);
+      return;
       }
     if (strlen(passwd)>PASS_LEN) {
       write_user(user, password_long);
@@ -3514,8 +3768,7 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
     if (!user->pass[0]) {
       strcpy(user->pass,(char *)crypt(passwd,crypt_salt));
       write_user(user,"\n");
-      sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES,MISCFILES,RULESFILE);
-      if (more(NULL,user->socket,filename)) {
+      if (more(NULL,user->socket,RULESFILE)) {
 	write_user(user, login_rules_prompt);
         }
       write_user(user, password_again);
@@ -3533,7 +3786,7 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
 	cls(user);
 	/* If there is no motd2 files then don't display them */
 	if (amsys->motd2_cnt) {
-	  sprintf(motdname,"%s/%s/%s/motd2/motd%d", ROOTDIR, DATAFILES, MOTDFILES,(get_motd_num(2)));
+	  sprintf(motdname,"%s/motd2/motd%d", MOTDFILES,(get_motd_num(2)));
 	  more(user,user->socket,motdname);
 	  }
 	vwrite_user(user, "%s~RS pouziva ~FT~OLOS Star~FW v~FR%s~RS - S/N %s (%s)\n\n",
@@ -3583,7 +3836,7 @@ char name[ARR_SIZE],passwd[ARR_SIZE],filename[100],motdname[80];
     cls(user);
     /* If there is no motd2 files then don't display them */
     if (amsys->motd2_cnt) {
-      sprintf(motdname,"%s/%s/%s/motd2/motd%d", ROOTDIR, DATAFILES, MOTDFILES, (get_motd_num(2)));
+      sprintf(motdname,"%s/motd2/motd%d", MOTDFILES, (get_motd_num(2)));
       more(user,user->socket,motdname);
       } 
     write_user(user, enterprompt);
@@ -3608,9 +3861,11 @@ void attempts(UR_OBJECT user)
 	if (user->attempts==LOGIN_ATTEMPTS) {
 		write_user(user, login_attempts);
 		disconnect_user(user);
-		sprintf(text, "~FR~OLNiekto sa pokusal dostat na tvoje konto !\nAdresa: %s - %s\n",
-			 user->site, user->ipsite);
-		send_mail(user, user->name, text, 0);
+		if (load_user_details(user)) {
+			sprintf(text, "~FR~OLNiekto sa pokusal dostat na tvoje konto !\nAdresa: %s - %s\n",
+				 user->site, user->ipsite);
+			send_mail(user, user->name, text, 0);
+			}
 		return;
 		}
 	reset_user(user);
@@ -3849,7 +4104,7 @@ save_counters();
 /*** Stuff that is neither speech nor a command is dealt with here ***/
 int misc_ops(UR_OBJECT user, char *inpstr)
 {
-char filename[100];
+char filename[200];
 int i=0;
 
 switch(user->misc_op) {
@@ -3860,6 +4115,7 @@ switch(user->misc_op) {
 	  vwrite_room(NULL,"\n\07~OLSYSTEM: ~FR~LISHUTDOWN INITIATED, vypinam za %d minut%s, %d sekund%s!\n\n",
 		  amsys->rs_countdown/60,grm(1, amsys->rs_countdown/60),amsys->rs_countdown%60, grm(1, amsys->rs_countdown%60));
 	else vwrite_room(NULL,"\n\07~OLSYSTEM: ~FR~LISHUTDOWN INITIATED, vypinam za %d sekund%s!\n\n",amsys->rs_countdown,grm(1, amsys->rs_countdown));
+	audioprompt(NULL, 6, 0);
 	write_syslog(SYSLOG,1,"%s initiated a %d second%s SHUTDOWN countdown.\n",user->name,amsys->rs_countdown,PLTEXT_S(amsys->rs_countdown));
 	amsys->rs_user=user;
 	amsys->rs_announce=time(0);
@@ -3881,6 +4137,7 @@ switch(user->misc_op) {
   case 2:
     if (toupper(inpstr[0])=='E') {
       user->misc_op=0;  user->filepos=0;  user->page_file[0]='\0';
+      user->status='a';
       for (i=0;i<MAX_PAGES;i++) user->pages[i]=0;
       user->pagecnt=0;
       prompt(user);
@@ -3898,6 +4155,7 @@ switch(user->misc_op) {
       }
     if (more(user,user->socket,user->page_file)!=1) {
       user->misc_op=0;
+      user->status='a';
       user->filepos=0;
       user->page_file[0]='\0';
       for (i=0;i<MAX_PAGES;i++) user->pages[i]=0;
@@ -3925,6 +4183,7 @@ switch(user->misc_op) {
 		  amsys->rs_countdown/60, grm(1, amsys->rs_countdown/60), amsys->rs_countdown%60, grm(1, amsys->rs_countdown%60));
 	else vwrite_room(NULL,"\n\07~OLSYSTEM: ~FY~LIREBOOT INITIATED, restartujem za %d sekund%s!\n\n",
 		amsys->rs_countdown, grm(1, amsys->rs_countdown));
+	audioprompt(NULL, 6, 0);
 	write_syslog(SYSLOG,1,"%s initiated a %d second%s REBOOT countdown.\n",user->name,amsys->rs_countdown,PLTEXT_S(amsys->rs_countdown));
 	amsys->rs_user=user;
 	amsys->rs_announce=time(0);
@@ -3951,6 +4210,7 @@ switch(user->misc_op) {
   case 10:
     if (toupper(inpstr[0])=='E') {
       user->misc_op=0;  user->wrap_room=NULL;  prompt(user);
+      user->status='a';
       }
     else rooms(user,0,1);
     return 1;
@@ -3958,6 +4218,7 @@ switch(user->misc_op) {
   case 11:
     if (toupper(inpstr[0])=='E') {
       user->misc_op=0;  user->wrap_room=NULL;  prompt(user);
+      user->status='a';
       }
     else rooms(user,1,1);
     return 1;
@@ -3966,6 +4227,7 @@ switch(user->misc_op) {
     if (!inpstr[0]) {
       write_user(user,"Abandoning your samesite look-up.\n");
       user->misc_op=0;  user->samesite_all_store=0;  user->samesite_check_store[0]='\0';
+      user->status='a';
       prompt(user);
       }
     else {
@@ -3980,6 +4242,7 @@ switch(user->misc_op) {
     if (!inpstr[0]) {
       write_user(user,"Abandoning your samesite look-up.\n");
       user->misc_op=0;  user->samesite_all_store=0;  user->samesite_check_store[0]='\0';
+      user->status='a';
       prompt(user);
       }
     else {
@@ -3996,14 +4259,16 @@ switch(user->misc_op) {
       user->hwrap_id=0;
       user->hwrap_same=0;
       user->tmp_int=0;
+      user->status='a';
       prompt(user);
       }
-    else help_commands_level(user,1);
+    else help_commands_level(user,1+user->hwrap_pl);
     return 1;
     
   case 15:
     if (toupper(inpstr[0])=='E') {
       user->misc_op=0;  user->hwrap_lev=0;  user->hwrap_func=0;  user->hwrap_id=0;  user->hwrap_same=0;
+      user->status='a';
       prompt(user);
       }
     else help_commands_function(user,1);
@@ -4012,6 +4277,7 @@ switch(user->misc_op) {
   case 16:
     if (toupper(inpstr[0])=='E' || more_users(user)!=1) {
       user->user_page_pos=0;  user->user_page_lev=0;  user->misc_op=0;
+      user->status='a';
       prompt(user); 
       }
     return 1;
@@ -4025,7 +4291,7 @@ switch(user->misc_op) {
 
   case 18:
     if (toupper(inpstr[0])=='Y') {
-      sprintf(filename,"%s/%s/%s/%s.M", ROOTDIR, USERFILES, USERMAILS, user->name);
+      sprintf(filename,"%s/%s.M", USERMAILS, user->name);
       unlink(filename);
       write_user(user,"\n~OL~FRVsetky spravy zmazane\n\n");
       }
@@ -4062,25 +4328,48 @@ switch(user->misc_op) {
     editor(user,inpstr);
     return 1;
 
-  case 100: /* prikazy zalomene na plugin prikaze */
-	if (toupper(inpstr[0])=='E') {
-		user->misc_op=0;
-		user->hwrap_lev=0;
-		user->hwrap_id=0;
-		user->hwrap_same=0;
-		user->tmp_int=0;
-		prompt(user);
-		}
-	else help_commands_level(user, 2);
-	return 1;
-
   case 101: /* restart - reinit */
-    if (toupper(inpstr[0])=='Y')
-      restart(user); 
-    user->misc_op=0;  
+    if (toupper(inpstr[0])=='Y') {
+    user->misc_op=0;
     prompt(user);
+      restart(user);
+      }
+    else {
+    	user->misc_op=0;
+	prompt(user);
+    	}
     return 1;
-  
+
+	case 102: /* otazka na pouzitie set menu */
+		if (toupper(inpstr[0])=='Y') {
+			user->misc_op=0;
+			prompt(user);
+			print_menu(user, MENU_SET);
+			user->set_mode=1;
+			user->set_op=1;
+			no_prompt=1;
+			user->ignall_store=user->ignall;
+			user->ignall=1;
+			user->status='S';
+			vwrite_room_except(user->room, user, "%s~RS enters the setup menu ...\n", user->recap);
+			}
+		else {
+			print_menu(user, MENU_SETUP);
+			user->misc_op=0;
+			prompt(user);
+			}
+		return 1;
+	case 103: /* help_commands_only */
+		if (toupper(inpstr[0])=='E') {
+			user->misc_op=0;
+			user->hwrap_lev=0;
+			user->hwrap_id=0;
+			user->hwrap_same=0;
+			user->status='a';
+			prompt(user);
+			}
+		else help_commands_only(user, 1+user->hwrap_pl);
+		return 1;
   } /* end switch */
 return 0;
 }
@@ -4090,7 +4379,6 @@ return 0;
 void editor(UR_OBJECT user, char *inpstr)
 {
 int cnt,line;
-char *edprompt="\n~FG(~OLS~RS~FG)-uloz~RS, ~FT(~OLV~RS~FT)-zobraz~RS, ~FY(~OLR~RS~FY)-znovu~RS or ~FR(~OLA~RS~FR)-zrus~RS: ";
 char *ptr,*name;
 
 if (user->edit_op) {
@@ -4135,11 +4423,11 @@ if (user->edit_op) {
     case 'V':
       vwrite_user(user,"\nNapisal%s si nasledujuci text ...\n\n", gnd_grm(4, user->gender));
       write_user(user,user->malloc_start);
-      write_user(user,edprompt);
+      write_user(user, edit_prompt);
       return;
       
     default: 
-      write_user(user,edprompt);
+      write_user(user, edit_prompt);
       return;
     } /* end switch */
   }
@@ -4149,16 +4437,17 @@ if (user->malloc_start==NULL) {
     vwrite_user(user,"%s: failed to allocate buffer memory.\n",syserror);
     write_syslog(SYSLOG,0,"ERROR: Failed to allocate memory in editor().\n");
     user->misc_op=0;
+    user->status='a';
     prompt(user);
     return;
     }
   clear_edit(user);
   user->ignall_store=user->ignall;
   user->ignall=1; /* Dont want chat mucking up the edit screen */
+  user->status='E';
   user->edit_line=1;
   user->charcnt=0;
   user->editing=1;
-  user->stat_store=user->stat;
   user->malloc_end=user->malloc_start;
   *user->malloc_start='\0';
   vwrite_user(user, "~FTMaximalne %d riad%s, koniec s '.' na samostatnom riadku.\n\n",
@@ -4213,7 +4502,7 @@ if (user->edit_line!=MAX_LINES) {
 END:
 *user->malloc_end='\0';
 if (*user->malloc_start) {
-  write_user(user,edprompt);
+  write_user(user, edit_prompt);
   user->edit_op=1;  return;
   }
 write_user(user,"\nZiadny text.\n");
@@ -4235,7 +4524,7 @@ user->malloc_start=NULL;
 user->malloc_end=NULL;
 user->ignall=user->ignall_store;
 user->editing=0;
-user->stat=user->stat_store;
+user->status='a';
 if (user->editbuff[0][0]) revedit(user);
 prompt(user);
 }
@@ -4387,7 +4676,7 @@ word_count=wordfind(inpstr);
 int exec_com(UR_OBJECT user, char *inpstr)
 {
 int i,len;
-char filename[100],*comword=NULL;
+char *comword=NULL;
 struct command_struct *cmd;
 
 com_num=-1;
@@ -4464,8 +4753,6 @@ if (user->room==NULL) {
   switch(com_num) {
     case HOME: 
     case QUIT:
-    case MODE:
-    case PROMPT: 
     case SUICIDE: 
     case CHARECHO:
       write_user(user,"~FY~OL*** Home execution ***\n");
@@ -4506,7 +4793,6 @@ if (user->type==REMOTE_TYPE) {
 switch(com_num) {
   case QUIT: quit_user(user, inpstr);  break;
   case LOOK: look(user);  break;
-  case MODE: toggle_mode(user);  break;
   case SAY : 
     if (word_count<2) write_user(user,"Povedat co ?\n");
     else say(user,inpstr);
@@ -4518,7 +4804,6 @@ switch(com_num) {
   case PEMOTE: pemote(user,inpstr); break;
   case ECHO  : echo(user,inpstr);   break;
   case GO    : go(user);  break;
-  case PROMPT: toggle_prompt(user);  break;
   case DESC  : set_desc(user,inpstr);  break;
   case INPHRASE : 
   case OUTPHRASE: 
@@ -4538,8 +4823,7 @@ switch(com_num) {
   case HELP   : help(user);  break;
   case SHUTDOWN: shutdown_com(user);  break;
   case NEWS:
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, NEWSFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket,NEWSFILE)) {
       case 0: write_user(user,"Neni su novinky.\n");  break;
       case 1: user->misc_op=2;
       }
@@ -4636,8 +4920,7 @@ switch(com_num) {
   case LAST: show_last_login(user);  break;
   case MACROS: macros(user, inpstr);  break;
   case RULES :
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, RULESFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket,RULESFILE)) {
       case 0: write_user(user,"\nMomentalne nie su pravidla ...\n");  break;
       case 1: user->misc_op=2;
       }
@@ -4745,8 +5028,7 @@ switch(com_num) {
   case MYKEY: personal_room_key(user);  break;
   case MYBGONE: personal_room_bgone(user);  break;
   case WIZRULES:
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, WIZRULESFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket,WIZRULESFILE)) {
       case 0: write_user(user,"\nMomentalne nie su adminske pravidla...\n");  break;
       case 1: user->misc_op=2;
       }
@@ -4762,8 +5044,9 @@ switch(com_num) {
   case VIEWPLUG: disp_plugin_registry(user); break;
   case PRIKAZY:
   	switch(user->cmd_type) {
-  		case 0: help_commands_level(user, 0); break;
-  		case 1: help_commands_function(user, 0); break;
+  		case 1: help_commands_level(user, 0); break;
+  		case 2: help_commands_function(user, 0); break;
+  		case 3: help_commands_only(user, 0); break;
   		}
   	break;
   case TPLANE: transport_plane(user); break;
@@ -4790,22 +5073,19 @@ switch(com_num) {
   case FOLLOW: set_follow(user); break;
   case KICK: kick(user); break;
   case LEVELS:
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR,DATAFILES, MISCFILES, LEVELFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket,LEVELFILE)) {
       case 0: write_user(user,"\nMomentalne nie je info o leveloch...\n");  break;
       case 1: user->misc_op=2;
       }
     break;
   case FAQ:
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR,DATAFILES, MISCFILES, FAQFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket,FAQFILE)) {
       case 0: write_user(user,"\nMomentalne nie su FAQ ...\n");  break;
       case 1: user->misc_op=2;
       }
     break;
   case TALKERS:
-    sprintf(filename,"%s/%s/%s/%s", ROOTDIR,DATAFILES, MISCFILES, TALKERSFILE);
-    switch(more(user,user->socket,filename)) {
+    switch(more(user,user->socket, TALKERSFILE)) {
       case 0: write_user(user,"\nMomentalne nie je zoznam talkrov ...\n");  break;
       case 1: user->misc_op=2;
       }
@@ -4816,9 +5096,14 @@ switch(com_num) {
   case RESTART: restart_com(user); break;
   case MYXTERM: myxterm(user, inpstr); break;
   case ALLXTERM: allxterm(user, inpstr); break;
+#ifdef DEBUG
+	case TEST: test(user, inpstr); break;
+#endif
+	case JUKEBOX: pblo_jukebox(user); break;
   case 999:	pblo_exec(user, inpstr); break;
   default: write_user(user,"Prikaz nespusteny.\n");
   } /* end main switch */
+if (user->misc_op==2) user->status='R';
 return 1;
 }
 
@@ -4964,7 +5249,7 @@ if (!strcmp(word[1],"all")) {
   }
 else if (!strcmp(word[1],"from")) {
   if (word_count<4 || strcmp(word[3],"to")) {
-    vwrite_usage(user,"%s from <#> to <#>\n", command_table[com_num].name);
+    write_usage(user,"%s from <#> to <#>\n", command_table[com_num].name);
     return(retval);
     }
   user->wipe_from=atoi(word[2]);
@@ -4972,7 +5257,7 @@ else if (!strcmp(word[1],"from")) {
   }
 else if (!strcmp(word[1],"to")) {
   if (word_count<2) {
-    vwrite_usage(user,"%s to <#>\n", command_table[com_num].name);
+    write_usage(user,"%s to <#>\n", command_table[com_num].name);
     return(retval);
     }
   user->wipe_from=0;
@@ -5002,15 +5287,14 @@ return(retval);
 int wipe_messages(char *filename, int from, int to, int type)
 {
 FILE *fpi,*fpo;
-char line[ARR_SIZE], tempfile[200];
+char line[ARR_SIZE];
 int rem,i,tmp1,tmp2;
 
 rem=0;  line[0]='\0';
 if (!(fpi=fopen(filename,"r"))) {
   return 0; /* return on no messages to delete */
   }
-sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
-if (!(fpo=fopen(tempfile ,"w"))) {
+if (!(fpo=fopen("tempfile","w"))) {
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in wipe_message().\n");
   fclose(fpo);
   return -1; /* return on error */
@@ -5048,7 +5332,7 @@ SKIP_WIPE:
 fclose(fpi);
 fclose(fpo);
 unlink(filename);
-rename(tempfile, filename);
+rename("tempfile",filename);
 return rem;
 }
 
@@ -5061,12 +5345,10 @@ return rem;
 void auto_ban_site(char *asite)
 {
 FILE *fp;
-char filename[200];
 UR_OBJECT u,next;
 
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
 /* Write new ban to file */
-if (!(fp=fopen(filename,"a"))) {
+if (!(fp=fopen(SITEBAN,"a"))) {
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file to append in auto_ban_site().\n");
   return;
   }
@@ -5091,7 +5373,7 @@ write_syslog(SYSLOG,1,"BANNED site/domain '%s' due to attempted flood.\n",asite)
 void ban_site(UR_OBJECT user)
 {
 FILE *fp;
-char filename[200],host[81],bsite[80],check[81];
+char host[81],bsite[80],check[81];
 
 gethostname(host,80);
 /* check if full name matches the host's name */
@@ -5123,9 +5405,8 @@ if (pattern_match(host,check)) {
   write_user(user, this_m_ban_prompt);
   return;
   }
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
 /* See if ban already set for given site */
-if ((fp=fopen(filename,"r"))) {
+if ((fp=fopen(SITEBAN,"r"))) {
   fscanf(fp,"%s",bsite);
   while(!feof(fp)) {
     if (!strcmp(bsite,word[2])) {
@@ -5137,7 +5418,7 @@ if ((fp=fopen(filename,"r"))) {
   fclose(fp);
   }
 /* Write new ban to file */
-if (!(fp=fopen(filename,"a"))) {
+if (!(fp=fopen(SITEBAN,"a"))) {
   vwrite_user(user,"%s: Nemozem otvorit subor pre pridanie.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file to append in ban_site().\n");
   return;
@@ -5154,7 +5435,7 @@ void ban_user(UR_OBJECT user)
 {
 UR_OBJECT u;
 FILE *fp;
-char filename[200],name[USER_NAME_LEN+1];
+char name[USER_NAME_LEN+1];
 struct user_dir_struct *entry;
 
 word[2][0]=toupper(word[2][0]);
@@ -5163,8 +5444,7 @@ if (!strcmp(user->name,word[2])) {
   return;
   }
 /* See if ban already set for given user */
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,USERBAN);
-if ((fp=fopen(filename,"r"))) {
+if ((fp=fopen(USERBAN,"r"))) {
   fscanf(fp,"%s",name);
   while(!feof(fp)) {
     if (!strcmp(name,word[2])) {
@@ -5194,7 +5474,7 @@ else {
     }
   }
 /* Write new ban to file */
-if (!(fp=fopen(filename,"a"))) {
+if (!(fp=fopen(USERBAN, "a"))) {
   vwrite_user(user,"%s: Nemozem otvorit subor na pridanie.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file to append in ban_user().\n");
   return;
@@ -5216,7 +5496,7 @@ if (u!=NULL) {
 void ban_new(UR_OBJECT user)
 {
 FILE *fp;
-char filename[200],host[81],bsite[80],*check;
+char host[81],bsite[80],*check;
 
 gethostname(host,80);
 /* check if full name matches the host's name */
@@ -5248,9 +5528,8 @@ if (pattern_match(host,check)) {
   write_user(user, this_m_ban_prompt);
   return;
   }
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,NEWBAN);
 /* See if ban already set for given site */
-if ((fp=fopen(filename,"r"))) {
+if ((fp=fopen(NEWBAN, "r"))) {
   fscanf(fp,"%s",bsite);
   while(!feof(fp)) {
     if (!strcmp(bsite,word[2])) {
@@ -5262,7 +5541,7 @@ if ((fp=fopen(filename,"r"))) {
   fclose(fp);
   }
 /* Write new ban to file */
-if (!(fp=fopen(filename,"a"))) {
+if (!(fp=fopen(NEWBAN,"a"))) {
   vwrite_user(user,"%s: Nemozem otvorit subor pre pridanie.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file to append in ban_new().\n");
   return;
@@ -5278,16 +5557,14 @@ write_syslog(SYSLOG,1,"%s BANNED new users from site/domain %s.\n",user->name,wo
 void unban_site(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[200],ubsite[80], tempfile[200];
+char ubsite[80];
 int found,cnt;
 
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,SITEBAN);
-if (!(infp=fopen(filename,"r"))) {
+if (!(infp=fopen(SITEBAN,"r"))) {
   write_user(user,"Tato sajta/domena neni teraz zabanovana.\n");
   return;
   }
-sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
-if (!(outfp=fopen(tempfile ,"w"))) {
+if (!(outfp=fopen("tempfile","w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_site().\n");
   fclose(infp);
@@ -5306,13 +5583,14 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"Tato sajta/domena neni teraz zabanovana.\n");
-  unlink(tempfile);
+  unlink("tempfile");
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink(tempfile);
+  unlink(SITEBAN);
+  unlink("tempfile");
   }
-else rename(tempfile, filename);
+else rename("tempfile",SITEBAN);
 write_user(user,"Sajta odbanovana.\n");
 write_syslog(SYSLOG,1,"%s UNBANNED site %s.\n",user->name,word[2]);
 }
@@ -5322,16 +5600,14 @@ write_syslog(SYSLOG,1,"%s UNBANNED site %s.\n",user->name,word[2]);
 void unban_user(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[200],name[USER_NAME_LEN+1], tempfile[200];
+char name[USER_NAME_LEN+1];
 int found,cnt;
 
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,USERBAN);
-if (!(infp=fopen(filename,"r"))) {
+if (!(infp=fopen(USERBAN,"r"))) {
   write_user(user,"Tento user neni teraz zabanovany.\n");
   return;
   }
-sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
-if (!(outfp=fopen(tempfile,"w"))) {
+if (!(outfp=fopen("tempfile","w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_user().\n");
   fclose(infp);
@@ -5351,13 +5627,14 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"Tento user neni momentalne zabanovany.\n");
-  unlink(tempfile);
+  unlink("tempfile");
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink(tempfile);
+  unlink(USERBAN);
+  unlink("tempfile");
   }
-else rename(tempfile,filename);
+else rename("tempfile", USERBAN);
 vwrite_user(user,"User '%s' odbanovany.\n",word[2]);
 write_syslog(SYSLOG,1,"%s UNBANNED user %s.\n",user->name,word[2]);
 sprintf(text,"User's name was ~FGunbanned~RS by %s.\n",user->name);
@@ -5369,16 +5646,14 @@ add_history(word[2],0,text);
 void unban_new(UR_OBJECT user)
 {
 FILE *infp,*outfp;
-char filename[200],ubsite[80], tempfile[200];
+char ubsite[80];
 int found,cnt;
 
-sprintf(filename,"%s/%s/%s", ROOTDIR,DATAFILES,NEWBAN);
-if (!(infp=fopen(filename,"r"))) {
+if (!(infp=fopen(NEWBAN,"r"))) {
   write_user(user,"New users from that site/domain are not currently banned.\n");
   return;
   }
-sprintf(tempfile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
-if (!(outfp=fopen(tempfile,"w"))) {
+if (!(outfp=fopen("tempfile","w"))) {
   vwrite_user(user,"%s: Nemozem otvorit temp-fajl.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile to write in unban_new().\n");
   fclose(infp);
@@ -5397,13 +5672,14 @@ fclose(infp);
 fclose(outfp);
 if (!found) {
   write_user(user,"New users from that site/domain are not currently banned.\n");
-  unlink(tempfile);
+  unlink("tempfile");
   return;
   }
 if (!cnt) {
-  unlink(filename);  unlink(tempfile);
+  unlink(NEWBAN);
+  unlink("tempfile");
   }
-else rename(tempfile,filename);
+else rename("tempfile", NEWBAN);
 write_user(user,"New users from site ban removed.\n");
 write_syslog(SYSLOG,1,"%s UNBANNED new users from site %s.\n",user->name,word[2]);
 }
@@ -5463,7 +5739,7 @@ void help(UR_OBJECT user)
 {
 	CM_OBJECT pcom;
 	int i,ret,comnum,found;
-	char filename[100],text2[ARR_SIZE],cname[WORD_LEN];
+	char filename[500],text2[ARR_SIZE],cname[WORD_LEN];
 	char *c;
 
 	if(user->restrict[RESTRICT_HELP]==restrict_string[RESTRICT_HELP]) {
@@ -5476,8 +5752,9 @@ void help(UR_OBJECT user)
 		}
 if ((!strcmp(word[1],"prikazy")) ||(!strcmp(word[1],"commands"))) {
   switch(user->cmd_type) {
-    case 0: help_commands_level(user,0);  break;
-    case 1: help_commands_function(user,0);  break;
+    case 1: help_commands_level(user,0);  break;
+    case 2: help_commands_function(user,0);  break;
+    case 3: help_commands_only(user,0); break;
     }
   return;
   }
@@ -5499,9 +5776,9 @@ if (strstr(word[1],"set_")) {
   midcpy(word[1],cname,4,strlen(word[1]));
   i=0;
   strtolower(word[1]);
-  while(setstr[i].type[0]!='*') {
-    if (!strcmp(setstr[i].type,cname)) {
-      sprintf(filename,"%s/%s/%s/set_%s", ROOTDIR, DATAFILES, HELPFILES,cname);
+  while(set_tab[i].type[0]!='*') {
+    if (!strcmp(set_tab[i].type,cname)) {
+      sprintf(filename,"%s/set_%s", HELPFILES,cname);
       if (!(ret=more(user,user->socket,filename))) {
 	write_user(user,"Sorac, help k tejto teme nie je.\n");
 	return;
@@ -5525,7 +5802,7 @@ if (strstr(word[1],"ign_")) {
   strtolower(word[1]);
   while(ignstr[i].type[0]!='*') {
     if (!strcmp(ignstr[i].type,cname)) {
-      sprintf(filename,"%s/%s/%s/ign_%s", ROOTDIR, DATAFILES, HELPFILES,cname);
+      sprintf(filename,"%s/ign_%s", HELPFILES,cname);
       if (!(ret=more(user,user->socket,filename))) {
 	write_user(user,"Sorac, help k tejto teme nie je.\n");
 	return;
@@ -5599,7 +5876,7 @@ if (comnum>=0) {
 		command_table[comnum].name,
 		user_level[command_table[comnum].level].name
 		);
-	sprintf(filename,"%s/%s/%s/%s", ROOTDIR, DATAFILES, HELPFILES,command_table[comnum].name);
+	sprintf(filename,"%s/%s", HELPFILES,command_table[comnum].name);
 	if (!(ret=more(user,user->socket,filename))) write_user(user,"\nSorry, there is no help on that topic.\n");
 	}
 else {
@@ -5611,7 +5888,7 @@ else {
 		pcom->command,
 		user_level[pcom->req_lev].name
 		);
-	sprintf(filename,"%s/%s/%s/%s/%s", ROOTDIR, DATAFILES, PLFILES, HELPFILES, pcom->command);
+	sprintf(filename,"%s/%s", PLHELPFILES, pcom->command);
 	if (!(ret=more(user,user->socket,filename))) write_user(user,"\nSorry, there is no help on that topic.\n");
 	}
 if (ret==1) user->misc_op=2;
@@ -5711,7 +5988,8 @@ void help_commands_level(UR_OBJECT user, int is_wrap)
 					user->misc_op=14;
 					user->hwrap_id=cmd->id;
 					user->hwrap_lev=lev;
-					write_user(user, more_prompt_n);
+					user->status='R';
+					write_user(user, continue2);
 					return;
 					cnt=0;
 					}
@@ -5734,11 +6012,13 @@ void help_commands_level(UR_OBJECT user, int is_wrap)
 				}
 			plcom=plcom->next;
 			if (lines>=user->pager) {
-				user->misc_op=100;
+				user->hwrap_pl=1;
+				user->misc_op=14;
 				user->hwrap_id=plcom->id;
 				user->hwrap_lev=lev;
 				user->p_tmp_ch=plcom->command;
-				write_user(user, more_prompt_n);
+				user->status='R';
+				write_user(user, continue2);
 				return;
 				}
 			if (!cnt) strcat(text,"    ");
@@ -5752,7 +6032,8 @@ void help_commands_level(UR_OBJECT user, int is_wrap)
 			user->misc_op=14;
 			user->hwrap_id=first_command->id;
 			user->hwrap_lev=++lev;
-			write_user(user, more_prompt_n);
+			user->status='R';
+			write_user(user, continue2);
 			return;
 			}
 		cmd=first_command;
@@ -5776,7 +6057,7 @@ void help_commands_level(UR_OBJECT user, int is_wrap)
 	write_user(user, help_footer2);
 	/* reset variables */
 	user->hwrap_same=0;  user->hwrap_lev=0;  user->hwrap_id=0;  user->misc_op=0;
-	user->tmp_int=0;
+	user->tmp_int=0; user->status='a';
 }
 
 
@@ -5850,7 +6131,8 @@ while (user->hwrap_func<=maxfunc) {
     if (lines>=user->pager) {
       user->misc_op=15;
       user->hwrap_id=cmd->id;
-      write_user(user, more_prompt_n);
+      user->status='R';
+      write_user(user, continue2);
       return;
       }
     if (!cnt) {
@@ -5869,7 +6151,8 @@ while (user->hwrap_func<=maxfunc) {
   if (lines>=user->pager) {
     user->misc_op=15;
     user->hwrap_id=first_command->id;
-    write_user(user, more_prompt_n);
+    user->status='R';
+    write_user(user, continue2);
     return;
     }
   cmd=first_command;
@@ -5926,7 +6209,8 @@ total=0;  lines=0;  cnt=0;
     if (lines>=user->pager) {
       user->misc_op=21;
       user->hwrap_id=plcom->id;
-      write_user(user, more_prompt_n);
+      user->status='R';
+      write_user(user, continue2);
       return;
       }
     if (!cnt) {
@@ -5944,7 +6228,8 @@ total=0;  lines=0;  cnt=0;
   if (lines>=user->pager) {
     user->misc_op=21;
     user->hwrap_id=cmds_first->id;
-    write_user(user, more_prompt_n);
+    user->status='R';
+    write_user(user, continue2);
     return;
     }
   plcom=cmds_first;
@@ -5964,23 +6249,172 @@ for(plcom=cmds_first; plcom!=NULL; plcom=plcom->next) {
 vwrite_user(user, help_footer1, stotal, total+pltot);
 write_user(user, help_footer2);
 /* reset variables */
-user->hwrap_same=0;  user->hwrap_func=0;  user->hwrap_lev=0;  user->hwrap_id=0;  user->misc_op=0;
+user->hwrap_same=0;  user->hwrap_func=0;  user->hwrap_lev=0;  user->hwrap_id=0;
+user->misc_op=0; user->status='a';
 }
 
+
+/*** Show the command available ***/
+void help_commands_only(UR_OBJECT user, int is_wrap)
+{
+	int cnt,id,total,lines, stotal, ptotal;
+	char temp[20], text2[ARR_SIZE];
+	struct command_struct *cmd;
+	CM_OBJECT pcmd;
+
+	if (is_wrap==0) {
+	/* write out the header */
+		write_user(user,"\n+----------------------------------------------------------------------------+\n");
+		write_user(user,"| Vsetky prikazy zacinaju '.' (v ~FYkecacom~RS mode) a mozu byt skratene           |\n");
+		write_user(user,"| '.' samotna zopakuje posledny tvoj prikaz alebo rec                        |\n");
+		write_user(user,"+----------------------------------------------------------------------------+\n");
+		sprintf(text, help_header,user_level[user->level].name);
+		sprintf(text2,"| %-89s |\n",text);
+		write_user(user,text2);
+		write_user(user,"+----------------------------------------------------------------------------+\n\n");
+		/* set some defaults */
+		sprintf(text, "");
+		cmd=first_command;
+		pcmd=cmds_first;
+		user->hwrap_lev=JAILED;
+		user->hwrap_id=first_command->id;
+		user->hwrap_same=0;
+		user->hwrap_pl=0;
+		}
+	if (is_wrap==1) {
+		cmd=first_command;
+		pcmd=cmds_first;
+		while (cmd!=NULL) {
+			if (cmd->id==user->hwrap_id) break;
+			cmd=cmd->next;
+			}
+		}
+	if (is_wrap==2) {
+		pcmd=cmds_first;
+		while (pcmd!=NULL) {
+			if (pcmd->id==user->hwrap_id) break;
+			pcmd=pcmd->next;
+			}
+		}
+	total=0;
+	lines=0;
+	cnt=0;
+	id=0;
+	if (is_wrap!=2)
+	while (cmd!=NULL) {
+		if (cmd->min_lev>user->level) {
+			cmd=cmd->next;
+			continue;
+			}
+		sprintf(temp, "  %s%-11s~RS", cmd->min_lev==user->level?"~CR":"", cmd->name);
+		strcat(text, temp);
+		cnt++;
+		if (cnt==6) {
+			strcat(text, "\n");
+			write_user(user, text);
+			text[0]='\0';
+			cnt=0;
+			++lines;
+			}
+		cmd=cmd->next;
+		if (lines>=user->pager) {
+			user->misc_op=103;
+			user->hwrap_id=cmd->id;
+			user->hwrap_pl=0;
+			user->status='R';
+			write_user(user, continue2);
+			return;
+			}
+		if (!cnt) strcat(text, "");
+		}
+	if (cnt) {
+		strcat(text, "\n");
+		write_user(user, text);
+		++lines;
+		text[0]='\0';
+		}
+	if (lines>=user->pager) {
+		user->misc_op=103;
+		if (is_wrap==2) user->hwrap_id=pcmd->id;
+		else user->hwrap_id=cmd->id;
+		user->status='R';
+		write_user(user, continue2);
+		return;
+		}
+	while (pcmd!=NULL) {
+		if (pcmd->req_lev>user->level) {
+			pcmd=pcmd->next;
+			continue;
+			}
+		sprintf(temp, "  %s%-11s~RS", pcmd->req_lev==user->level?"~CR":"", pcmd->command);
+		strcat(text, temp);
+		cnt++;
+		if (cnt==6) {
+			strcat(text, "\n");
+			write_user(user, text);
+			text[0]='\0';
+			cnt=0;
+			++lines;
+			}
+		pcmd=pcmd->next;
+		if (lines>=user->pager) {
+			user->misc_op=103;
+			user->hwrap_id=pcmd->id;
+			user->hwrap_pl=1;
+			user->status='R';
+			write_user(user, continue2);
+			return;
+			}
+		if (!cnt) strcat(text, "");
+		}
+	if (cnt) {
+		strcat(text, "\n");
+		write_user(user, text);
+		++lines;
+		text[0]='\0';
+		}
+	if (lines>=user->pager) {
+		user->misc_op=103;
+		if (is_wrap==2) user->hwrap_id=0;
+		else user->hwrap_id=cmd->id;
+		user->status='R';
+		write_user(user, continue2);
+		return;
+		}
+
+	/* count up total number of commands for user's level */
+	total=0;
+	stotal=0;
+	ptotal=0;
+	cmd=first_command;
+	pcmd=cmds_first;
+	while (cmd!=NULL) {
+		if (cmd->min_lev>user->level) { cmd=cmd->next; continue; }
+		cmd=cmd->next; ++total; ++stotal;
+		}
+	while (pcmd!=NULL) {
+		if (pcmd->req_lev>user->level) { pcmd=pcmd->next; continue; }
+		pcmd=pcmd->next; ++ptotal; ++stotal;
+		}
+	vwrite_user(user, help_footer1, stotal, total+ptotal);
+	write_user(user, help_footer2);
+	/* reset variables */
+	user->hwrap_same=0;  user->hwrap_lev=0;  user->hwrap_id=0;
+	user->misc_op=0;  user->hwrap_pl=0; user->status='a';
+}
 
 
 /*** Show the credits. Add your own credits here if you wish but PLEASE leave 
      my credits intact. Thanks. */
 void help_credits(UR_OBJECT user)
 {
-	char filename[200];
+	char filename[500];
 
 	if (word_count<3) {
 		write_user(user, "\n\nnapis ~FG.help credits oss~RS pre credits o OS Star Pavla Hlucheho\n");
 		write_user(user, "napis ~FG.help credits nuts~RS pre credits o NUTS Neila Robertsona\n");
 		write_user(user, "napis ~FG.help credits amnuts~RS pre credits o AmNUTS od Andrew Collingtona\n\n");
-		sprintf(filename, "%s/%s/%s/credits", ROOTDIR, DATAFILES, MISCFILES);
-		switch (more(user, user->socket, filename)) {
+		switch (more(user, user->socket, CREDITS)) {
 			case 0: write_user(user, "Nie su informacie o autorstve :(\n");
 				return;
 			case 1: user->misc_op=2;
@@ -5992,7 +6426,7 @@ void help_credits(UR_OBJECT user)
 		write_user(user, "Co za informacie to xces ?\n");
 		return;
 		}
-	sprintf(filename, "%s/%s/%s/credits_%s", ROOTDIR, DATAFILES, MISCFILES, word[2]);
+	sprintf(filename, "%s/credits_%s", MISCFILES, word[2]);
 	switch (more(user, user->socket, filename)) {
 		case 0: write_user(user, "Nie su informacie o autorstve :(\n");
 			return;
@@ -6003,96 +6437,101 @@ void help_credits(UR_OBJECT user)
 
 void show_attributes(UR_OBJECT user)
 {
-char *onoff[]={"Vyp","Zap"};
-char *shide[]={"Showing","Hidden"};
-char *rm[]={"Main room","Last room in"};
-char *cmd[]={"Level","Function"};
-int i=0,cnt=0;
+	char *shide[]={"Showing","Hidden"};
+	char *rm[]={"Main room","Last room in"};
+	int i=0,cnt=0;
 
-write_user(user," ~FT~OLStatus tvojich '~FRset~FT' atributov~RS\n");
-write_user(user,"+----------------------------------------------------------------------------+\n");
-while (setstr[i].type[0]!='*') {
-  text[0]='\0';
-  switch(i) {
-    case SETGEND:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,sex[user->gender]);
-      break;
-    case SETAGE:
-      if (!user->age) sprintf(text,"nenastaveny");
-      else sprintf(text,"~OL%d~RS",user->age);
-      vwrite_user(user," %-10.10s : %-61.61s\n",setstr[i].type,text);
-      break;
-    case SETWRAP:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->wrap]);
-      break;
-    case SETEMAIL:
-      if (!strcmp(user->email,"#UNSET")) sprintf(text,"nenastaveny");
-      else {
-	if (user->mail_verified) sprintf(text,"~OL%s~RS - overeny",user->email);
-	else sprintf(text,"~OL%s~RS - neovereny",user->email);
-        }
-      vwrite_user(user," %-10.10s : %-66.66s\n",setstr[i].type,text);
-      break;
-    case SETHOMEP:
-      if (!strcmp(user->homepage,"#UNSET")) sprintf(text,"nenastavena");
-      else sprintf(text,"~OL%s~RS",user->homepage);
-      vwrite_user(user," %-10.10s : %-61.61s\n",setstr[i].type,text);
-      break;
-    case SETHIDEEMAIL:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,shide[user->hideemail]);
-      break;
-    case SETCOLOUR:
-      sprintf(text, "%d", user->colour);
-      vwrite_user(user," %-10.10s : ~FT~OL%-61.61s~RS\n",setstr[i].type, text);
-      break;
-    case SETPAGER:
-      sprintf(text,"%d",user->pager);
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,text);
-      break;
-    case SETROOM:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,rm[user->lroom]);
-      break;
-    case SETFWD:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->autofwd]);
-      break;
-    case SETPASSWD:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->show_pass]);
-      break;
-    case SETRDESC:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->show_rdesc]);
-      break;
-    case SETCOMMAND:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,cmd[user->cmd_type]);
-      break;
-    case SETRECAP:
-      cnt=colour_com_count(user->recap);
-      vwrite_user(user," %-10.10s : %-*.*s~RS\n",setstr[i].type,61+cnt*3,61+cnt*3,user->recap);
-      break;
-    case SETICQ:
-      if (!strcmp(user->icq,"#UNSET")) sprintf(text,"nenastavene");
-      else sprintf(text,"~OL%s~RS",user->icq);
-      vwrite_user(user," %-10.10s : %-61.61s\n",setstr[i].type,text);
-      break;
-    case SETALERT:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->alert]);
-      break;
-    case SETAUDIO:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->pueblo_mm]);
-      break;
-    case SETPPA:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type,onoff[user->pueblo_pg]);
-      break;
-    case SETVOICE:
-      vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type, sex[(!(user->voiceprompt-1))+1]);
-      break;
-	case SETXTERM:
-	  vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",setstr[i].type, onoff[user->xterm]);
-	  break;
-    } /* end main switch */
-  i++;
-  }
-write_user(user,"+----------------------------------------------------------------------------+\n");
-return;
+	write_user(user," ~FT~OLStatus tvojich '~FRset~FT' atributov~RS\n");
+	while (set_tab[i].type[0]!='*') {
+		text[0]='\0';
+		switch (i) {
+			case SET_GEND:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,sex[user->gender]);
+				break;
+			case SET_AGE:
+				if (!user->age) sprintf(text,"nenastaveny");
+				else sprintf(text,"~OL%d~RS",user->age);
+				vwrite_user(user," %-10.10s : %-61.61s\n",set_tab[i].type,text);
+				break;
+			case SET_WRAP:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->wrap]);
+				break;
+			case SET_EMAIL:
+				if (!strcmp(user->email,"#UNSET")) sprintf(text,"nenastaveny");
+				else {
+					if (user->mail_verified) sprintf(text,"~OL%s~RS - overeny",user->email);
+					else sprintf(text,"~OL%s~RS - neovereny",user->email);
+					}
+				vwrite_user(user," %-10.10s : %-66.66s\n",set_tab[i].type,text);
+				break;
+			case SET_HOMEP:
+				if (!strcmp(user->homepage,"#UNSET")) sprintf(text,"nenastavena");
+				else sprintf(text,"~OL%s~RS",user->homepage);
+				vwrite_user(user," %-10.10s : %-61.61s\n",set_tab[i].type,text);
+				break;
+			case SET_HIDEEMAIL:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,shide[user->hideemail]);
+				break;
+			case SET_COLOUR:
+				sprintf(text, "%d", user->colour);
+				vwrite_user(user," %-10.10s : ~FT~OL%-61.61s~RS\n",set_tab[i].type, text);
+				break;
+			case SET_PAGER:
+				sprintf(text,"%d",user->pager);
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,text);
+				break;
+			case SET_ROOM:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,rm[user->lroom]);
+				break;
+			case SET_FWD:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->autofwd]);
+				break;
+			case SET_PASSWD:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->show_pass]);
+				break;
+			case SET_RDESC:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->show_rdesc]);
+				break;
+			case SET_COMMAND:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,help_style[user->cmd_type]);
+				break;
+			case SET_RECAP:
+				cnt=colour_com_count(user->recap);
+				vwrite_user(user," %-10.10s : %-*.*s~RS\n",set_tab[i].type,61+cnt*3,61+cnt*3,user->recap);
+				break;
+			case SET_ICQ:
+				if (!strcmp(user->icq,"#UNSET")) sprintf(text,"nenastavene");
+				else sprintf(text,"~OL%s~RS",user->icq);
+				vwrite_user(user," %-10.10s : %-61.61s\n",set_tab[i].type,text);
+				break;
+			case SET_ALERT:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->alert]);
+				break;
+			case SET_AUDIO:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->pueblo_mm]);
+				break;
+			case SET_PPA:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type,offon[user->pueblo_pg]);
+				break;
+			case SET_VOICE:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type, sex[(!(user->voiceprompt-1))+1]);
+				break;
+			case SET_XTERM:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type, offon[user->xterm]);
+				break;
+			case SET_MODE:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type, user->command_mode?"PRIKAZOVY":"KECACI");
+				break;
+			case SET_PROMPT:
+				vwrite_user(user," %-10.10s : ~OL%-61.61s~RS\n",set_tab[i].type, (user->prompt==-1)?"vlastny":prompt_tab[user->prompt].name);
+				break;
+			case SET_WHO:
+				vwrite_user(user," %-10.10s : ~OL%2.2d - %-56.56s~RS\n",set_tab[i].type, user->who_type, who_style[user->who_type]);
+				break;
+			} /* end main switch */
+		i++;
+		}
+	return;
 }
 
 
@@ -6105,121 +6544,121 @@ void prompt(UR_OBJECT user)
 	struct tm *tm_struct;
 	time_t tm_num;
 
-if (no_prompt) return;
+	if (no_prompt) return;
 #ifdef NETLINKS
-  if (user->type==REMOTE_TYPE) {
-    sprintf(text,"PRM %s\n",user->name);
-    write_sock(user->netlink->socket,text);  
-    return;
-    }
+	if (user->type==REMOTE_TYPE) {
+		sprintf(text,"PRM %s\n",user->name);
+		write_sock(user->netlink->socket,text);  
+		return;
+		}
 #endif
-if (!user->prompt || user->misc_op) return;
+	if (!user->prompt || user->misc_op || user->set_op) return;
 
-write_user(user, "\n");
-if (user->prompt_typ==0 || ((user->prompt_typ==-1) && (user->prompt_str[0]=='\0'))) {
-	ign=0;
-	if (user->ignall) ++ign;
-	if (user->igntells) ++ign;
-	if (user->ignshouts) ++ign;
-	if (user->ignpics) ++ign;
-	if (user->ignlogons) ++ign;
-	if (user->ignwiz) ++ign;
-	if (user->igngreets) ++ign;
-	if (user->ignbeeps) ++ign;
-	if (user->igntr) ++ign;
-	if (user->command_mode && !user->misc_op) {
-		vwrite_user(user,"~FTCOM%s%s> ",!user->vis?"+":"",ign>0?"!":"");
-		return;  
+	write_user(user, "\n");
+	if (user->prompt==1 || ((user->prompt==-1) && (user->prompt_str[0]=='\0'))) {
+		ign=0;
+		if (user->ignall) ++ign;
+		if (user->igntells) ++ign;
+		if (user->ignshouts) ++ign;
+		if (user->ignpics) ++ign;
+		if (user->ignlogons) ++ign;
+		if (user->ignwiz) ++ign;
+		if (user->igngreets) ++ign;
+		if (user->ignbeeps) ++ign;
+		if (user->igntr) ++ign;
+		if (user->command_mode && !user->misc_op) {
+			vwrite_user(user,"~FTCOM%s%s> ",!user->vis?"+":"",ign>0?"!":"");
+			return;  
+			}
+		hr=(int)(time(0)-user->last_login)/3600;
+		min=((int)(time(0)-user->last_login)%3600)/60;
+		vwrite_user(user,"~FT<%02d:%02d, %02d:%02d, %s%s%s>\n",thour,tmin,hr,min,user->bw_recap,!user->vis?"+":"",ign>0?"!":"");
+		return;
 		}
-	hr=(int)(time(0)-user->last_login)/3600;
-	min=((int)(time(0)-user->last_login)%3600)/60;
-	vwrite_user(user,"~FT<%02d:%02d, %02d:%02d, %s%s%s>\n",thour,tmin,hr,min,user->bw_recap,!user->vis?"+":"",ign>0?"!":"");
-	return;
-	}
 
-
-out[0]='\0';
-if (user->prompt_typ==-1) {
-	for (zn=0; user->prompt_str[zn]!='\0'; zn++) {
-		if (user->prompt_str[zn]=='$') {
-			switch (user->prompt_str[zn+1]) {
-				case 'L' :
-					if ((strlen(out)+strlen(user->ltell))<ARR_SIZE)
-						strcat(out, user->ltell);
-					zn++;
-					continue;
-				case 'N' :
-					if ((strlen(out)+strlen(user->name))<ARR_SIZE)
-						strcat(out, user->name);
-					zn++;
-					continue;
-				case 'R' :
-					if ((strlen(out)+strlen(user->room->name))<ARR_SIZE)
-						strcat(out, user->room->name);
-					zn++;
-					continue;
-				case 'F' :
-					if ((strlen(out)+strlen(user->follow->name))<ARR_SIZE)
-						strcat(out, user->follow->name);
-					zn++;
-					continue;
-				case 'S' :
-					hr=(int)(time(0)-user->last_login)/3600;
-					min=((int)(time(0)-user->last_login)%3600)/60;
-					sprintf(text, "%d:%02d", hr, min);
-					if ((strlen(out)+strlen(text))<ARR_SIZE)
-						strcat(out, text);
-					zn++;
-					continue;
-				case 'T' :
-					time(&tm_num);
-					tm_struct=localtime(&tm_num);
-					sprintf(text, "%d:%02d",
-						tm_struct->tm_hour, tm_struct->tm_min
-						);
-					if ((strlen(out)+strlen(text))<ARR_SIZE)
-						strcat(out, text);
-					zn++;
-					continue;
-				default :
-					if ((strlen(out)+2)<ARR_SIZE) {
-						out[strlen(out)-1]=user->prompt_str[zn];
-						out[strlen(out)]='\0';
-						}
-					continue;
+	out[0]='\0';
+	if (user->prompt==-1) {
+		for (zn=0; user->prompt_str[zn]!='\0'; zn++) {
+			if (user->prompt_str[zn]=='$') {
+				switch (user->prompt_str[zn+1]) {
+					case 'L' :
+						if ((strlen(out)+strlen(user->ltell))<ARR_SIZE)
+							strcat(out, user->ltell);
+						zn++;
+						continue;
+					case 'N' :
+						if ((strlen(out)+strlen(user->name))<ARR_SIZE)
+							strcat(out, user->name);
+						zn++;
+						continue;
+					case 'R' :
+						if ((strlen(out)+strlen(user->room->name))<ARR_SIZE)
+							strcat(out, user->room->name);
+						zn++;
+						continue;
+					case 'F' :
+						if (user->follow!=NULL)
+							if ((strlen(out)+strlen(user->follow->name))<ARR_SIZE)
+								strcat(out, user->follow->name);
+						zn++;
+						continue;
+					case 'S' :
+						hr=(int)(time(0)-user->last_login)/3600;
+						min=((int)(time(0)-user->last_login)%3600)/60;
+						sprintf(text, "%d:%02d", hr, min);
+						if ((strlen(out)+strlen(text))<ARR_SIZE)
+							strcat(out, text);
+						zn++;
+						continue;
+					case 'T' :
+						time(&tm_num);
+						tm_struct=localtime(&tm_num);
+						sprintf(text, "%d:%02d",
+							tm_struct->tm_hour, tm_struct->tm_min
+							);
+						if ((strlen(out)+strlen(text))<ARR_SIZE)
+							strcat(out, text);
+						zn++;
+						continue;
+					default :
+						if ((strlen(out)+2)<ARR_SIZE) {
+							out[strlen(out)-1]=user->prompt_str[zn];
+							out[strlen(out)]='\0';
+							}
+						continue;
+					}
+				}
+			else {
+				if ((strlen(out)+1)<ARR_SIZE) {
+					hch[0]=user->prompt_str[zn];
+					hch[1]='\0';
+					strcat(out, hch);
+					}
+				continue;
 				}
 			}
-		else {
-			if ((strlen(out)+1)<ARR_SIZE) {
-				hch[0]=user->prompt_str[zn];
-				hch[1]='\0';
-				strcat(out, hch);
-				}
-			continue;
-			}
+		write_user(user, out);
+		write_user(user, "~RS");
+		return;
 		}
-	write_user(user, out);
-	write_user(user, "~RS");
 	return;
-	}
-return;
 }
 
 /* Set list of users that you ignore */
 void show_igusers(UR_OBJECT user)
 {
-int i,cnt;
+	int i,cnt;
 
-cnt=0;
-write_user(user,"Prave ignorujes nasledujucich userov ...\n\n");
-for (i=0; i<MAX_IGNORES; ++i) {
-  if (user->ignoreuser[i][0]) {
-    vwrite_user(user,"   ~OL%2d~RS) %s\n",cnt+1,user->ignoreuser[i]);
-    cnt++;
-    }
-  }
-if (!cnt) write_user(user,"   Nikoho ...\n");
-write_user(user,"\n");
+	cnt=0;
+	write_user(user,"Prave ignorujes nasledujucich userov ...\n\n");
+	for (i=0; i<MAX_IGNORES; ++i) {
+		if (user->ignoreuser[i][0]) {
+			vwrite_user(user,"   ~OL%2d~RS) %s\n",cnt+1,user->ignoreuser[i]);
+			cnt++;
+			}
+		}
+	if (!cnt) write_user(user,"   Nikoho ...\n");
+	write_user(user,"\n");
 }
 
 
@@ -6462,11 +6901,10 @@ void display_colour(UR_OBJECT user)
 /*** checks a name to see if it's in the retire list ***/
 int in_retire_list(char *name)
 {
-	char filename[200], check[USER_NAME_LEN+1];
+	char check[USER_NAME_LEN+1];
 	FILE *fp;
 
-	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
-	if (!(fp=fopen(filename,"r"))) return 0;
+	if (!(fp=fopen(RETIRE_LIST,"r"))) return 0;
 
 	name[0]=toupper(name[0]);
 	fscanf(fp,"%s",check);
@@ -6486,10 +6924,8 @@ int in_retire_list(char *name)
 void add_retire_list(char *name)
 {
 	FILE *fp;
-	char filename[200];
 
-	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
-	if ((fp=fopen(filename,"a"))) {
+	if ((fp=fopen(RETIRE_LIST,"a"))) {
 		fprintf(fp,"%-*s : %s\n",USER_NAME_LEN,name,long_date(1));
 		fclose(fp);
 		}
@@ -6499,14 +6935,12 @@ void add_retire_list(char *name)
 /*** removes a user from the retired list ***/
 void clean_retire_list(char *name)
 {
-	char filename[200], line[82], check[USER_NAME_LEN], templist[200];
+	char line[82], check[USER_NAME_LEN];
 	FILE *fpi,*fpo;
 	int cnt=0;
 
-	sprintf(filename,"%s/%s/%s", ROOTDIR,USERFILES,RETIRE_LIST);
-	if (!(fpi=fopen(filename,"r"))) return;
-	sprintf(templist, "%s/%s/templist", ROOTDIR, TEMPFILES);
-	if (!(fpo=fopen(templist,"w"))) { fclose(fpi);  return; }
+	if (!(fpi=fopen(RETIRE_LIST,"r"))) return;
+	if (!(fpo=fopen("templist","w"))) { fclose(fpi);  return; }
 
 	name[0]=toupper(name[0]);
 	fgets(line,82,fpi);
@@ -6518,9 +6952,9 @@ void clean_retire_list(char *name)
 		sscanf(line,"%s",check);
 		}
 	fclose(fpi);  fclose(fpo);
-	unlink(filename);
-	rename(templist,filename);
-	if (!cnt) unlink(filename);
+	unlink(RETIRE_LIST);
+	rename("templist",RETIRE_LIST);
+	if (!cnt) unlink(RETIRE_LIST);
 	return;
 }
 
@@ -6534,7 +6968,7 @@ int set_xgcom(UR_OBJECT user, UR_OBJECT u, int id, int banned, int set)
 {
 int cnt,i;
 FILE *fp;
-char filename[200];
+char filename[500];
 
 /* if banning a command with .xcom */
 if (banned) {
@@ -6583,7 +7017,7 @@ vwrite_user(user,"%s ma maximalny pocet pridanych prikazov.\n",u->name);
 return 0;
 /* write out the commands to a file */
 XGCOM_SKIP:
-sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR,USERFILES,USERCOMMANDS,u->name);
+sprintf(filename,"%s/%s.C", USERCOMMANDS,u->name);
 if (!(fp=fopen(filename,"w"))) {
   write_user(user,"ERROR: Unable to open the command list file.\n");
   write_syslog(SYSLOG,1,"Unable to open %s's command list in set_xgcom().\n",u->name);
@@ -6611,9 +7045,9 @@ int get_xgcoms(UR_OBJECT user)
 {
 	int i,type,tmp;
 	FILE *fp;
-	char filename[200];
+	char filename[500];
 
-	sprintf(filename,"%s/%s/%s/%s.C", ROOTDIR,USERFILES,USERCOMMANDS,user->name);
+	sprintf(filename,"%s/%s.C", USERCOMMANDS,user->name);
 	if (!(fp=fopen(filename,"r"))) return 0;
 	i=0;
 	fscanf(fp,"%d %d",&type,&tmp);
@@ -6667,11 +7101,11 @@ void alert_friends(UR_OBJECT user, int mode)
 /* Read from the friends file into the user structure */
 void get_friends(UR_OBJECT user)
 {
-	char filename[200],name[USER_NAME_LEN];
+	char filename[500],name[USER_NAME_LEN];
 	FILE *fp;
 	int i;
 
-	sprintf(filename,"%s/%s/%s/%s.F", ROOTDIR,USERFILES,USERFRIENDS,user->name);
+	sprintf(filename,"%s/%s.F", USERFRIENDS,user->name);
 	if (!(fp=fopen(filename,"r"))) return;
 	i=0;
 	fscanf(fp,"%s",name);
@@ -6815,12 +7249,11 @@ int remove_old_reminders(UR_OBJECT user)
 int read_user_reminders(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[200],line[REMINDER_LEN+1];
+	char filename[500],line[REMINDER_LEN+1];
 	int ln,i;
 
 	ln=i=0;
-	sprintf(filename,"%s/%s/%s/%s.REM",
-		ROOTDIR,USERFILES,USERREMINDERS,user->name);
+	sprintf(filename,"%s/%s.REM", USERREMINDERS,user->name);
 	if (!(fp=fopen(filename,"r"))) return 0;
 	fscanf(fp,"%d %d %d %d\n",
 		&user->reminder[i].day,&user->reminder[i].month,&user->reminder[i].year,&user->reminder[i].alert);
@@ -6849,11 +7282,10 @@ int read_user_reminders(UR_OBJECT user)
 int write_user_reminders(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[200];
+	char filename[500];
 	int i,cnt;
 
-	sprintf(filename,"%s/%s/%s/%s.REM",
-		ROOTDIR,USERFILES,USERREMINDERS,user->name);
+	sprintf(filename,"%s/%s.REM", USERREMINDERS,user->name);
 	if (!(fp=fopen(filename,"w"))) {
 		write_syslog(SYSLOG,0,"ERROR: Could not open %s reminder file for writing in write_reminders()\n",user->name);
 		return 0;
@@ -6881,7 +7313,7 @@ int write_user_reminders(UR_OBJECT user)
    */
 int personal_room_store(char *name, int store, RM_OBJECT rm) {
 FILE *fp;
-char filename[200],line[TOPIC_LEN+1],c;
+char filename[500],line[TOPIC_LEN+1],c;
 int i;
 
 if (rm==NULL) return 0;
@@ -6889,12 +7321,12 @@ if (rm==NULL) return 0;
 if (!store) {
   strtolower(name);
   name[0]=toupper(name[0]);
-  sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR,USERFILES,USERROOMS,name);
+  sprintf(filename,"%s/%s.R", USERROOMS,name);
   if (!(fp=fopen(filename,"r"))) {
     /* if can't open the file then just put in default attributes */
     rm->access=PERSONAL_UNLOCKED;
-    strcpy(rm->desc,default_personal_room_desc);
-    strcpy(rm->topic,"Witay v mojej ruume !");
+    strcpy(rm->desc, default_personal_room_desc);
+    strcpy(rm->topic, default_personal_room_topic);
     return 0;
     }
   fscanf(fp,"%d\n",&rm->access);
@@ -6920,7 +7352,7 @@ if (!store) {
   }
 /* save info */
 strtolower(name);  name[0]=toupper(name[0]);
-sprintf(filename,"%s/%s/%s/%s.R", ROOTDIR,USERFILES,USERROOMS,name);
+sprintf(filename,"%s/%s.R", USERROOMS,name);
 if (!(fp=fopen(filename,"w"))) return 0;
 fprintf(fp,"%d\n",rm->access);
 (!rm->topic[0]) ? fprintf(fp,"#UNSET\n") : fprintf(fp,"%s\n",rm->topic);
@@ -6938,9 +7370,9 @@ return 1;
 int personal_key_add(UR_OBJECT user,char *name)
 {
 	FILE *fp;
-	char filename[200];
+	char filename[500];
 
-	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
+	sprintf(filename,"%s/%s.K", USERROOMS,user->name);
 	if ((fp=fopen(filename,"a"))) {
 		fprintf(fp,"%s\n",name);
 		fclose(fp);
@@ -6953,14 +7385,13 @@ int personal_key_add(UR_OBJECT user,char *name)
 /*** remove a name from the user's personal room key list ***/
 int personal_key_remove(UR_OBJECT user,char *name)
 {
-	char filename[200], line[USER_NAME_LEN+2], tempkeylist[200];
+	char filename[500], line[USER_NAME_LEN+2];
 	FILE *fpi,*fpo;
 	int cnt=0;
 
-	sprintf(filename,"%s/%s/%s/%s.K", ROOTDIR,USERFILES,USERROOMS,user->name);
+	sprintf(filename,"%s/%s.K", USERROOMS,user->name);
 	if (!(fpi=fopen(filename,"r"))) return 0;
-	sprintf(tempkeylist, "%s/%s/tempkeylist", ROOTDIR, TEMPFILES);
-	if (!(fpo=fopen(tempkeylist,"w"))) {
+	if (!(fpo=fopen("tempkeylist","w"))) {
 		fclose(fpi);
 		return 0;
 		}
@@ -6976,10 +7407,9 @@ int personal_key_remove(UR_OBJECT user,char *name)
 	fclose(fpi);
 	fclose(fpo);
 	unlink(filename);
-	rename(tempkeylist,filename);
+	rename("tempkeylist",filename);
 	if (!cnt) unlink(filename);
 	return 1;
 }
 
-/*****************************************************************************/
 /*****************************************************************************/

@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -26,6 +26,7 @@ extern char *opcl[];
 extern char text[];
 extern char word[MAX_WORDS][WORD_LEN+1];
 extern int listen_sock[], port[];
+extern int tyear, tmonth, tmday;
 extern int destructed, no_prompt;
 extern int word_count;
 
@@ -36,6 +37,7 @@ extern char *reg_sysinfo[];
 extern char *invisname;
 extern char *notloggedon, *nosuchuser, *nosuchroom;
 extern char *syserror;
+extern char *empty_log;
 
 extern char *talker_name;
 extern char *default_warp, *default_jail;
@@ -77,7 +79,6 @@ extern struct {
 
 
 extern char *restrict_string;
-
 
 /* prompts */
 extern char *site_style_dns, *site_style_dns_ip, *site_style_offline;

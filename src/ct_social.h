@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -49,3 +49,4 @@ extern char *show_style, *wizshout_style, *wizshout_style_lev;
 extern char *cbuff_prompt;
 extern char *tell_review_header, *no_tell_review_prompt;
 extern char *shout_review_header, *no_shout_review_prompt;
+extern char *no_wizs_logged;

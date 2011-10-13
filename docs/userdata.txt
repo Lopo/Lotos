@@ -1,22 +1,22 @@
-t a l k r o v y   O S  Star   v1.0.0
+LOTOS   ver 1.1.0
 ================================================================================
 User file format
-UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.0.0 !
+UPOZORNENIE: Tato priprucka je aplikovatelna len na verziu 1.1.0
 ================================================================================
 
 Kazdy riadok zacina slovom oznacujucim obsah riadka.
 
-version 1.0
+version 0.11
 password <crypt passwd>
-promote_date <date>
+promote_date <date sting>
 times <last login> <total_login> <last_login_len> <mail_read>
 levels <user level> <unarrest> <arrestby> <muzzled>
 general <accreq> <charecho> <mode> <prompt> <visible> <monitor> <verify> <logons> <xterm>
-user_set <gender> <age> <wrap> <pager> <hideemail> <colour> <lroom> <alert> <autofwd> <show_pass> <show_rdesc> <cmd_type> <icq>
+user_set <gender> <age> <wrap> <pager> <hideemail> <colour> <lroom> <alert> <autofwd> <show_pass> <show_rdesc> <cmd_type> <icq> <who_type>
 user_ignores <all> <tells> <shouts> <pics> <logons> <wiz> <greets> <beeps> <transp> <funs>
 fighting <hits> <misses> <deaths> <kills> <bullets> <hps>
 purging <expire> <expire date+time>
-last_site <site>
+last_site <site> <last room>
 mail_verify <code>
 description <desc>
 in_phrase <phrase>
@@ -24,8 +24,8 @@ out_phrase <phrase>
 email <email>
 homepage <address>
 recap_name <name>
-prompt <typ> [<prompt>]
-nick_grm <genitiv> <dativ> <akuzaitv> <lokal> <instrumental>
+prompt <string>
+nick_grm <genitiv> <dativ> <akuzativ> <lokal> <instrumental>
 pueblo <audio prompting> <audio pager> <voiceprompt>
 restrict <restrict string>
 ign_word <word>

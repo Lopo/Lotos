@@ -1,6 +1,6 @@
 /*****************************************************************************
-           Funkcie OS Star v1.0.0 na rozne medzipouzivatelske akcie
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+           Funkcie OS Star v1.1.0 na rozne medzipouzivatelske akcie
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -18,7 +18,7 @@
 #include "ct_social.h"
 #include "comvals.h"
 
-/* */
+/* prototypy */
 char * censor_swear_words(char *has_swears);
 char * remove_first(char *inpstr);
 UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
@@ -574,7 +574,7 @@ void bcast(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 
 	if (word_count<2) {
-		vwrite_usage(user,"%s <message>", command_table[BCAST].name);
+		write_usage(user,"%s <message>", command_table[BCAST].name);
 		return;
 		}
 	/* wizzes should be trusted... But they ain't! */
@@ -592,8 +592,9 @@ void bcast(UR_OBJECT user, char *inpstr)
 	force_listen=1;
 	write_monitor(user,NULL,0);
 	vwrite_room(NULL,"\007~FR~OL--==<~RS %s ~RS~FR~OL>==--\n", inpstr);
-	for (u=user_first; u!=NULL; u=u->next) if (u->pueblo && !audioprompt(u,2,1))
-		write_user(u,"</xch_mudtext><img xch_alert><xch_mudtext>");
+	for (u=user_first; u!=NULL; u=u->next)
+		if (u->pueblo && !audioprompt(u,2,1))
+			write_user(u,"</xch_mudtext><img xch_alert><xch_mudtext>");
 }
 
 
@@ -602,10 +603,10 @@ void wake(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	char *name,*b="\007",null[1],*bp;
-	char text1[WAKEMSG_LEN+1], filename[200];
+	char text1[WAKEMSG_LEN+1];
 
 	if (word_count<2) {
-		vwrite_usage(user,"%s <user>", command_table[WAKE].name);
+		write_usage(user,"%s <user>", command_table[WAKE].name);
 		return;
 		}
 	strncpy(text1, remove_first(inpstr), WAKEMSG_LEN);
@@ -642,8 +643,7 @@ void wake(UR_OBJECT user, char *inpstr)
 		vwrite_user(user, ">>>%s is ignoring you. You must ask him to forgive you first.\n", u->name);
 		return;
 		}
-	sprintf(filename, "%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, WAKEFILE);
-	if (!u->ignfuns) show_file(u, filename);
+	if (!u->ignfuns) show_file(u, WAKEFILE);
 	if (user->vis) name=user->bw_recap;
 	else name=invisname;
 	null[0]='\0';
@@ -667,7 +667,7 @@ if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot wizshout.\n");  return;
   }
 if (word_count<2) {
-  vwrite_usage(user,"%s [<superuser level>] <text>", command_table[WIZSHOUT].name); 
+  write_usage(user,"%s [<superuser level>] <text>", command_table[WIZSHOUT].name); 
   return;
   }
 /* Even wizzes cannot escapde the swear ban!  MWHAHahaha.... ahem.  */
@@ -684,7 +684,7 @@ strtoupper(word[1]);
 if ((lev=get_level(word[1]))==-1) lev=WIZ;
 else {
   if (lev<WIZ || word_count<3) {
-    vwrite_usage(user,"%s [<superuser level>] <text>", command_table[WIZSHOUT].name);
+    write_usage(user,"%s [<superuser level>] <text>", command_table[WIZSHOUT].name);
     return;
     }
   if (lev>user->level) {
@@ -770,7 +770,7 @@ if (!strcmp(word[1],"all")) {
   write_user(user,"You can only clear the topic of the room you are in.\n");
   return;
   }
-vwrite_usage(user,"%s [all]", command_table[CTOPIC].name);
+write_usage(user,"%s [all]", command_table[CTOPIC].name);
 }
 
 
@@ -781,7 +781,7 @@ UR_OBJECT user2;
 char *name;
 
 if (word_count<3) {
-  vwrite_usage(user,"%s <user> <text>", command_table[MUTTER].name);
+  write_usage(user,"%s <user> <text>", command_table[MUTTER].name);
   return;
   }
 if (!(user2=get_user_name(user,word[1]))) {
@@ -819,10 +819,9 @@ void plead(UR_OBJECT user, char *inpstr)
 {
 int found=0;
 UR_OBJECT u;
-char *err="Sorry, but there are no wizzes currently logged on.\n";
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <text>", command_table[SOS].name);
+  write_usage(user,"%s <text>", command_table[SOS].name);
   return;
   }
 if (user->level>=WIZ) {
@@ -831,7 +830,7 @@ if (user->level>=WIZ) {
   }
 for (u=user_first;u!=NULL;u=u->next)  if (u->level>=WIZ && !u->login) found=1;
 if (!found) {
-  write_user(user,err);
+  write_user(user, no_wizs_logged);
   return;
   }
 sprintf(text,"~OL[ SOS from %s ]~RS %s\n",user->bw_recap,inpstr);
@@ -846,11 +845,11 @@ record_tell(user,text);
 void picture_tell(UR_OBJECT user)
 {
 UR_OBJECT u;
-char filename[120],*name,*c;
+char filename[500],*name,*c;
 FILE *fp;
 
 if (word_count<3) {
-  vwrite_usage(user,"%s <user> <obrazok>", command_table[PTELL].name);
+  write_usage(user,"%s <user> <obrazok>", command_table[PTELL].name);
   return;
   }
 if (user->muzzled) {
@@ -898,8 +897,8 @@ while(*c) {
     return;
     }
   }
-sprintf(filename,"%s/%s/%s/%s.pic", ROOTDIR, DATAFILES, PICTFILES, word[2]);
-if (show_file(u, filename)) {
+sprintf(filename,"%s/%s.pic", PICTFILES, word[2]);
+if (!show_file(u, filename)) {
   write_user(user,"Sorry, there is no picture with that name.\n");
   return;
   }
@@ -912,13 +911,12 @@ vwrite_user(user, "~OLobrazok ~FG%s pre %s\n",word[2],u->name);
 /* see list of pictures availiable - file dictated in 'go' script */
 void preview(UR_OBJECT user)
 {
-char filename[120],*c;
+char filename[500],*c;
 FILE *fp;
 
 if (word_count<2) {
-  sprintf(filename,"%s/%s/%s/pictlist", ROOTDIR, DATAFILES, MISCFILES);
   write_user(user,"The following pictures can be viewed...\n\n");
-  switch(more(user,user->socket,filename)) {
+  switch(more(user,user->socket, PICTLIST)) {
     case 0: write_user(user,"No list of the picture files is availiable.\n");
             break;
     case 1: user->misc_op=2;
@@ -932,9 +930,9 @@ while(*c) {
     return;
     }
   }
-sprintf(filename,"%s/%s/%s/%s.pic", ROOTDIR, DATAFILES, PICTFILES,word[1]);
+sprintf(filename,"%s/%s.pic", PICTFILES,word[1]);
 write_user(user, "\n");
-if (show_file(user, filename)) {
+if (!show_file(user, filename)) {
   write_user(user,"Sorry, there is no picture with that name.\n");
   return;
   }
@@ -946,11 +944,11 @@ write_user(user,"\n");
 void picture_all(UR_OBJECT user)
 {
 UR_OBJECT u;
-char filename[100],*name,*c;
+char filename[500],*name,*c;
 FILE *fp;
 
 if (word_count<2) {
-  vwrite_usage(user, "%s <obrazok>", command_table[PICTURE].name);
+  write_usage(user, "%s <obrazok>", command_table[PICTURE].name);
   preview(user); 
   return;
   }
@@ -965,7 +963,7 @@ while(*c) {
     return;
     }
   }
-sprintf(filename,"%s/%s/%s/%s.pic", ROOTDIR, DATAFILES, PICTFILES,word[1]);
+sprintf(filename,"%s/%s.pic", PICTFILES,word[1]);
 if (!(fp=fopen(filename,"r"))) {
   write_user(user,"Sorry, there is no picture with that name.\n");
   return;
@@ -1021,7 +1019,7 @@ void greet(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if (word_count<2) {
-		vwrite_usage(user,"%s <text>", command_table[GREET].name);
+		write_usage(user,"%s <text>", command_table[GREET].name);
 		return;
 		}
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
@@ -1143,7 +1141,7 @@ if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot emote to the rest of the Wizzes.\n");  return;
   }
 if (word_count<2) {
-  vwrite_usage(user,"%s [<Wiz level>] <text>", command_table[WIZEMOTE].name); 
+  write_usage(user,"%s [<Wiz level>] <text>", command_table[WIZEMOTE].name); 
   return;
   }
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
@@ -1159,7 +1157,7 @@ strtoupper(word[1]);
 if ((lev=get_level(word[1]))==-1) lev=WIZ;
 else {
   if (lev<WIZ || word_count<3) {
-    vwrite_usage(user,"%s [<Wiz level>] <text>", command_table[WIZEMOTE].name);
+    write_usage(user,"%s [<Wiz level>] <text>", command_table[WIZEMOTE].name);
     return;
     }
   if (lev>user->level) {
@@ -1437,7 +1435,7 @@ void say_to(UR_OBJECT user, char *inpstr)
 void friends(UR_OBJECT user)
 {
 int i,cnt,found;
-char filename[100];
+char filename[500];
 FILE *fp;
 struct user_dir_struct *entry;
 
@@ -1501,7 +1499,7 @@ for (i=0;i<MAX_FRIENDS;++i) {
 write_user(user,"You have the maximum amount of friends listed already.\n");
 return;
 SKIP:
-sprintf(filename,"%s/%s/%s/%s.F", ROOTDIR,USERFILES,USERFRIENDS,user->name);
+sprintf(filename,"%s/%s.F", USERFRIENDS,user->name);
 if (!(fp=fopen(filename,"w"))) {
   write_user(user,"ERROR: Unable to open to friend list file.\n");
   write_syslog(SYSLOG,1,"Unable to open %s's friend list in friends().\n",user->name);
@@ -1606,7 +1604,7 @@ void beep(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if (word_count<2) {
-		vwrite_usage(user,"%s <user> [<text>]", command_table[BEEP].name);
+		write_usage(user,"%s <user> [<text>]", command_table[BEEP].name);
 		return;
 		}
 if (!(u=get_user_name(user,word[1]))) {
@@ -1654,17 +1652,15 @@ void hug(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	int mur, i;
-	char filename[200];
 
 	if (word_count<2) {
-		vwrite_usage(user, "%s <user> [<text>]", command_table[HUG].name);
+		write_usage(user, "%s <user> [<text>]", command_table[HUG].name);
 		return;
 		}
 	if (user->muzzled) {
 		write_user(user, "Si muzzled, nemozes posielat HUG\n");
 		return;
 		}
-	sprintf(filename, "%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, HUGFILE);
 	mur=count_musers(user, word[1]);
 	inpstr=remove_first(inpstr);
 	if (mur>1) {
@@ -1700,7 +1696,7 @@ void hug(UR_OBJECT user, char *inpstr)
 				}
 		#endif
 			if (!u->ignfuns) {
-				show_file(u, filename);
+				show_file(u, HUGFILE);
 				write_user(u, "\n");
 				}
 			if (u->afk) {
@@ -1750,7 +1746,7 @@ void hug(UR_OBJECT user, char *inpstr)
 			}
 	#endif
 		if (!u->ignfuns && !u->afk) {
-			show_file(u, filename);
+			show_file(u, HUGFILE);
 			write_user(u, "\n");
 			}
 		if (u->afk) {
@@ -1775,17 +1771,15 @@ void kiss(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 	int mur, i;
-	char filename[200];
 
 	if (word_count<2) {
-		vwrite_usage(user, "%s <user> [<text>]", command_table[KISS].name);
+		write_usage(user, "%s <user> [<text>]", command_table[KISS].name);
 		return;
 		}
 	if (user->muzzled) {
 		write_user(user, "Si muzzled, nemozes posielat HUG\n");
 		return;
 		}
-	sprintf(filename, "%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, KISSFILE);
 	mur=count_musers(user, word[1]);
 	inpstr=remove_first(inpstr);
 	if (mur>1) {
@@ -1821,7 +1815,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 				}
 		#endif
 			if (!u->ignfuns) {
-				show_file(u, filename);
+				show_file(u, KISSFILE);
 				write_user(u, "\n");
 				}
 			if (u->afk) {
@@ -1871,7 +1865,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 			}
 	#endif
 		if (!u->ignfuns && !u->afk) {
-			show_file(u, filename);
+			show_file(u, KISSFILE);
 			write_user(u, "\n");
 			}
 		if (u->afk) {
@@ -2200,5 +2194,3 @@ void kick(UR_OBJECT user)
 		invisname, user->room->name);
 	vwrite_user(user, "~OLVykop%s si ~FG%s~FW odtialto ...\n", gnd_grm(5, user->gender), ur->name);
 }
-
-

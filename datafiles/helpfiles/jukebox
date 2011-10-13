@@ -1,0 +1,7 @@
+~OLPouzitie :~RS  jukebox [<cislo>]
+
+Tento prikaz prehra pesnicku z Jukebox-u. Useri pouzivajuci Pueblo klienta
+maju moznost pocuvnut si audio ak je talker nastaveny na podporu Pueblo.
+Bez zadaneho cisla zobrazi zoznam dostupnych pesniciek.
+
+~OLPozri:~RS

@@ -1,6 +1,6 @@
 /*****************************************************************************
-                    Globalne konstanty OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                    Globalne konstanty OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -85,12 +85,12 @@ char *crypt_salt="NU";
    to have a sig file attached at the end of emails */
 char *talker_signature=
 "\n\n+--------------------------------------------------------------------------+\n\
-|  This message has been smailed to you on   OS Star  Talker, and this is  |\n\
+|  This message has been smailed to you on The Star Talker, and this is    |\n\
 |      your auto-forward.  Please do not reply directly to this email.     |\n\
 |                                                                          |\n\
-|                     OS Star - star.sjf.stuba.sk 7000                     |\n\
-|   email 'osstar@star.sjf.stuba.sk' if you have any questions/comments    |\n\
-+--------------------------------------------------------------------------+\n\n";
+|           OS Star - A talker running at star.sjf.stuba.sk 7000           |\n\
+|    email 'osstar@star.sjf.stuba.sk' if you have any questions/comments   |\n\
++--------------------------------------------------------------------------+\n";
 
 
 char *vrf_fwd_email=
@@ -110,7 +110,7 @@ char swear_words[MAX_SWEARS+1][WORD_LEN+1];
 char text[ARR_SIZE*2],vtext[ARR_SIZE*2];
 char word[MAX_WORDS][WORD_LEN+1];
 char wrd[8][81];
-char progname[40],confile[40];
+char progname[40],confile[140];
 jmp_buf jmpvar;
 #ifdef NETLINKS
 	int listen_sock[3],port[3],port_total=3;
@@ -241,7 +241,7 @@ char *reg_sysinfo[13]={
 /* Server DNS      */ "star.sjf.stuba.sk",
 /* Server IP       */ "127.0.0.1",
 /* Talker E-Mail   */ "osstar@star.sjf.stuba.sk",
-/* Talker Website  */ "http://star.sjf.stuba.sk/osstar",
+/* Talker Website  */ "http://star.sjf.stuba.sk/osstar/",
 /* Sysop Real Name */ "Pavol Hluchy",
 /* Sysop User Name */ "Lopo",
 /* Pueblo Web Dir. */ "media/",
@@ -268,3 +268,63 @@ int charheight,defaultmode;
 
 char *restrict_string="GMPDZUKHSWRCVX"; /* restrictions codes */
 char susers_restrict[MAX_RESTRICT+1]; /* superior users default restrictions */     
+
+/************ menu_tab *******************/
+struct {
+	char *name, *fname, *prompt;
+	} menu_tab[]={
+		{"*", "*", ""},
+		{"bank", "bankmenu", "~FRPlease enter your choice =>~RS "},
+		{"set", "setmenu", "~FRPlease enter your choice:~RS "},
+		{"setup", "setup", "~FGCommand usage~FB =>~RS .set <item> <value> ~FB<=\n"},
+		{"bankops", "bankops", "~FGCommand usage~FB =>~RS .bank <item> <value> ~FB<=\n"},
+		{"buy", "storebuy", "~FRPlease enter your choice:~RS "},
+		{"sell", "storesell", "~FRPlease enter your choice:~RS "},
+		{"*", "*", ""}
+		};
+
+char *help_style[NUM_HELP+1]={
+	"*", "level", "function", "commands only"
+	};
+
+char *who_style[NUM_WHO+1]={
+	"*", "NUTS 333", "Amnuts 221", "Short who", "Moe Byroom",
+	"House Of Pleasure And Ecstacy", "Stairway To Heaven"
+	};
+
+struct {
+	char cmenu, *type, *name, *desc;
+	} set_tab[]={
+		{' ', "show", "show", "ukaze aktualne nastavenia"},
+		{'G', "gnd", "gender", "tvoje pohlavie (muz, zena)"},
+		{'A', "age", "age", "nastavi aky tvoj vek budu useri vidiet"},
+		{'E', "email", "email", "tvoja e-mail adresa"},
+		{'M', "www", "homepage", "adresa tvojej homepage"},
+		{'H', "hide", "hideemail", "prepne viditelnost tvojej e-mail adresy pre userov"},
+		{'W', "wrap", "wrap", "prepne zalamovanie stranok"},
+		{'P', "pager", "pager", "nastavi pocet riadkov na jednu stranku"},
+		{'C', "colour", "colour", "nastavi farebny mod"},
+		{'R', "room", "loginroom", "zapne prihlasenie do roomy v ktorej sa odhlasis"},
+		{'F', "fwd", "autofwd", "zapne automaticke posielanie smail sprav na email"},
+		{'S', "pswd", "password", "zapne zobrazovanie hesla pri prihlasovani"},
+		{'D', "rdesc", "roomdesc", "zapne ignorovanie popisov miestnosti"},
+		{'O', "cmd", "command", "typ zobrazovania zoznamu prikazov"},
+		{'N', "recap", "recap", "nastavenie velkych pismen v nicku"},
+		{'Q', "icq", "icq", "nastavi tvoje ICQ cislo"},
+		{'T', "alert", "alert", "zapne upozornovanie na logovanie userov z notify listu"},
+		{'I', "audio", "audio", "prepne 'Pueblo Audio Prompting'"},
+		{'U', "ppa", "ppa", "prepne 'Pueblo Pager Audio'"},
+		{'V', "voice", "voice", "Audio Prompt Gender (muz/zena)"},
+		{'X', "xterm", "xterm", "prepne kompatibilitu klienta s xterm terminalom"},
+		{'1', "mode", "mode", "Prepina KECACI a PRIKAZOVY mod"},
+		{'2', "prompt", "prompt", "Nastavuje typ a vzhlad promptu"},
+		{'3', "who", "who", "Nastavuje typ listingu userov"},
+		{'*', "*", "*", ""}
+		};
+struct {
+	char *name, *str;
+	} prompt_tab[]={
+		{"vypnuty", ""},
+		{"standard", ""},
+		{"*",""}
+		};

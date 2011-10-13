@@ -1,7 +1,7 @@
 /*****************************************************************************
-                      prikazy pre OS Star v1.0.0
-          Copyright (C) Pavol Hluchy - Posledny update: 2.5.2000
-             OS Star v1.0.0 | http://star.sjf.stuba.sk/osstar
+                      prikazy pre OS Star v1.1.0
+          Copyright (C) Pavol Hluchy - Posledny update: 15.8.2000
+         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
 /* These are the general function names of the commands */
@@ -33,7 +33,6 @@ struct {
   } command_table[]={
     { "quit",       "",    JAILED,  CT_GENERAL },
     { "look",       "",    NEW,     CT_GENERAL },
-    { "mode",       "",    NEW,     CT_USER    },
     { "say",        "",    JAILED,  CT_SOCIAL  },
     { "shout",      "!",   L_3,     CT_SOCIAL  },
     { "tell",       ">",   NEW,     CT_SOCIAL  },
@@ -42,7 +41,6 @@ struct {
     { "pemote",     "<",   L_5,     CT_SOCIAL  },
     { "echo",       "",    L_5,     CT_SOCIAL  },
     { "go",         "",    USER,    CT_MOVE    },
-    { "prompt",     "",    USER,    CT_USER    },
     { "desc",       "",    NEW,     CT_USER    },
     { "inphr",      "",    SUPER,   CT_USER    },
     { "outphr",     "",    SUPER,   CT_USER    },
@@ -243,38 +241,13 @@ struct {
 	{ "restart",    "",    ARCH,    CT_ADMIN   },
 	{ "myxterm",    "",    USER,    CT_GENERAL },
 	{ "allxterm",    "",   ARCH,    CT_GENERAL },
+#ifdef DEBUG
+	{ "test", 	"", 	ROOT,   CT_ADMIN },
+#endif
+	{ "jukebox",	"",		SUPER,	CT_USER		},
     { "*","*",-1,-1 } /* stopping clause - do not remove */
   };
 #include "comvals.h"
-
-/* Subsection of the 'set' command - for setting of attributes */
-struct {
-  char *type;
-  char *desc;
-  } setstr[]={
-    {"show","show the current attributes setting"},
-    {"gender","sets your gender (male, female, or neuter)"},
-    {"age","set your age for people to see"},
-    {"email","enter your email address"},
-    {"www","enter your homepage address"},
-    {"hide","makes your email visible to only you and the law, or everyone (toggle)"},
-    {"wrap","sets screen wrap to be on or off (toggle)"},
-    {"pager","sets how many lines per page of the pager you get"},
-    {"colour","display in colour or not (toggle)"},
-    {"room","lets you log back into the room you left from, if public (toggle)"},
-    {"autofwd","lets you receive smails via your email address."},
-    {"password","lets you see your password when entering it at the login (toggle)"},
-    {"rdesc","lets you ignore room descriptions (toggle)"},
-    {"command","Displays the command lisiting differently (toggle)"},
-    {"recap","Allows you to have caps in your name"},
-    {"icq","Allows you to put in your ICQ number"},
-    {"alert","lets you know when someone in your friends list logs on (toggle)"}, 
-    {"audio","'Pueblo Audio Prompting' (toggle)"},
-    {"ppa","'Pueblo Pager Audio' (toggle)"},
-    {"voice","Audio Prompt Gender male/female (toggle)"},
-	{"xterm","prepne kompatibilitu s xterm terminalom"},
-    {"*",""}
-  };
 
 /* Subsection of the 'ign' command - for setting of attributes */
 struct {
@@ -287,7 +260,7 @@ struct {
 		{"shouts","vsetky vykriky"},
 		{"pics","vsetky obrazky"},
 		{"logons","oznamenia o prihlaseni/odhlaseni userov"},
-		{"wiz",""},
+		{"wiz","vykriky pre wizardov"},
 		{"greets","bannery typu greet"},
 		{"beeps","pipanie"},
 		{"transp","hlasenia o prichode/odchode transportov"},

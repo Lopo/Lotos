@@ -1,6 +1,6 @@
 /*****************************************************************************
-          Funkcie OS Star v1.0.0 na pracu s pocitadlami a zoznamami
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+          Funkcie OS Star v1.1.0 na pracu s pocitadlami a zoznamami
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -17,13 +17,10 @@
 void load_counters(void)
 {
 	FILE *fp;
-	char filename[300];
 	int err=0, i, tmp=0;
 
 	printf("Nacitavam pocitadla ");
-	sprintf(filename, "%s/%s/%s/%s",
-		ROOTDIR, DATAFILES, COUNTFILES, TCOUNTER);
-	if ((fp=fopen(filename, "r"))==NULL) {
+	if ((fp=fopen(TCOUNTER, "r"))==NULL) {
 		write_syslog(ERRLOG, 0, "Nemozem otvorit fajl s tcountrom, nulujem\n");
 		for (i=0; i<4; i++) {
 			syspp->tcounter[i]=0;
@@ -55,9 +52,7 @@ void load_counters(void)
 		printf(".");
 		}
 
-	sprintf(filename, "%s/%s/%s/%s",
-		ROOTDIR, DATAFILES, COUNTFILES, MCOUNTER);
-	if ((fp=fopen(filename, "r"))==NULL) {
+	if ((fp=fopen(MCOUNTER, "r"))==NULL) {
 		write_syslog(ERRLOG, 0, "Nemozem otvorit fajl s mcountrom, nulujem\n");
 		for (i=0; i<4; i++) {
 			syspp->mcounter[i]=0;
@@ -84,11 +79,8 @@ void save_counters(void)
 {
 	FILE *fp;
 	int i;
-	char filename[300];
 
-	sprintf(filename, "%s/%s/%s/%s",
-		ROOTDIR, DATAFILES, COUNTFILES, TCOUNTER);
-	if ((fp=fopen(filename, "w"))==NULL) {
+	if ((fp=fopen(TCOUNTER, "w"))==NULL) {
 		write_syslog(ERRLOG, "Nemozem otvorit tcounter fajl pre zapis v save_counters()\n");
 		return;
 		}
@@ -97,9 +89,7 @@ void save_counters(void)
 	fprintf(fp, "\n");
 	fclose(fp);
 
-	sprintf(filename, "%s/%s/%s/%s",
-		ROOTDIR, DATAFILES, COUNTFILES, MCOUNTER);
-	if ((fp=fopen(filename, "w"))==NULL) {
+	if ((fp=fopen(MCOUNTER, "w"))==NULL) {
 		write_syslog(ERRLOG, "Nemozem otvorit mcounter fajl pre zapis v save_counters()\n");
 		return;
 		}
@@ -216,15 +206,14 @@ void list_txt_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char dirname[200], filename[250], filename2[250];
+	char filename[500];
 	int cnt, tcnt;
 
 	cnt=tcnt=0;
 	if (!user) printf("Vytvaram zoznam textovych suborov ... ");
 	else write_user(user, "Vytvaram zoznam textovych suborov ");
-	sprintf(dirname, "%s/%s/%s", ROOTDIR, DATAFILES, TEXTFILES);
 
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(TEXTFILES))) {
 		if (!user) {
 			fprintf(stderr, "\nOS Star: Directory open failure in list_txt_files().\n");
 			boot_exit(101);
@@ -234,7 +223,7 @@ void list_txt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/%s/showfiles.tmp", ROOTDIR, TEMPFILES);
+	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
@@ -252,9 +241,9 @@ void list_txt_files(UR_OBJECT user)
 	while((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
-		    || !strcmp(dp->d_name, ADMINFILES)
+		    || !strcmp(dp->d_name, "adminsfiles")
 		    ) continue;
-		sprintf(filename, "%s/%s", dirname, dp->d_name);
+		sprintf(filename, "%s/%s", TEXTFILES, dp->d_name);
 		if ((ifp=fopen(filename, "r"))==NULL) {
 			(void) closedir(dirp);
 			if (!user) {
@@ -276,16 +265,13 @@ void list_txt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne subory\n");
 	fprintf(ofp, "+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/%s/showfiles.tmp", ROOTDIR, TEMPFILES);
-	sprintf(filename2, "%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SHOWFILES);
-	unlink(filename2);
-	rename(filename, filename2);
+	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
+	unlink(SHOWFILES);
+	rename(filename, SHOWFILES);
 	tcnt=cnt;
 
 	cnt=0;
-	sprintf(dirname, "%s/%s/%s/%s", ROOTDIR, DATAFILES, TEXTFILES, ADMINFILES);
-
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(ADMINFILES))) {
 		if (!user) {
 			fprintf(stderr, "\nOS Star: Directory open failure in list_txt_files().\n");
 			boot_exit(101);
@@ -295,7 +281,7 @@ void list_txt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/%s/showfiles.tmp", ROOTDIR, TEMPFILES);
+	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
@@ -314,7 +300,7 @@ void list_txt_files(UR_OBJECT user)
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
 		    ) continue;
-		sprintf(filename, "%s/%s", dirname, dp->d_name);
+		sprintf(filename, "%s/%s", ADMINFILES, dp->d_name);
 		if ((ifp=fopen(filename, "r"))==NULL) {
 			(void) closedir(dirp);
 			fclose(ofp);
@@ -337,10 +323,9 @@ void list_txt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne subory\n");
 	fprintf(ofp, "+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/%s/showfiles.tmp", ROOTDIR, TEMPFILES);
-	sprintf(filename2, "%s/%s/%s/%s", ROOTDIR, DATAFILES, MISCFILES, SHOWAFILES);
-	unlink(filename2);
-	rename(filename, filename2);
+	sprintf(filename, "%s/showfiles.tmp", TEMPFILES);
+	unlink(SHOWAFILES);
+	rename(filename, SHOWAFILES);
 	tcnt+=cnt;
 	if (!user) printf(" spolu %d\n", tcnt);
 	else vwrite_user(user, " spolu %d\n", tcnt);
@@ -352,15 +337,14 @@ void list_pic_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char dirname[200], filename[250], filename2[250];
+	char filename[500];
 	char fntname[50];
 	int cnt=0, cl, pc;
 
 	if (!user) printf("Vytvaram zoznam obrazkovych suborov ... ");
 	else write_user(user, "Vytvaram zoznam obrazkovych suborov ");
-	sprintf(dirname, "%s/%s/%s", ROOTDIR, DATAFILES, PICTFILES);
 
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(PICTFILES))) {
 		if (!user) {
 			fprintf(stderr, "\nOS Star: Directory open failure in list_pic_files().\n");
 			boot_exit(101);
@@ -370,7 +354,7 @@ void list_pic_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/%s/pictfiles.tmp", ROOTDIR, TEMPFILES);
+	sprintf(filename, "%s/pictfiles.tmp", TEMPFILES);
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
@@ -388,10 +372,9 @@ void list_pic_files(UR_OBJECT user)
 	while((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
-		    || !strstr(dp->d_name, ".pic")
 		    || !strncmp(dp->d_name, ".pic", 4)
 		    ) continue;
-		sprintf(filename, "%s/%s", dirname, dp->d_name);
+		sprintf(filename, "%s/%s", PICTFILES, dp->d_name);
 		if ((cl=count_lines(filename))==0) continue;
 		strcpy(fntname, dp->d_name);
 		fntname[strlen(fntname)-4]='\0';
@@ -409,10 +392,9 @@ void list_pic_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne obrazky\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/%s/pictfiles.tmp", ROOTDIR, TEMPFILES);
-	sprintf(filename2, "%s/%s/%s/pictlist", ROOTDIR, DATAFILES, MISCFILES);
-	unlink(filename2);
-	rename(filename, filename2);
+	sprintf(filename, "%s/pictfiles.tmp", TEMPFILES);
+	unlink(PICTLIST);
+	rename(filename, PICTLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
@@ -423,15 +405,14 @@ void list_fnt_files(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char dirname[200], filename[250], filename2[250];
+	char filename[500];
 	char name[ARR_SIZE];
 	int cnt=0, cl, pc;
 
 	if (!user) printf("Vytvaram zoznam fontov ... ");
 	else write_user(user, "Vytvaram zoznam fontov ");
-	sprintf(dirname, "%s/%s/%s", ROOTDIR, DATAFILES, FIGLET_FONTS);
 
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(FIGLET_FONTS))) {
 		if (!user) {
 			fprintf(stderr, "\nOS Star: Directory open failure in list_fnt_files().\n");
 			boot_exit(101);
@@ -441,7 +422,7 @@ void list_fnt_files(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/%s/fntfiles.tmp", ROOTDIR, TEMPFILES);
+	sprintf(filename, "%s/fntfiles.tmp", TEMPFILES);
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
@@ -459,7 +440,6 @@ void list_fnt_files(UR_OBJECT user)
 	while((dp=readdir(dirp))!=NULL) {
 		if (!strcmp(dp->d_name, ".")
 		    || !strcmp(dp->d_name, "..")
-		    || !strstr(dp->d_name, ".flf")
 		    || !strncmp(dp->d_name, ".flf", 4)
 		    ) continue;
 		strcpy(name, dp->d_name);
@@ -477,10 +457,9 @@ void list_fnt_files(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne fonty\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/%s/fntfiles.tmp", ROOTDIR, TEMPFILES);
-	sprintf(filename2, "%s/%s/%s/fontslist", ROOTDIR, DATAFILES, MISCFILES);
-	unlink(filename2);
-	rename(filename, filename2);
+	sprintf(filename, "%s/fntfiles.tmp", TEMPFILES);
+	unlink(FONTLIST);
+	rename(filename, FONTLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
@@ -491,15 +470,14 @@ void list_kill_msgs(UR_OBJECT user)
 	DIR *dirp;
 	FILE *ifp, *ofp;
 	struct dirent *dp;
-	char dirname[200], filename[250], filename2[250];
+	char filename[500];
 	char *pp, line[82];
 	int cnt=0, cl, pc;
 
 	if (!user) printf("Vytvaram zoznam 'kill hlasok' ... ");
 	else write_user(user, "Vytvaram zoznam 'kill hlasok' ");
-	sprintf(dirname, "%s/%s/%s", ROOTDIR, DATAFILES, KILLMSGS);
 
-	if (!(dirp=opendir(dirname))) {
+	if (!(dirp=opendir(KILLMSGS))) {
 		if (!user) {
 			fprintf(stderr, "\nOS Star: Directory open failure in list_kill_msgs().\n");
 			boot_exit(101);
@@ -509,7 +487,7 @@ void list_kill_msgs(UR_OBJECT user)
 			return;
 			}
 		}
-	sprintf(filename, "%s/%s/killmsgs.tmp", ROOTDIR, TEMPFILES);
+	sprintf(filename, "%s/killmsgs.tmp", TEMPFILES);
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
@@ -530,7 +508,7 @@ void list_kill_msgs(UR_OBJECT user)
 		    || !strcmp(dp->d_name, "..")
 		    || strncmp(dp->d_name, "kill.", 5)
 		    ) continue;
-		sprintf(filename, "%s/%s", dirname, dp->d_name);
+		sprintf(filename, "%s/%s", KILLMSGS, dp->d_name);
 		if (!(ifp=fopen(filename, "r"))) continue;
 		else {
 			fgets(line, 81, ifp);
@@ -549,12 +527,9 @@ void list_kill_msgs(UR_OBJECT user)
 	if (!cnt) fprintf(ofp, "Momentalne neni su ziadne 'kill hlasky'\n");
 	fprintf(ofp, "\n+----------------------------------------------------------------------------+\n\n");
 	fclose(ofp);
-	sprintf(filename, "%s/%s/killmsgs.tmp", ROOTDIR, TEMPFILES);
-	sprintf(filename2, "%s/%s/%s/killmsgs", ROOTDIR, DATAFILES, MISCFILES);
-	unlink(filename2);
-	rename(filename, filename2);
+	sprintf(filename, "%s/killmsgs.tmp", TEMPFILES);
+	unlink(KILLLIST);
+	rename(filename, KILLLIST);
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
-
-

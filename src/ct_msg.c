@@ -1,6 +1,6 @@
 /*****************************************************************************
-                  Funkcie OS Star v1.0.0 suvisiace so spravami
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                  Funkcie OS Star v1.1.0 suvisiace so spravami
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -8,6 +8,7 @@
 
 #include "define.h"
 #include "ur_obj.h"
+#include "sys_obj.h"
 #include "ct_msg.h"
 
 
@@ -33,6 +34,7 @@ if (strcmp(user->verify_code,word[1]) || !strcmp(user->verify_code,"#NONE")) {
 strcpy(user->verify_code,"#EMAILSET");
 user->mail_verified=1;
 write_user(user,"\nThe verification code you gave was correct.\nYou may now use the auto-forward functions.\n\n");
+if (amsys->auto_promote) check_autopromote(user, 3);
 }
 
 
@@ -274,6 +276,3 @@ switch(stage) {
     return;
   }
 }
-
-
-

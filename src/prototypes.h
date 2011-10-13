@@ -1,6 +1,6 @@
 /*****************************************************************************
-           Hlavickovy subor s prototypmi funkcii pre OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+           Hlavickovy subor s prototypmi funkcii pre OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -131,6 +131,7 @@ void      record_last_logout args((char *name));
 /* initializing of the globals and other stuff */
 
 int       load_user_details args((UR_OBJECT user));
+int       load_user_olddetails args((UR_OBJECT user));
 int       save_user_details args((UR_OBJECT user,int save_current));
 void      set_date_time args((void));
 void      process_users args((void));
@@ -249,6 +250,7 @@ void      display_files args((UR_OBJECT user,int admins));
 void      help args((UR_OBJECT user));
 void      help_commands_level args((UR_OBJECT user,int is_wrap));
 void      help_commands_function args((UR_OBJECT user,int is_wrap));
+void      help_commands_only args((UR_OBJECT user,int is_wrap));
 void      help_credits args((UR_OBJECT user));
 void      say args((UR_OBJECT user, char *inpstr));
 void      say_to args((UR_OBJECT, char*inpstr));
@@ -283,8 +285,6 @@ void      examine args((UR_OBJECT user));
 void      set_attributes args((UR_OBJECT user, char *inpstr));
 void      show_attributes args((UR_OBJECT user));
 void      prompt args((UR_OBJECT user));
-void      toggle_prompt args((UR_OBJECT user));
-void      toggle_mode args((UR_OBJECT user));
 void      toggle_charecho args((UR_OBJECT user));
 void      set_desc args((UR_OBJECT user, char *inpstr));
 void      set_iophrase args((UR_OBJECT user, char *inpstr));
@@ -360,7 +360,6 @@ void      get_time args((UR_OBJECT user));
 void      show_version args((UR_OBJECT user));
 void      show_memory args((UR_OBJECT user));
 void      play_hangman args((UR_OBJECT user));
-char *    get_hang_word args((char *aword));
 void      guess_hangman args((UR_OBJECT user));
 void      retire_user args((UR_OBJECT user));
 void      unretire_user args((UR_OBJECT user));
@@ -520,8 +519,7 @@ void      show_counters args((UR_OBJECT user));
 void      hug args((UR_OBJECT user, char *inpstr));
 void      kiss args((UR_OBJECT user, char *inpstr));
 void      write_duty args((int level, char *str, RM_OBJECT room, UR_OBJECT user, int cr));
-void      vwrite_usage args((UR_OBJECT user, char *msg, ...));
-void      write_usage args((UR_OBJECT user, char *msg));
+void      write_usage args((UR_OBJECT user, char *msg, ...));
 int       osstar_load args((void));
 int       init_ossmain args((void));
 void      create_systempp args((void));
@@ -534,10 +532,26 @@ void      kick args((UR_OBJECT user));
 void      restart_com args((UR_OBJECT user));
 void      restart args((UR_OBJECT user));
 void      reinit_sockets args((void));
-void      reconnect_users args((void));
+void      restore_structs args((void));
 void      myxterm args((UR_OBJECT user, char *inpstr));
 void      allxterm args((UR_OBJECT user, char *inpstr));
-
+void      print_menu args((UR_OBJECT user, int type));
+int       set_ops args((UR_OBJECT user, char *inpstr));
+void      who_short args((UR_OBJECT user));
+void      who_moebyroom args((UR_OBJECT user));
+void      who_hope args((UR_OBJECT user));
+void      who_stairway args((UR_OBJECT user));
+void      who_nuts333 args((UR_OBJECT user));
+int       inroom args((RM_OBJECT rm));
+int       reinit_save_user args((UR_OBJECT user));
+int       reinit_load_user args((UR_OBJECT user));
+int       reinit_save_user_malloc args((UR_OBJECT user));
+int       reinit_load_user_malloc args((UR_OBJECT user));
+int       reinit_save_room args((RM_OBJECT room));
+int       reinit_load_room args((RM_OBJECT room));
+#ifdef DEBUG
+void      test args((UR_OBJECT user, char *inpstr));
+#endif
 
 /* pluginy */
 void      destroy_pl_cmd args((CM_OBJECT c));

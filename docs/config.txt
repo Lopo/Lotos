@@ -1,8 +1,8 @@
-t a l k r o v y  O S  S t a r  v1.0.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Informacie o nastaveni OS Star pomocou konfiguracneho suboru
-------------------------------------------------------------
-Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
++------------------------------------------------------------------------------+
+             LOTOS 1.1.0 - konfiguracny subor
++------------------------------------------------------------------------------+
+
+ Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
 systemu, v sekcii ROOMS su mena miestnosti, ich prepojenia a netlinky,
 v TRANSPORTS sa definuju transporty - ich mena, drahy a casy ciest a zastavok,
 v TOPICS sekcii su temy jednotlivych miestnosti a v SITES sa definuju netlinkove
@@ -81,6 +81,12 @@ resolve_ip - OFF/AUTO/MANUAL ak OFF, IP nebude zistovana; ak AUTO, bude pouzita
 flood_protect - ON/OFF ak ON, tak kazdy kto sa pokusi o flood bude automaticky
    zabanovany. Inac sa moze prihlasit kazdy aj nad limit nastaveny
    s v hodnote LOGIN_FLOOD_CNT.
+auto_afk - cas v sekundach po ktorom bude user automaticky nastaveny na AFK. Ak
+   sa zada 0, auto_afk funkcia bude vypnuta.
+pueblo_enh - ON/OFF, zapina alebo vypina podporu pre Pueblo klienta
+auto_save - nastavuje interval v minutach na automaticke ukladanie userfajlov
+   kazdeho nahlaseneho uzivatela. Ak sa nastavi `-1', funkcia bude vypnuta.
+
 
 sekcia ROOMS
 ------------
@@ -91,15 +97,15 @@ Format pre jeden riadok:
 napr:
 general cpu procesor   of,gd,lg,to    PUB  CONNECT testsite
 
-Mapa je ulozena v adresari datafiles/maps s nazvom suboru <mano mapy>.map.
-`Mnemonic' je skratka pre miestnost pouzita pre definovanie prepojeni medzi
+Mapa je ulozena v adresari datafiles/maps s nazvom suboru <meno mapy>.map.
+`mnemonic' je skratka miestnosti pouzita pre definovanie prepojeni medzi
 miestnostami. <linky> obsahuje zoznam miestnosti zadanych pomocou
 mnemonic-parametrov oddeleneych ciarkami. Do tychto miestnosti su potom priame
 vychody. Ak nema mat miestnost vychod, zada sa ako linka slovo 'noleave'.
 Pre pristup sa pouzivaju hodnoty PRIV, PUB, BOTH, RTC, pripadne sa nezadava.
 Ak sa zada PRIV, miestnost je fixnuta ako privatna; ak sa zada PUB, je miestnost
-fisnuta ako verejna; ak BOTH tak je nastavena ako nefixnuta verejna a ak RTC,
-je nastavena ako rootovska konzola do ktorej ma pristup len level ROOT.
+fixnuta ako verejna; ak BOTH tak je nastavena ako nefixnuta verejna a ak RTC,
+je nastavena ako rootovska konzola do ktorej ma pristup len ROOT.
 Parameter BOTH sa zadava len ak za nim nasleduju netlinks parametre. Inac
 sa moze pristup vynechat. Ako netlinks sa zadavaju 2 parametre
 (ak su zakompilovane). ACCEPT oznacuje miestnost do ktorej sa pripoji talker

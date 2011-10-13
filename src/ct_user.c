@@ -1,6 +1,6 @@
 /*****************************************************************************
-              Funkcie OS Star v1.0.0 pre userovu osobnu potrebu
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+              Funkcie OS Star v1.1.0 pre userovu osobnu potrebu
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -28,47 +28,6 @@ UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
 char * colour_com_strip(char *str);
 char * remove_first(char *inpstr);
 char * censor_swear_words(char *has_swears);
-
-/*** Switch between command and speech mode ***/
-void toggle_mode(UR_OBJECT user)
-{
-	if (user->command_mode) {
-		write_user(user,"Now in ~FGSPEECH~RS mode.\n");
-		user->command_mode=0;
-		return;
-		}
-	write_user(user,"Now in ~FTCOMMAND~RS mode.\n");
-	user->command_mode=1;
-}
-
-
-/*** Nastavuje vzhlad prompt-u ***/
-void toggle_prompt(UR_OBJECT user)
-{
-	if (word_count<2) {
-		if (user->prompt) {
-			write_user(user,"Prompt ~FRVYP.\n");
-			user->prompt=0;
-			return;
-			}
-		write_user(user,"Prompt ~FGZAP.\n");
-		user->prompt=1;
-		return;
-	}
-
-	if (is_number(word[1])) {
-		user->prompt=1;
-		user->prompt_typ=atoi(word[1]);
-		write_user(user, "Prompt nastaveny\n");
-		return;
-		}
-	user->prompt=1;
-	user->prompt_typ=-1;
-	sprintf(user->prompt_str, "%.*s", PROMPT_LEN, word[1]);
-	user->prompt_str[PROMPT_LEN-1]='\0';
-	write_user(user, "Prompt nastaveny\n");
-	return;
-}
 
 
 /*** Set user description ***/
@@ -252,7 +211,7 @@ void status(UR_OBJECT user)
 void enter_profile(UR_OBJECT user, int done_editing)
 {
 FILE *fp;
-char *c,filename[100];
+char *c,filename[500];
 
 if (!done_editing) {
   write_user(user, profile_edit_header);
@@ -260,7 +219,7 @@ if (!done_editing) {
   editor(user,NULL);
   return;
   }
-sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR,USERFILES,USERPROFILES,user->name);
+sprintf(filename,"%s/%s.P", USERPROFILES,user->name);
 if (!(fp=fopen(filename,"w"))) {
   vwrite_user(user,"%s: couldn't save your profile.\n",syserror);
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to write in enter_profile().\n",filename);
@@ -278,7 +237,7 @@ void examine(UR_OBJECT user)
 {
 	UR_OBJECT u;
 	FILE *fp;
-	char filename[100], text2[ARR_SIZE], line[182];
+	char filename[500], text2[ARR_SIZE], line[182];
 	int on,days,hours,mins,timelen,days2,hours2,mins2,idle,cnt,newmail;
 	int prf;
 
@@ -328,7 +287,7 @@ void examine(UR_OBJECT user)
 		if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
 		write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
 		if (prf) {
-			sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR,USERFILES,USERPROFILES,u->name);
+			sprintf(filename,"%s/%s.P", USERPROFILES,u->name);
 			if (!(fp=fopen(filename,"r"))) write_user(user, no_profile_prompt);
 			else {
 				fgets(line, 81, fp);
@@ -365,7 +324,7 @@ void examine(UR_OBJECT user)
 	if ((newmail=mail_sizes(u->name,1))) vwrite_user(user,"%s~RS has unread mail (%d).\n",u->recap,newmail);
 	write_user(user,"+----- ~OL~FTProfile~RS --------------------------------------------------------------+\n\n");
 	if (prf) {
-		sprintf(filename,"%s/%s/%s/%s.P", ROOTDIR,USERFILES,USERPROFILES,u->name);
+		sprintf(filename,"%s/%s.P", USERPROFILES,u->name);
 		if (!(fp=fopen(filename,"r"))) write_user(user, no_profile_prompt);
 		else {
 			fgets(line, 81, fp);
@@ -553,9 +512,6 @@ add_history(user->name,1,"Made a request for an account.\n");
 if (strlen(word[1])>80) write_user(user, "Pre nastavenie adresy pre autoforwrd pouzi ~FG.set email\n");
 else (strcpy(user->email, word[1]));
 set_forward_email(user);
-/* check to see if user should be promoted yet */
-if (amsys->auto_promote) check_autopromote(user,3);
-else user->accreq=-1;
 }
 
 
@@ -582,6 +538,7 @@ if (word_count>1) {
       write_user(user,"AFK message set.\n");
       }
     user->afk=2;
+    user->status='A';
     echo_off(user);
     }
   else {
@@ -594,11 +551,13 @@ if (word_count>1) {
       write_user(user,"AFK message set.\n");
       }
     user->afk=1;
+    user->status='A';
     }
   }
 else {
   write_user(user,"Odteraz si STAND BY, stlac <return> na reset.\n");
   user->afk=1;
+  user->status='A';
   }
 if (user->vis) {
   if (user->afk_mesg[0]) vwrite_room_except(user->room,user,"%s~RS goes AFK: %s\n",user->recap,user->afk_mesg);
@@ -623,6 +582,7 @@ void suicide(UR_OBJECT user)
 		write_user(user,"Password incorrect.\n");
 		return;
 		}
+	audioprompt(user, 4, 0);
 	write_user(user,"\n\07~FR~OL~LI*** WARNING - This will delete your account! ***\n\nAre you sure about this (y/n)? ");
 	user->misc_op=6;  
 	no_prompt=1;
@@ -632,329 +592,954 @@ void suicide(UR_OBJECT user)
 /* Set the user attributes */
 void set_attributes(UR_OBJECT user, char *inpstr)
 {
-int i=0,tmp=0,setattrval=-1;
-char name[USER_NAME_LEN+1],*recname;
+	int i=0,tmp=0,setattrval=-1;
+	char name[USER_NAME_LEN+1],*recname;
 
-if (word_count<2) goto ATT_JUMP;
-i=0;
-strtolower(word[1]);
-while(setstr[i].type[0]!='*') {
-  if (!strcmp(setstr[i].type,word[1])) {
-    setattrval=i;  break;
-    }
-  ++i;
-  }
-ATT_JUMP:
-if (setattrval==-1) {
-  i=0;
-  write_user(user,"Attributes you can set are:\n\n");
-  while (setstr[i].type[0]!='*') {
-    text[0]='\0';
-    vwrite_user(user,"~FT%s~RS : %s\n",setstr[i].type,setstr[i].desc);
-    i++;
-    }
-  i=0;
-  }
-write_user(user,"\n");
-switch(setattrval) {
-  case SETSHOW: show_attributes(user); return;
-  case SETGEND:
-    if (word_count<3) {
-	write_usage(user,"set gender m/z");
-	return;
-	}
-    if (user->gender && user->level<ARCH) {
-    	write_user(user, "Ved uz mas nastaveny gender !\n");
-    	return;
-    	}
-    inpstr=remove_first(inpstr);
-    inpstr=colour_com_strip(inpstr);
-    inpstr[0]=tolower(inpstr[0]);
-    tmp=user->gender;
-      switch(inpstr[0]) {
-        case 'm' :
-	  user->gender=MALE;
-	  write_user(user,"Pohlavie nastavene na ~OLmuz~RS\n");
-	  syspp->acounter[tmp]--;
-	  syspp->acounter[user->gender]++;
-	  break;
-        case 'f' :
-        case 'z' :
-	  user->gender=FEMALE;
-	  write_user(user,"Pohlavie nastavene na ~OLzena~RS\n");
-	  syspp->acounter[tmp]--;
-	  syspp->acounter[user->gender]++;
-	  break;
-        case 'n' :
-        case 'd' :
-          if (user->level >= GOD) {
-		user->gender=NEUTER;
-		write_user(user,"Pohlavie nastavene na ~OLdieta~RS\n");
-	  syspp->acounter[tmp]--;
-	  syspp->acounter[user->gender]++;
+	if (word_count<2) {
+		write_user(user, "~OL~FGWould you like to use a menu ? ~FW<~FRyes~FW/~FRno~FW>~FB :~FR");
+		user->misc_op=102;
+		no_prompt=1;
+		return;
 		}
-	  break;
-	default  :
-		write_user(user, "Take pohlavie nepoznam, ty hej ?\n");
-		write_usage(user,"set gender m/z");
-		break;
-        } /* end switch */
-	if (syspp->acounter[user->gender]>syspp->mcounter[user->gender]) {
-		syspp->mcounter[user->gender]++;
-		save_counters();
+	i=0;
+	strtolower(word[1]);
+	while(set_tab[i].type[0]!='*') {
+		if (!strcmp(set_tab[i].type,word[1])) {
+			setattrval=i;
+			break;
+			}
+		++i;
 		}
-      if (amsys->auto_promote && user->gender) check_autopromote(user,1);
-      if (user->gender!=tmp) {
-		nick_grm(user);
-		write_user(user, "Tvoje sklonovanie mena bolo nastavene nasledovne:\n");
-		show_nick_grm(user, user);
-		write_user(user, "Ak mas proti tomu nejake vyhrady, kontaktuj adminov\n\n");
+	if (setattrval==-1) {
+		i=0;
+		write_user(user,"Attributes you can set are:\n");
+		while (set_tab[i].type[0]!='*') {
+			text[0]='\0';
+			vwrite_user(user,"~FT%s~RS : %s\n",set_tab[i].type,set_tab[i].desc);
+			i++;
+			}
+		return;
 		}
-      return;
-    return;
-  case SETAGE:
-    if (word_count<3) {
-      write_usage(user,"set age <age>");
-      return;
-      }
-    tmp=atoi(word[2]);
-    if (tmp<0 || tmp>200) {
-      write_user(user,"You can only set your age range between 0 (unset) and 200.\n");
-      return;
-      }
-    user->age=tmp;
-    vwrite_user(user,"Age now set to: %d\n",user->age);
-    return;
-  case SETWRAP:
-    switch(user->wrap) {
-      case 0: user->wrap=1;
-	write_user(user,"Word wrap now ON\n");
-	break;
-      case 1: user->wrap=0;
-	write_user(user,"Word wrap now OFF\n");
-	break;
-      }
-    return;
-  case SETEMAIL:
-    inpstr=remove_first(inpstr);
-    inpstr=colour_com_strip(inpstr);
-    if (!inpstr[0]) strcpy(user->email,"#UNSET");
-    else if (strlen(inpstr)>80) {
-      write_user(user,"The maximum email length you can have is 80 characters.\n");
-      return;
-      }
-    else {
-      if (!validate_email(inpstr)) {
-	write_user(user,"That email address format is incorrect.  Correct format: user@network.net\n");
-	return;
-        }
-      strcpy(user->email,inpstr);
-      } /* end else */
-    if (!strcmp(user->email,"#UNSET")) write_user(user,"Email set to : ~FRunset\n");
-    else vwrite_user(user,"Email set to : ~FT%s\n",user->email);
-    set_forward_email(user);
-    return;
-  case SETHOMEP:
-    inpstr=remove_first(inpstr);
-    inpstr=colour_com_strip(inpstr);
-    if (!inpstr[0]) strcpy(user->homepage,"#UNSET");
-    else if (strlen(inpstr)>80) {
-      write_user(user,"The maximum homepage length you can have is 80 characters.\n");
-      return;
-      }
-    else strcpy(user->homepage,inpstr);
-    if (!strcmp(user->homepage,"#UNSET")) write_user(user,"Homepage set to : ~FRunset\n");
-    else vwrite_user(user,"Homepage set to : ~FT%s\n",user->homepage);
-    return;
-  case SETHIDEEMAIL:
-    switch(user->hideemail) {
-      case 0: user->hideemail=1;
-	write_user(user,"Email now showing to only the admins.\n");
-	break;
-      case 1: user->hideemail=0;
-	write_user(user,"Email now showing to everyone.\n");
-	break;
-      }
-    return;
-  case SETCOLOUR:
-     if (word_count<3) {
-    	write_usage(user,"set color <mod>/[test]");
-	vwrite_user(user, "Najvyssi mozny mod: %d\n",NUM_COLMODS);
-	vwrite_user(user, "Aktualny mod: %d\n",user->colour);
-	return;
-	}
-    if (!strcmp(word[2], "test")) {
-    	display_colour(user);
-    	return;
-    	}
-    if (!is_number(word[2])) {
-    	if (!strcmp(word[2], "test")) display_colour(user);
-    	else write_user(user,"nespravny parameter\n");
-	return;
-	}
-    if (atoi(word[2])>NUM_COLMODS) {
-	vwrite_user(user, "Najvyssi mozny mod: %d\n",NUM_COLMODS);
-	return;
-	}
-    user->colour=atoi(word[2]);
-    vwrite_user(user, "Nastaveny mod farieb: %d\n",user->colour);
-    if (user->room==NULL) prompt(user);
-    return;
-  case SETPAGER:
-    if (word_count<3) {
-      write_usage(user,"set pager <length>");
-      return;
-      }
-    user->pager=atoi(word[2]);
-    if (user->pager<MAX_LINES || user->pager>99) {
-      vwrite_user(user,"Pager can only be set between %d and 99 - setting to default\n",MAX_LINES);
-      user->pager=23;
-      }
-    vwrite_user(user,"Pager length now set to: %d\n",user->pager);
-    return;
-  case SETROOM:
-    switch(user->lroom) {
-      case 0: user->lroom=1;
-	write_user(user,"You will log on into the room you left from.\n");
-	break;
-      case 1: user->lroom=0;
-	write_user(user,"You will log on into the main room.\n");
-	break;
-      }
-    return;
-  case SETFWD:
-    if (!user->email[0] || !strcmp(user->email,"#UNSET")) {
-      write_user(user,"You have not yet set your email address - autofwd cannot be used until you do.\n");
-      return;
-      }
-    if (!user->mail_verified) {
-      write_user(user,"You have not yet verified your email - autofwd cannot be used until you do.\n");
-      return;
-      }
-    switch(user->autofwd) {
-      case 0: user->autofwd=1;
-	write_user(user,"You will also receive smails via email.\n");
-	break;
-      case 1: user->autofwd=0;
-	write_user(user,"You will no longer receive smails via email.\n");
-	break;
-      }
-    return;
-  case SETPASSWD:
-    switch(user->show_pass) {
-      case 0: user->show_pass=1;
-	write_user(user,"You will now see your password when entering it at login.\n");
-	break;
-      case 1: user->show_pass=0;
-	write_user(user,"You will no longer see your password when entering it at login.\n");
-	break;
-      }
-    return;
-  case SETRDESC:
-    switch(user->show_rdesc) {
-      case 0: user->show_rdesc=1;
-	write_user(user,"You will now see the room descriptions.\n");
-	break;
-      case 1: user->show_rdesc=0;
-	write_user(user,"You will no longer see the room descriptions.\n");
-	break;
-      }
-    return;
-  case SETCOMMAND:
-    switch(user->cmd_type) {
-      case 0: user->cmd_type=1;
-	write_user(user,"You will now see commands listed by functionality.\n");
-	break;
-      case 1: user->cmd_type=0;
-	write_user(user,"You will now see commands listed by level.\n");
-	break;
-      }
-    return;
-  case SETRECAP:
-    if (!amsys->allow_recaps) {
-      write_user(user,"Sorry, names cannot be recapped at this present time.\n");
-      return;
-      }
-    if (word_count<3) {
-      write_usage(user,"set recap <meno ako ho chces mat>");
-      return;
-      }
-    recname=colour_com_strip(word[2]);
-    strcpy(name,recname);
-    strtolower(name);
-    name[0]=toupper(name[0]);
-    if (strcmp(user->name,name)) {
-      write_user(user,"The recapped name still has to match your proper name.\n");
-      return;
-      }
-    strcpy(user->recap,word[2]);
-    strcpy(user->bw_recap,recname);
-    vwrite_user(user,"Your name will now appear as \"%s~RS\" on the 'who', 'examine', tells, etc.\n",user->recap);
-    return;
-  case SETICQ:
-    strcpy(word[2],colour_com_strip(word[2]));
-    if (!word[2][0]) strcpy(user->icq,"#UNSET");
-    else if (strlen(word[2])>ICQ_LEN) {
-      vwrite_user(user,"The maximum ICQ UIN length you can have is %d characters.\n",ICQ_LEN);
-      return;
-      }
-    else strcpy(user->icq,word[2]);
-    if (!strcmp(user->icq,"#UNSET")) write_user(user,"ICQ number set to : ~FRunset\n");
-    else vwrite_user(user,"ICQ number set to : ~FT%s\n",user->icq);
-    return;
-  case SETALERT:
-    switch(user->alert) {
-      case 0: user->alert=1;
-	write_user(user,"You will now be alerted if anyone on your friends list logs on.\n");
-	break;
-      case 1: user->alert=0;
-	write_user(user,"You will no longer be alerted if anyone on your friends list logs on.\n");
-	break;
-      }
-    return;
-  case SETAUDIO:
-    switch (user->pueblo_mm) {
-      case 0:
-        user->pueblo_mm=1;
-        vwrite_user(user, "Zap%s si si 'Pueblo Audio Prompt'\n", gnd_grm(5, user->gender));
-        if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
-        break;
-      case 1:
-        user->pueblo_mm=0;
-        vwrite_user(user, "Vyp%s si si 'Pueblo Audio Prompt'\n", gnd_grm(5, user->gender));
-        if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
-        break;
-      }
-    return;
-  case SETPPA:
-    switch (user->pueblo_pg) {
-      case 0:
-        user->pueblo_pg=1;
-        vwrite_user(user, "Zap%s si si 'Pueblo Pager Audio'\n", gnd_grm(5, user->gender));
-        if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
-        break;
-      case 1:
-        user->pueblo_pg=0;
-        vwrite_user(user, "Vyp%s si si 'Pueblo Pager Audio'\n", gnd_grm(5, user->gender));
-        if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
-        break;
-      }
-    return;
-  case SETVOICE:
-    if (user->voiceprompt) user->voiceprompt=0;
-    else user->voiceprompt=1;
-    vwrite_user(user, "Nastavil%s si si 'audio prompt voice gender' na %s\n",
-      gnd_grm(4, user->gender), sex[(!(user->voiceprompt-1))+1]
-      );
-    if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
-    return;
-  case SETXTERM:
-    user->xterm=!user->xterm;
-	vwrite_user(user, "Nastavil%s si si xterm kompatibilitu na %s\n",
-	  gnd_grm(4, user->gender), offon[user->xterm]
-	  );
-	return;
-  } /* end main switch */
+	write_user(user,"\n");
+	switch (setattrval) {
+		case SET_SHOW: show_attributes(user); return;
+		case SET_GEND:
+			if (word_count<3) {
+				write_usage(user,"set %s m/z", set_tab[SET_GEND].type);
+				return;
+				}
+			if (user->gender && user->level<ARCH) {
+				write_user(user, "Ved uz mas nastaveny gender !\n");
+				return;
+				}
+			inpstr=remove_first(inpstr);
+			inpstr=colour_com_strip(inpstr);
+			inpstr[0]=tolower(inpstr[0]);
+			tmp=user->gender;
+			switch (inpstr[0]) {
+				case 'm' :
+					user->gender=MALE;
+					break;
+				case 'z' :
+					user->gender=FEMALE;
+					break;
+				case 'n' :
+				case 'd' :
+					if (user->level >= GOD) user->gender=NEUTER;
+					break;
+				default  :
+					write_user(user, "Take pohlavie nepoznam, ty hej ?\n");
+					return;
+				} /* end switch */
+			vwrite_user(user,"Pohlavie nastavene na ~OL%s~RS\n", sex[user->gender]);
+			syspp->acounter[tmp]--;
+			syspp->acounter[user->gender]++;
+			if (syspp->acounter[user->gender]>syspp->mcounter[user->gender]) {
+				syspp->mcounter[user->gender]++;
+				save_counters();
+				}
+			if (amsys->auto_promote && user->gender) check_autopromote(user,1);
+			if (user->gender!=tmp) {
+				nick_grm(user);
+				write_user(user, "Tvoje sklonovanie mena bolo nastavene nasledovne:\n");
+				show_nick_grm(user, user);
+				write_user(user, "Ak mas proti tomu nejake vyhrady, kontaktuj adminov\n\n");
+				}
+			return;
+		case SET_AGE:
+			if (word_count<3) {
+				write_usage(user,"set %s <age>", set_tab[SET_AGE].type);
+				return;
+				}
+			tmp=atoi(word[2]);
+			if (tmp<1 || tmp>120) {
+				write_user(user,"You can only set your age range between 1 and 120.\n");
+				return;
+				}
+			user->age=tmp;
+			vwrite_user(user,"Age now set to: %d\n",user->age);
+			return;
+		case SET_EMAIL:
+			inpstr=remove_first(inpstr);
+			inpstr=colour_com_strip(inpstr);
+			if (!inpstr[0]) strcpy(user->email,"#UNSET");
+			else if (strlen(inpstr)>80) {
+				write_user(user,"The maximum email length you can have is 80 characters.\n");
+				return;
+				}
+			else {
+				if (!validate_email(inpstr)) {
+					write_user(user,"That email address format is incorrect.  Correct format: user@network.net\n");
+					return;
+					}
+				strcpy(user->email,inpstr);
+				} /* end else */
+			if (!strcmp(user->email,"#UNSET")) write_user(user,"Email set to : ~FRunset\n");
+			else vwrite_user(user,"Email set to : ~FT%s\n",user->email);
+			set_forward_email(user);
+			return;
+		case SET_HOMEP:
+			inpstr=remove_first(inpstr);
+			inpstr=colour_com_strip(inpstr);
+			if (!inpstr[0]) strcpy(user->homepage,"#UNSET");
+			else if (strlen(inpstr)>80) {
+				write_user(user,"The maximum homepage length you can have is 80 characters.\n");
+				return;
+				}
+			else strcpy(user->homepage,inpstr);
+			if (!strcmp(user->homepage,"#UNSET")) write_user(user,"Homepage set to : ~FRunset\n");
+			else vwrite_user(user,"Homepage set to : ~FT%s\n",user->homepage);
+			return;
+		case SET_HIDEEMAIL:
+			user->hideemail=!user->hideemail;
+			vwrite_user(user,"Email showing now %s.\n", offon[user->hideemail]);
+			return;
+		case SET_WRAP:
+			user->wrap=!user->wrap;
+			vwrite_user(user,"Word wrap now %s\n", offon[user->wrap]);
+			return;
+		case SET_PAGER:
+			if (word_count<3) {
+				write_usage(user,"set %s <length>", set_tab[SET_PAGER].type);
+				return;
+				}
+			user->pager=atoi(word[2]);
+			if (user->pager<MAX_LINES || user->pager>99) {
+				vwrite_user(user,"Pager can only be set between %d and 99 - setting to default\n",MAX_LINES);
+				user->pager=23;
+				}
+			vwrite_user(user,"Pager length now set to: %d\n",user->pager);
+			return;
+		case SET_COLOUR:
+			if (word_count<3) {
+				write_usage(user,"set %s <mod>|[test]", set_tab[SET_COLOUR].type);
+				vwrite_user(user, "Najvyssi mozny mod: %d\n",NUM_COLMODS);
+				vwrite_user(user, "Aktualny mod: %d\n",user->colour);
+				return;
+				}
+			if (!strcmp(word[2], "test")) {
+				display_colour(user);
+				return;
+				}
+			if (!is_number(word[2])) {
+				write_user(user,"nespravny parameter\n");
+				return;
+				}
+			tmp=atoi(word[2]);
+			if (tmp>NUM_COLMODS || tmp<0) {
+				vwrite_user(user, "Mozny rozsah modov: 0 - %d\n",NUM_COLMODS);
+				return;
+				}
+			user->colour=tmp;
+			vwrite_user(user, "Nastaveny mod farieb: %d\n",user->colour);
+			if (user->room==NULL) prompt(user);
+			return;
+		case SET_ROOM:
+			switch (user->lroom) {
+				case 0:
+					user->lroom=1;
+					write_user(user,"You will log on into the room you left from.\n");
+					break;
+				case 1:
+					user->lroom=0;
+					write_user(user,"You will log on into the main room.\n");
+					break;
+				}
+			return;
+		case SET_FWD:
+			if (!user->email[0] || !strcmp(user->email,"#UNSET")) {
+				write_user(user,"You have not yet set your email address - autofwd cannot be used until you do.\n");
+				return;
+				}
+			if (!user->mail_verified) {
+				write_user(user,"You have not yet verified your email - autofwd cannot be used until you do.\n");
+				return;
+				}
+			switch (user->autofwd) {
+				case 0:
+					user->autofwd=1;
+					write_user(user,"You will also receive smails via email.\n");
+					break;
+				case 1:
+					user->autofwd=0;
+					write_user(user,"You will no longer receive smails via email.\n");
+					break;
+				}
+			return;
+		case SET_PASSWD:
+			switch (user->show_pass) {
+				case 0:
+					user->show_pass=1;
+					write_user(user,"You will now see your password when entering it at login.\n");
+					break;
+				case 1:
+					user->show_pass=0;
+					write_user(user,"You will no longer see your password when entering it at login.\n");
+					break;
+				}
+			return;
+		case SET_RDESC:
+			switch (user->show_rdesc) {
+				case 0:
+					user->show_rdesc=1;
+					write_user(user,"You will now see the room descriptions.\n");
+					break;
+				case 1:
+					user->show_rdesc=0;
+					write_user(user,"You will no longer see the room descriptions.\n");
+					break;
+				}
+			return;
+		case SET_COMMAND:
+			if (word_count<3) {
+				write_usage(user,"set %s <#typ>", set_tab[SET_COMMAND].type);
+				return;
+				}
+			tmp=atoi(word[2]);
+			if (tmp<1 || tmp>NUM_HELP) {
+				vwrite_user(user,"Help type can only be set between 1 & %d - setting to default\n", NUM_HELP);
+				user->cmd_type=1;
+				}
+			else user->cmd_type=tmp;
+			vwrite_user(user,"Help type now set to: %s\n", help_style[user->cmd_type]);
+			return;
+		case SET_RECAP:
+			if (!amsys->allow_recaps) {
+				write_user(user,"Sorry, names cannot be recapped at this present time.\n");
+				return;
+				}
+			if (word_count<3) {
+				write_usage(user,"set %s <meno ako ho chces mat>", set_tab[SET_RECAP].type);
+				return;
+				}
+			if (strstr(word[2], "~FK") && user->level<ROOT) {
+				write_user(user, "You can't have black in your name!\n");
+				return;
+				}
+			if (strlen(word[2])>(USER_NAME_LEN+USER_NAME_LEN*3-1)) {
+				write_user(user, "That recapped name is too long!\n");
+				return;
+				}
+			recname=colour_com_strip(word[2]);
+			strcpy(name,recname);
+			strtolower(name);
+			name[0]=toupper(name[0]);
+			if (strcmp(user->name,name)) {
+				write_user(user,"The recapped name still has to match your proper name.\n");
+				return;
+				}
+			strcpy(user->recap,word[2]);
+			strcpy(user->bw_recap,recname);
+			vwrite_user(user,"Your name will now appear as \"%s~RS\" on the 'who', 'examine', tells, etc.\n",user->recap);
+			return;
+		case SET_ICQ:
+			strcpy(word[2],colour_com_strip(word[2]));
+			if (!word[2][0]) strcpy(user->icq,"#UNSET");
+			else if (strlen(word[2])>ICQ_LEN) {
+				vwrite_user(user,"The maximum ICQ UIN length you can have is %d characters.\n", ICQ_LEN);
+				return;
+				}
+			else strcpy(user->icq,word[2]);
+			if (!strcmp(user->icq,"#UNSET")) write_user(user,"ICQ number set to : ~FRunset\n");
+			else vwrite_user(user,"ICQ number set to : ~FT%s\n",user->icq);
+			return;
+		case SET_ALERT:
+			switch (user->alert) {
+				case 0:
+					user->alert=1;
+					write_user(user,"You will now be alerted if anyone on your friends list logs on.\n");
+					break;
+				case 1:
+					user->alert=0;
+					write_user(user,"You will no longer be alerted if anyone on your friends list logs on.\n");
+					break;
+				}
+			return;
+		case SET_AUDIO:
+			user->pueblo_mm=!user->pueblo_mm;
+			vwrite_user(user, "'Pueblo Audio Prompt' now %s\n", offon[user->pueblo_mm]);
+			return;
+		case SET_PPA:
+			user->pueblo_pg=!user->pueblo_pg;
+			vwrite_user(user, "'Pueblo Pager Audio' now %s\n", offon[user->pueblo_pg]);
+			return;
+		case SET_VOICE:
+			user->voiceprompt=!user->voiceprompt;
+			vwrite_user(user, "'audio prompt voice gender' nastavene na %s\n",
+				sex[(!(user->voiceprompt-1))+1]);
+			if (!user->pueblo) write_user(user,"This function only works when connected using the Pueblo telnet client.\n");
+			return;
+		case SET_XTERM:
+			user->xterm=!user->xterm;
+			vwrite_user(user, "xterm kompatibilita %s\n", offon[user->xterm]);
+			return;
+		case SET_MODE:
+#ifdef NETLINKS
+			if (user->room==NULL) {
+				vwrite_user(user, "Sorrac, momentalne ako vzdialen%s user%s nemozes pouzit tento prikaz\n", gnd_grm(1, user->gender), gnd_grm(2, user->gender));
+				return;
+				}
+#endif
+			user->command_mode=!user->command_mode;
+			vwrite_user(user, "odteraz si v %s mode\n", user->command_mode?"kecacom":"prikazovom");
+			return;
+		case SET_PROMPT:
+#ifdef NETLINKS
+			if (user->room==NULL) {
+				vwrite_user(user, "Sorrac, momentalne ako vzdialen%s user%s nemozes pouzit tento prikaz\n", gnd_grm(1, user->gender), gnd_grm(2, user->gender));
+				return;
+				}
+#endif
+			if (word_count<3) {
+				if (user->prompt>0) vwrite_user(user, "Aktualny prompt: %s\n", prompt_tab[user->prompt].name);
+				else write_user(user, "Aktualny prompt: vlastny\n");
+				write_usage(user, "set %s <typ>|<str>", set_tab[SET_PROMPT].type);
+				return;
+				}
+			if (is_number(word[2])) {
+				tmp=atoi(word[2]);
+				if (tmp>(NUM_PROMPT-1)) {
+					vwrite_user(user, "Prompt moze byt 0 - %d alebo vlastny retazec\n", NUM_PROMPT);
+					return;
+					}
+				user->prompt=tmp;
+				strcpy(user->prompt_str, prompt_tab[user->prompt].str);
+				vwrite_user(user, "Prompt nastaveny na: %s\n", prompt_tab[user->prompt].name);
+				return;
+				}
+			if (strlen(word[2])>PROMPT_LEN) {
+				vwrite_user(user, "Pridlhy prompt, max. dlzka: %d\n", PROMPT_LEN);
+				return;
+				}
+			user->prompt=-1;
+			sprintf(user->prompt_str, "%.*s", PROMPT_LEN, word[2]);
+			user->prompt_str[PROMPT_LEN]='\0';
+			write_user(user, "Prompt nastaveny\n");
+			return;
+		case SET_WHO:
+			if (word_count<3) {
+				write_usage(user,"set %s <#typ>", set_tab[SET_WHO].type);
+				return;
+				}
+			tmp=atoi(word[2]);
+			if (tmp<1 || tmp>NUM_WHO) {
+				vwrite_user(user,"Who type can only be set between 1 & %d - setting to default\n", NUM_WHO);
+				user->who_type=1;
+				}
+			else user->who_type=tmp;
+			vwrite_user(user,"Who type now set to: %s\n", who_style[user->who_type]);
+			return;
+		} /* end main switch */
+}
+
+
+/* The set menu... very very very handy... for newbies */
+int set_ops(UR_OBJECT user, char *inpstr)
+{
+	char *colour_com_strip();
+	char temp[ARR_SIZE],gender[15],mode[20],*name;
+	int which,val,hlp;
+
+	if (!user->vis) name=invisname;
+	else name=user->recap;
+	temp[0]='\0';
+	val=0;
+	if (inpstr[0]=='0') {
+		hlp=-1;
+		val=1;
+		}
+	else for (hlp=0; set_tab[hlp].cmenu!='*'; hlp++)
+		if (toupper(inpstr[0])==set_tab[hlp].cmenu) {
+			val=1;
+			break;
+		}
+	switch (user->set_op) {
+		case 1 :
+			switch (hlp) {
+				case SET_GEND:
+					if (user->gender && user->level<ARCH) {
+						write_user(user, "Ved uz mas nastaveny gender !\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					vwrite_user(user, "Aktualny gender: %s\n", sex[user->gender]);
+					write_user(user,"~CTEnter new gender~CB: ");
+					user->set_op=2;
+					return;
+				case SET_AGE:
+					if (user->age) {
+						vwrite_user(user,"~FGYour age currently is~CB: [~RS%d~CB]\n", user->age);
+						write_user(user,"~CTEnter new age~CB: ");
+						user->set_op=3;
+						return;
+						}
+					write_user(user,"~CTHow old are you?~CB: ");
+					user->set_op=3;
+					return;
+				case SET_EMAIL:
+					if (!strcmp(user->email, "#UNSET")) write_user(user,"~FGEmail currently set at~CB: [~RSunset~CB]\n");
+					else vwrite_user(user,"~FGEmail currently set at~CB: [~RS%s~CB]\n", user->email);
+					write_user(user,"~CTEnter new email address~CB: ");
+					user->set_op=4;
+					return;
+				case SET_HOMEP:
+					if (strcmp(user->homepage, "#UNSET")) {
+						vwrite_user(user,"~FGWebpage currently set at~CB: [~RS%s~CB]\n",user->homepage);
+						write_user(user,"~CTEnter a new homepage address~CB =>~RS http://");
+						user->set_op=5;
+						return;
+						}
+					write_user(user,"~CTEnter a homepage address~CB:~RS http://");
+					user->set_op=5;
+					return;
+				case SET_HIDEEMAIL:
+					if (user->hideemail) {
+						write_user(user,"~FGYou are no longer hiding your email address...\n");
+						user->hideemail=0;
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return; 
+						}
+					write_user(user,"~FGYou hide your email from other users...\n");
+					user->hideemail=1;
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_WRAP:
+					user->wrap=!user->wrap;
+					vwrite_user(user,"~FGWord wrap now ~OL%s\n", offon[user->wrap]);
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_PAGER:
+					vwrite_user(user, "~FGYour pager currently is ~CB: [~RS%d~CB]\n", user->pager);
+					write_user(user, "~CTEnter new pager value~CB: ");
+					user->set_op=6;
+					return;
+				case SET_COLOUR:
+					vwrite_user(user, "~FGYour colour mode is ~CB: [~RS%d~CB]\n", user->colour);
+					vwrite_user(user, "~CTEnter colour mode ~FW1~%d ~CB: ", NUM_COLMODS);
+					user->set_op=7;
+					return;
+				case SET_ROOM:
+					user->lroom=!user->lroom;
+					vwrite_user(user, "You will log on into the %s\n",
+						user->lroom?"room you left from":"main room");
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_FWD:
+					if (!user->email[0] || !strcmp(user->email, "#UNSET")) {
+						write_user(user, "You have no yet set your email address - autofwd cannot be used until you do.\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					if (!user->mail_verified) {
+						write_user(user, "You have no yet verified your email - autofwd cannot be used until you do.\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					user->autofwd=!user->autofwd;
+					vwrite_user(user, "Autofwd now %s\n", offon[user->autofwd]);
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_PASSWD:
+					if (user->show_pass) {
+						write_user(user, "You will now see your password when entering it at login\n");
+						write_user(user,center(continue1,81));
+						user->show_pass=0;
+						user->set_op=-1;
+						return;
+						}
+					write_user(user, "You will no longer see your password when entering it at login\n");
+					write_user(user,center(continue1,81));
+					user->show_pass=1;
+					user->set_op=-1;
+					return;
+				case SET_RDESC:
+					if (user->show_rdesc) {
+						write_user(user, "You will now see the room descriptions\n");
+						write_user(user,center(continue1,81));
+						user->show_rdesc=0;
+						user->set_op=-1;
+						return;
+						}
+					write_user(user, "You will no longer see the room descriptions\n");
+					write_user(user,center(continue1,81));
+					user->show_rdesc=1;
+					user->set_op=-1;
+					return;
+				case SET_COMMAND:
+					vwrite_user(user,"~FGYour help type is currently~CB: [~RS%d - %s~CB]\n", user->cmd_type, help_style[user->cmd_type]);
+					write_user(user,"~FMPossible help types are~CB:\n");
+					for (which=1; which<=NUM_HELP; ++which) {
+						vwrite_user(user,"~CG%d~CB = ~CT%s\n", which, help_style[which]);
+						}
+					write_user(user,"~CTYour choice~CB: ");
+					user->set_op=8;
+					return;
+				case SET_RECAP:
+					if (!amsys->allow_recaps) {
+						write_user(user, "Sorry, names cannot be recapped at this present time");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					vwrite_user(user,"~FGName capitalization currently set at~CB: [~RS%s~RS~CB]\n", user->recap);
+					write_user(user,"~CTEnter new capitalization~CB: ");
+					user->set_op=9;
+					return;
+				case SET_ICQ:
+					if (user->icq) {
+						if (strcmp(user->icq, "#UNSET")) vwrite_user(user,"~FGYour ICQ number is set at~CB: [~RS%s~CB]\n", user->icq);
+						else write_user(user,"~FGYour ICQ number is set at~CB: [~RSunset~CB]\n");
+						write_user(user,"~CTEnter new ICQ number~CB: ");
+						user->set_op=10;
+						return;
+						}
+					write_user(user,"~CTEnter an ICQ number~CB: ");
+					user->set_op=10;
+					return;
+				case SET_ALERT:
+					if (user->alert) {
+						write_user(user, "You will now be alerted if anyone on your notify list logs on\n");
+						user->alert=0;
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					write_user(user, "You will no longer be alerted if anyone on your notify list logs on\n");
+					user->alert=1;
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_AUDIO:
+					user->pueblo_mm=!user->pueblo_mm;
+					vwrite_user(user, "'Pueblo Audio Prompt' now %s\n", offon[user->pueblo_mm]);
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_PPA:
+					user->pueblo_pg=!user->pueblo_pg;
+					vwrite_user(user, "'Pueblo Pager Audio' now %s\n", offon[user->pueblo_pg]);
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_VOICE:
+					user->voiceprompt=!user->voiceprompt;
+					vwrite_user(user, "Audio Prompt Voice Gender' nastavene na %s\n",
+						sex[(!(user->voiceprompt-1))+1]);
+					if (!user->pueblo) write_user(user, "This function only works when connected using the Pueblo telnet client.\n");
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_XTERM:
+					user->xterm=!user->xterm;
+					vwrite_user(user, "Xterm kompatibilita %s\n", offon[user->xterm]);
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_MODE:
+					if (user->room==NULL) {
+						write_user(user, "teraz nemozes zmenit tento parameter\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return; 
+						}
+					if (user->command_mode) {
+						write_user(user,"~FGNow in ~CRSPEECH~FG mode!\n");
+						user->command_mode=0;
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return; 
+						}
+					write_user(user,"~FGNow in ~CRCOMMAND~FG mode!\n");
+					user->command_mode=1;
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+					return;
+				case SET_PROMPT:
+					vwrite_user(user, "~FGAktualny prompt~CB: [~RS%d ~CW-~RS %s~CB].\n", user->prompt, prompt_tab[user->prompt].name);
+					vwrite_user(user, "~CTZadaj novy prompt~CB [~FR0~FW-~FR%d~FW|~FR<str>~CB]: ~RS", NUM_PROMPT-1);
+					user->set_op=11;
+					return;
+				case SET_WHO:
+					vwrite_user(user,"~FGYour who type is currently~CB: [~RS%d - %s~CB]\n", user->who_type, who_style[user->who_type]);
+					write_user(user,"~CTYour choice~CB: ");
+					user->set_op=12;
+					return;
+				case -1:
+					vwrite_room_except(user->room, user,"~FT%s ~CGleaves the setup menu!\n",name);
+					user->ignall=user->ignall_store;
+					user->set_mode=0;
+					user->set_op=0;
+					user->status='a';
+					prompt(user);
+					return;
+				default  :
+					write_user(user,"~CRYou have selected an invalid choice....\n");
+					write_user(user,center(continue1,81));
+					user->set_op=-1;
+				} /* end of switch (hlp) */
+			return 1;
+
+		case 2: /* SET_GEND */
+			hlp=user->gender;
+			inpstr=colour_com_strip(inpstr);
+			switch (toupper(inpstr[0])) {
+				case 'M':
+					if (user->gender & FEMALE) {
+						write_user(user,"~FGGender switched to ~CRMALE\n");
+						user->gender=MALE;
+						syspp->acounter[hlp]--;
+						syspp->acounter[user->gender]++;
+						user->set_op=-1;
+						goto CH_GEND;
+						}
+					if (user->gender & MALE) {
+						write_user(user,"~FGYes, we know that your male...\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					user->gender=MALE;
+					syspp->acounter[hlp]--;
+					syspp->acounter[user->gender]++;
+					write_user(user,"~FGGender set to ~CRMALE!\n");
+					user->set_op=-1;
+					goto CH_GEND;
+				case 'Z':
+					if (user->gender & MALE) {
+						write_user(user,"~FGGender switched to ~CRFEMALE\n");
+						user->gender=FEMALE;
+						syspp->acounter[hlp]--;
+						syspp->acounter[user->gender]++;
+						user->set_op=-1;
+						goto CH_GEND;
+						}
+					if (user->gender & FEMALE) {
+						write_user(user,"~FGYes, we know that your female...\n");
+						write_user(user,center(continue1,81));
+						user->set_op=-1;
+						return;
+						}
+					user->gender=FEMALE;
+					syspp->acounter[hlp]--;
+					syspp->acounter[user->gender]++;
+					write_user(user,"~FGGender set to ~CRFEMALE!\n");
+					user->set_op=-1;
+					goto CH_GEND;
+				case 'N':
+				case 'D':
+					if (user->level>=GOD) {
+						if (user->gender & NEUTER) {
+							write_user(user,"~FGYes, we know that your female...\n");
+							write_user(user,center(continue1,81));
+							user->set_op=-1;
+							return;
+							}
+						user->gender=NEUTER;
+						syspp->acounter[hlp]--;
+						syspp->acounter[user->gender]++;
+						write_user(user,"~FGGender set to ~CRNEUTER!\n");
+						user->set_op=-1;
+						goto CH_GEND;
+						}
+				default :
+					write_user(user,"~FGInvalid gender, please choose either male or female!\n");
+					write_user(user,"~CB-=> ");
+					user->set_op=2;
+					return;
+				}
+CH_GEND:
+			if (syspp->acounter[user->gender]>syspp->mcounter[user->gender]) {
+				syspp->mcounter[user->gender]++;
+				save_counters();
+				}
+			if (amsys->auto_promote && user->gender) check_autopromote(user, 1);
+			if (user->gender!=hlp) {
+				nick_grm(user);
+				write_user(user, "Tvoje sklonovanie nicku bolo nastavene nasledovne:\n");
+				show_nick_grm(user, user);
+				write_user(user, "Ak mas proti tomu nejake vyhrady, kontaktuj adminov\n");
+				}
+			write_user(user,center(continue1,81));
+			return 1;
+
+		case 3: /* SET_AGE */
+			val=atoi(word[0]);
+			if (!val) {
+				write_user(user,"~FGInvalid age...\n");
+				write_user(user,"~CTRe-enter your age~CB: ");
+				user->set_op=3;
+				return;
+				}
+			if (val<1) {
+				write_user(user,"~FGI don't think so...\n");
+				write_user(user,"~CTRe-enter your age~CB: ");
+				user->set_op=3;
+				return;
+				}
+			if (val>120) {
+				write_user(user,"~FGThats a tad bit to old to believe!\n");
+				write_user(user,"~CTRe-enter your age~CB: ");
+				user->set_op=3;
+				return;
+				}
+			user->age=val;
+			vwrite_user(user,"~FGAge is now set to~CB: [~RS%d~CB]\n", user->age);
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 4: /* SET_EMAIL */
+			if (!strlen(inpstr)) {
+				write_user(user,"~FGWould help if you entered something ;)\n");
+				write_user(user,"~CTRe-enter email address~CB: ");
+				user->set_op=4;
+				return;
+				}
+			inpstr=colour_com_strip(inpstr);
+			if (!inpstr[0]) strcpy(user->email, "#UNSET");
+			else if (strlen(inpstr)>80) {
+				write_user(user, "The maximum email length you can have is 80 characters.\n");
+				write_user(user,"~CTRe-enter email address~CB: ");
+				user->set_op=4;
+				return;
+				}
+			else {
+				if (!validate_email(inpstr)) {
+					write_user(user,"~FGYou have entered an invalid email address!\n");
+					write_user(user,"~CTRe-enter email address~CB: ");
+					user->set_op=4;
+					return;
+					}
+				strcpy(user->email,inpstr);
+				}
+			if (!strcmp(user->email, "#UNSET")) write_user(user,"~FGEmail address now set to~CB: [~RSunset~CB]\n");
+			else vwrite_user(user,"~FGEmail address now set to~CB: [~RS%s~CB]\n", user->email);
+			set_forward_email(user);
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 5: /* SET_HOMEP */
+			inpstr=colour_com_strip(inpstr);
+			if (!inpstr[0]) strcpy(user->homepage, "#UNSET");
+			else if (strlen(inpstr)>73) {
+				write_user(user, "The maximum homepage length you can have is 73 characters\n");
+				write_user(user,"~CTRe-enter a new homepage address~CB =>~RS http://");
+				user->set_op=5;
+				return;
+				}
+			else {
+				sprintf(text,"http://%s",inpstr);
+				strcpy(user->homepage,text);
+				}
+			if (strcmp(user->homepage, "#UNSET")) vwrite_user(user,"~FGHomepage now set to~CB: [~RS%s~CB]\n",user->homepage);
+			else write_user(user,"~FGHomepage now set to~CB: [~RSunset~CB]\n");
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 6: /* SET_PAGER */
+			user->pager=atoi(word[0]);
+			if (user->pager<MAX_LINES || user->pager>99) {
+				vwrite_user(user, "Pager can only be set between %d and 99 - setting to default\n");
+				user->pager=23;
+				}
+			vwrite_user(user, "~FGPager length now set to: ~RS%d\n", user->pager);
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 7: /* SET_COLOUR */
+			if (!strlen(inpstr)) {
+				write_user(user,"~FGWould help if you entered something ;)\n");
+				vwrite_user(user,"~FTRe-enter colour choice ~CW<~CR1~CW - ~CR%d~CW/~CRtest~CW> ~CB-=> ", NUM_COLMODS);
+				user->set_op=7;
+				return;
+				}
+			if (!strcasecmp(inpstr, "test")) {
+				display_colour(user);
+				vwrite_user(user,"~FTEnter colour choice ~CW<~CR1~CW - ~CR%d~CW/~CRtest~CW> ~CB-=> ", NUM_COLMODS);
+				user->set_op=7;
+				return;
+				}
+			hlp=atoi(word[0]);
+			if (hlp<0 || hlp>NUM_COLMODS) {
+				vwrite_user(user,"~FTInavlid choice ~CW<~CR1~CW - ~CR%d~CW/~CRtest~CW> ~CB-=> ", NUM_COLMODS);
+				user->set_op=7;
+				return;
+				}
+			user->colour=hlp;
+			vwrite_user(user, "~FGColour mode now set to: ~RS%d\n", user->colour);
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 8: /* SET_COMMAND */
+			val=atoi(word[0]);
+			if (!val) {
+				write_user(user,"~FGInvalid help style...\n");
+				vwrite_user(user,"~CTRe-enter help choice 1-%d~CB: ",NUM_HELP);
+				user->set_op=8;
+				val=0;
+				return;
+				}
+			if (val<1 || val>NUM_HELP) {
+				write_user(user,"~FGInvalid help style...\n");
+				vwrite_user(user,"~CTRe-enter help choice 1-%d~CB: ",NUM_HELP);
+				user->set_op=8;
+				val=0;
+				return;
+				}
+			user->cmd_type=val;
+			vwrite_user(user,"~FGHelp style now set to~CB: [~CY%s~CB]\n", help_style[user->cmd_type]);
+			write_user(user,center(continue1,81));
+			user->set_op=-1;
+			return 1;
+
+		case 9: /* SET_RECAP */
+			if (!strlen(inpstr)) {
+				write_user(user,"~FGWould help if you entered something ;)\n");
+				write_user(user,"~CTRe-enter recapped name~CB: ");
+				user->set_op=9;
+				return;
+				}
+			if (strstr(inpstr,"~FK") && user->level<ROOT) {
+				write_user(user,"~FGYou can't have black in your name!\n");
+				write_user(user,"~CTRe-enter recapped name~CB: ");
+				user->set_op=9;
+				return;
+				}
+			if (strlen(inpstr)>(USER_NAME_LEN+USER_NAME_LEN*3-1)) {
+				write_user(user,"~FGThat recapped name is too long!\n");
+				write_user(user,"~CTRe-enter recapped name~CB: ");
+				user->set_op=9;
+				return;
+				}
+			strcpy(temp,colour_com_strip(inpstr));
+			if (strcasecmp(temp,user->name) && user->level<ROOT) {
+				write_user(user,"~FGThats not your name...\n");
+				write_user(user,"~CTRe-enter recapped name~CB: ");
+				user->set_op=9;
+				return;
+				}
+			strcpy(user->recap, inpstr);
+			strcpy(user->bw_recap, temp);
+			vwrite_user(user,"~FGYou will now be known as~CB: [~RS%s~RS~CB]\n", user->recap);
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 10: /* SET_ICQ */
+			inpstr=colour_com_strip(inpstr);
+			if (!inpstr[0]) strcpy(user->icq, "#UNSET");
+			else if (strlen(inpstr)>ICQ_LEN) {
+				vwrite_user(user, "The Maximnum ICQ UIN length you can have is %d characters.\n", ICQ_LEN);
+				write_user(user,"~CTRe-enter an ICQ number~CB: ");
+				user->set_op=10;
+				return;
+				}
+			else strcpy(user->icq, word[0]);
+			if (strcmp(user->icq, "#UNSET")) vwrite_user(user,"~FGICQ number now set to~CB: [~RS%s~CB]\n",user->icq);
+			else write_user(user,"~FGICQ number now set to~CB: [~RSunset~CB]\n");
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 11: /* SET_PROMPT */
+			if (is_number(inpstr)) {
+				val=atoi(inpstr);
+				if (val>(NUM_PROMPT-1)) {
+					vwrite_user(user, "Maximalne cislo promptu je %d.\n", NUM_PROMPT-1);
+					write_user(user,"~CTRe-enter prompt~CB: ");
+					user->set_op=11;
+					return;
+					}
+				user->prompt=val;
+				vwrite_user(user, "Prompt nastaveny na typ %s\n", prompt_tab[user->prompt].name);
+				strcpy(user->prompt_str, prompt_tab[user->prompt].str);
+				write_user(user,center(continue1,81));
+				user->set_op=-1;
+				return 1;
+				}
+			if (strlen(inpstr)>PROMPT_LEN) {
+				vwrite_user(user, "Maximalna dlzka promptu je %d.\n", PROMPT_LEN);
+				write_user(user,"~CTRe-enter prompt~CB: ");
+				user->set_op=11;
+				return;
+				}
+			user->prompt=-1;
+			strcpy(user->prompt_str, inpstr);
+			write_user(user, "Prompt nastaveny\n");
+			write_user(user,center(continue1,81));
+		        user->set_op=-1;
+			return 1;
+
+		case 12: /* SET_WHO */
+			if (!strcmp(word[0], "list")) {
+				write_user(user,"~FMPossible who types are~CB:\n");
+				for (which=1; which<=NUM_WHO; ++which) {
+					vwrite_user(user,"~CG%d~CB = ~CT%s\n", which, who_style[which]);
+					}
+				write_user(user,"~CTYour choice~CB: ");
+				user->set_op=12;
+				return;
+				}
+			val=atoi(word[0]);
+			if (!val) {
+				write_user(user,"~FGInvalid who style...\n");
+				vwrite_user(user,"~CTRe-enter who choice 1-%d|list~CB: ",NUM_WHO);
+				user->set_op=12;
+				return;
+				}
+			if (val<1 || val>NUM_WHO) {
+				write_user(user,"~FGInvalid who style...\n");
+				vwrite_user(user,"~CTRe-enter who choice 1-%d|list~CB: ",NUM_WHO);
+				user->set_op=12;
+				return;
+				}
+			user->who_type=val;
+			vwrite_user(user,"~FGWho style now set to~CB: [~CY%s~CB]\n", who_style[user->who_type]);
+			write_user(user,center(continue1,81));
+			user->set_op=-1;
+			return 1;
+
+		case -1:
+			temp[0]='\0';
+			which=0;
+			val=0;
+			print_menu(user, MENU_SET);
+			user->set_op=1;
+			return 1;
+		}
+	return 0;
 }
 
 

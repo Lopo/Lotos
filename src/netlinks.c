@@ -2,12 +2,12 @@
  NETLINK FUNCTIONS - NETLINK FUNCTIONS - NETLINK FUNCTIONS - NETLINK FUNCTIONS
  *****************************************************************************/
 /*****************************************************************************
-               Funkcie OS Star v1.0.0 na medzitalkrove spojenie
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+               Funkcie OS Star v1.1.0 na medzitalkrove spojenie
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 /*****************************************************************************
-   POZOR !!! Tento subor sa vyuziva len ak su povolene NETLINKS 
+   POZOR !!! Tento subor sa vyuziva len ak su povolene NETLINKS
  *****************************************************************************/
 
 #include <stdio.h>
@@ -99,6 +99,7 @@ free(nl);
  Connection functions - making a link to external talkers
  *****************************************************************************/
 
+
 /*** Initialise connections to remote servers. Basically this tries to connect
   to the services listed in the config file and it puts the open sockets in 
   the NL_OBJECT linked list which the talker then uses ***/
@@ -179,6 +180,7 @@ return 0;
  Automatic event functions that relate to the Netlinks
  *****************************************************************************/
 
+
 /*** See if any net connections are dragging their feet. If they have been idle
      longer than net_idle_time the drop them. Also send keepalive signals down
      links, this saves having another function and loop to do it. ***/
@@ -223,6 +225,7 @@ destructed=0;
 /******************************************************************************
  NUTS Netlink protocols and functions
  *****************************************************************************/
+
 
 /*** Accept incoming server connection ***/
 void accept_server_connection(int sock, struct sockaddr_in acc_addr)
@@ -598,8 +601,9 @@ u->room=NULL; /* Means on remote talker */
 u->netlink=nl;
 u->pot_netlink=NULL;
 u->remote_com=-1;
-u->misc_op=0;  
-u->filepos=0;  
+u->misc_op=0;
+u->status='M';
+u->filepos=0;
 u->page_file[0]='\0';
 reset_access(old_room);
 sprintf(text,"ACT %s look\n",u->name);
@@ -823,9 +827,9 @@ void nl_user_exist(NL_OBJECT nl, char *to, char *from)
 {
 UR_OBJECT user;
 FILE *fp;
-char text2[ARR_SIZE],filename[280],line[82];
+char text2[ARR_SIZE],filename[500],line[82];
 
-sprintf(filename,"%s/%s/%s/OUT_%s_%s@%s", ROOTDIR, DATAFILES, MAILSPOOL, from, to, nl->service);
+sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
 if (!(fp=fopen(filename,"r"))) {
   if ((user=get_user(from))!=NULL) {
     sprintf(text,"~OLSYSTEM:~RS An error occured during mail delivery to %s@%s.\n",to,nl->service);
@@ -853,10 +857,10 @@ unlink(filename);
 /*** Got some mail coming in ***/
 void nl_mail(NL_OBJECT nl, char *to, char *from)
 {
-char filename[280];
+char filename[500];
 
 write_syslog(NETLOG,1,"NETLINK: Mail received for %s from %s.\n",to,nl->service);
-sprintf(filename,"%s/%s/%s/IN_%s_%s@%s", ROOTDIR, DATAFILES, MAILSPOOL,to,from,nl->service);
+sprintf(filename,"%s/IN_%s_%s@%s",MAILSPOOL,to,from,nl->service);
 if (!(nl->mailfile=fopen(filename,"w"))) {
   write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to write in nl_mail().\n",filename);
   sprintf(text,"MAILERROR %s %s\n",to,from);
@@ -873,23 +877,22 @@ strcpy(nl->mail_from,from);
 void nl_endmail(NL_OBJECT nl)
 {
 FILE *infp,*outfp;
-char c,infile[280],mailfile[280];
+char c,infile[500],mailfile[500];
 int amount,size,tmp1,tmp2;
 struct stat stbuf;
 
 fclose(nl->mailfile);
 nl->mailfile=NULL;
-sprintf(mailfile,"%s/%s/%s/IN_%s_%s@%s", ROOTDIR, DATAFILES, MAILSPOOL,nl->mail_to,nl->mail_from,nl->service);
+sprintf(mailfile,"%s/IN_%s_%s@%s",MAILSPOOL,nl->mail_to,nl->mail_from,nl->service);
 /* Copy to users mail file to a tempfile */
-sprintf(infile, "%s/%s/tempfile", ROOTDIR, TEMPFILES);
-if (!(outfp=fopen(infile,"w"))) {
+if (!(outfp=fopen("tempfile","w"))) {
   write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in netlink_endmail().\n");
   sprintf(text,"MAILERROR %s %s\n",nl->mail_to,nl->mail_from);
   write_sock(nl->socket,text);
   goto END;
   }
 /* Copy old mail file to tempfile */
-sprintf(infile,"%s/%s/%s/%s.M",ROOTDIR,USERFILES,USERMAILS,nl->mail_to);
+sprintf(infile,"%s/%s.M",USERMAILS,nl->mail_to);
 /* first get old file size if any new mail, and also new mail count */
 amount=mail_sizes(nl->mail_to,1);
 if (!amount) {
@@ -969,7 +972,7 @@ write_sock(nl->socket,text);
 void shutdown_netlink(NL_OBJECT nl)
 {
 UR_OBJECT u;
-char mailfile[80];
+char mailfile[500];
 
 if (nl->type==UNCONNECTED) return;
 
@@ -1137,7 +1140,7 @@ NL_OBJECT nl;
 int ret,tmperr;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <room service is linked to>", command_table[CONN].name);
+  write_usage(user,"%s <room service is linked to>", command_table[CONN].name);
   return;
   }
 if ((rm=get_room(word[1]))==NULL) {
@@ -1179,7 +1182,7 @@ RM_OBJECT rm;
 NL_OBJECT nl;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <room service is linked to>", command_table[DISCONN].name);
+  write_usage(user,"%s <room service is linked to>", command_table[DISCONN].name);
   return;
   }
 if ((rm=get_room(word[1]))==NULL) {
@@ -1212,7 +1215,7 @@ NL_OBJECT nl;
 RM_OBJECT rm;
 
 if (word_count<2) {
-  vwrite_usage(user,"%s <room service is linked to>", command_table[RSTAT].name);
+  write_usage(user,"%s <room service is linked to>", command_table[RSTAT].name);
   return;
   }
 if ((rm=get_room(word[1]))==NULL) {
@@ -1234,15 +1237,3 @@ sprintf(text,"RSTAT %s\n",user->name);
 write_sock(nl->socket,text);
 write_user(user,"Request sent.\n");
 }
-
-
-
-
-
-
-
-
-
-
-
-

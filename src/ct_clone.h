@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -24,3 +24,4 @@ extern char *clone_here_prompt, *clone_prompt;
 extern char *clone_user_destroy;
 extern char *clone_room_destroy1, *clone_room_destroy2;
 extern char *clone_switch_prompt;
+extern char *clone_desc;

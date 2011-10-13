@@ -1,6 +1,6 @@
 /*****************************************************************************
-                  Funkcie OS Star v1.0.0 na pracu s makrami
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                  Funkcie OS Star v1.1.0 na pracu s makrami
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -12,7 +12,7 @@
 #include "mc_obj.h"
 #include "macros.h"
 
-/* */
+/* prototypy */
 char * remove_first(char *inpstr);
 
 
@@ -40,7 +40,7 @@ void save_macros(UR_OBJECT user)
 
 	if (user->first_macro==NULL) return;
 
-	sprintf(filename, "%s/%s/%s/%s.MAC", ROOTDIR, USERFILES, USERMACROS, user->name);
+	sprintf(filename, "%s/%s.MAC", USERMACROS, user->name);
 
 	if ((fp=fopen(filename, "w"))==NULL) {
 		write_user(user, "SYSTEM: Chyba pri zapise makier do suboru\n");
@@ -61,10 +61,10 @@ void get_macros(UR_OBJECT user)
 	FILE *fp;
 	int l_len=(MC_NAME_LEN+MC_COM_LEN+2);
 	MC_OBJECT mc;
-	char filename[200], line[ARR_SIZE*2];
+	char filename[500], line[ARR_SIZE*2];
 	
 	if (user->type==REMOTE_TYPE) return;
-	sprintf(filename,"%s/%s/%s/%s.MAC",ROOTDIR,USERFILES,USERMACROS,user->name);
+	sprintf(filename,"%s/%s.MAC",USERMACROS,user->name);
 
 	if ((fp=fopen(filename, "r"))==NULL) {
 		return;
@@ -233,7 +233,7 @@ void macros(UR_OBJECT user, char *inpstr)
 /*** See if command just executed by the user was a macro ***/
 int check_macros(UR_OBJECT user, char *inpstr)
 {
-	char filename[180];
+	char filename[500];
 	FILE *fp;
 	MC_OBJECT mc;
 	char com[MC_NAME_LEN+1], outstr[ARR_SIZE*2];

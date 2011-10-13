@@ -1,7 +1,7 @@
-t a l k r o v y  O S  S t a r v1.0.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Informacie pre pouzitie na RedHat linuxe
-----------------------------------------
++------------------------------------------------------------------------------+
+Lotos 1.1.0 - info pre prevadzku na RedHat Linuxe
++------------------------------------------------------------------------------+
+
 Ak bude OS Star spustany na systeme RedHat, je potrebne prilinkovat k OS Star
 kniznicu `crypt'. Na inych systemoch to pokial viem potrebne nie je.
 Kniznica sa najlahsie prilinkuje pomocou dopisania do suboru Makefile.

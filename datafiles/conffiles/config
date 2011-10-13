@@ -1,7 +1,7 @@
-# Main config file for talker OS Star 1.0.0
+# Main config file for talker OS Star 1.1.0
 
 INIT:
-verification       osstar100
+verification       osstar110
 mainport           7000
 wizport            7001
 linkport           7002
@@ -9,7 +9,7 @@ max_users          100
 max_clones         5
 heartbeat          2
 login_idle_time    180
-user_idle_time     600
+user_idle_time     180
 time_out_afks      YES
 ban_swearing       MIN
 auto_connect       NO
@@ -38,6 +38,7 @@ startup_room_parse NO
 random_motds       YES
 auto_save          -1
 pueblo_enh         ZAP
+auto_afk           60
 
 
 ROOMS:
@@ -51,8 +52,7 @@ general lin linux          cpu,nul,dev,ram
 general dev devices        cpu,nul,ram,hda    PUB
 general ram pamat          cpu,nul,lin
 general hda disk           dev,ram
-gateway gw  gateways       dev,mro,ina        PUB
-gateway mro mars           gw                 PUB
+gateway gw  gateways       dev,ina            PUB
 gateway ina in_a           gw                 PUB
 
 TRANSPORTS:

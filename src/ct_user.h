@@ -1,6 +1,6 @@
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.0.0
-            Copyright (C) Pavol Hluchy - posledny update: 2.5.2000
+                      Hlavickovy subor OS Star v1.1.0
+            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
           osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
  *****************************************************************************/
 
@@ -24,21 +24,24 @@ extern struct {
   } user_level[];
 
 extern struct {
-  char *type;
-  char *desc;
-  } setstr[];
-
-extern struct {
   char name[USER_NAME_LEN+1],time[80];
   short int on;
   } last_login_info[LASTLOGON_NUM+1];
 
-/* koncovky */
+extern char *help_style[];
+extern char *who_style[];
+
+extern struct {
+	char cmenu, *type, *name, *desc;
+	} set_tab[];
+extern struct {
+	char *name, *str;
+	} prompt_tab[];
 
 extern char *restrict_string;
-
 
 /* prompts */
 extern char *appear_user_prompt, *appear_prompt;
 extern char *disapear_user_prompt, *disapear_prompt;
 extern char *profile_edit_header, *no_profile_prompt;
+extern char *continue1;
