@@ -1,33 +1,38 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-          Funkcie OS Star v1.1.0 suvisiace s podporou Pueblo klienta
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+            Funkcie Lotos v1.2.0 suvisiace s podporou Pueblo klienta
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 /*****************************************************************************
         POZOR !!! Zatial iba experimentalne - nerucim za funkcnost !!!!!
  *****************************************************************************/
 
+#ifndef __PUEBLO_C__
+#define __PUEBLO_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+#	include "obj_nl.h"
 #endif
-#include "sys_obj.h"
+#include "obj_sys.h"
 #include "pueblo.h"
 #include "music.h"
 #include "comvals.h"
 
-char * remove_first(char *str);
-RM_OBJECT get_room(char *str);
-char * censor_swear_words(char *str);
 
 /* Online init. of pueblo.  (In case the login doesn't do it.) */
-int chk_pblo(UR_OBJECT user, char *str)
+int chck_pblo(UR_OBJECT user, char *str)
 {
+	set_crash();
 if (user->pueblo==1) {
         user->pblodetect=0;
         if (!strncmp(str,"PUEBLOCLIENT",12)) return 1;
@@ -49,12 +54,13 @@ return 0;
 }
 
 
-contains_pueblo(char *str)
+int contains_pueblo(char *str)
 {
 	char *s;
 
+	set_crash();
 	if ((s=(char *)malloc(strlen(str)+1))==NULL) {
-		write_syslog("CHYBA: Failed to allocate memory in contains_pueblo().\n",0,SYSLOG);
+		write_syslog(ERRLOG, 1, "Failed to allocate memory in contains_pueblo().\n");
 		return 0;
 		}
 	strcpy(s,str);
@@ -75,6 +81,7 @@ RM_OBJECT rm;
 char *name;
 int cnt;
 
+	set_crash();
         if ((rm=get_room(word[3]))==NULL) {
                 write_user(user,nosuchroom);  return;
                 }
@@ -142,6 +149,7 @@ clear_revbuff(rm);
 /* Executes all the main features. */
 void pblo_exec(UR_OBJECT user, char *inpstr)
 {
+	set_crash();
 	inpstr=remove_first(inpstr);
 	if (!user->pueblo) return;
 	if (!strcmp(word[1],"audioSTOP")) {
@@ -157,6 +165,10 @@ if (!strcmp(word[1],"RoomConfig_setOpt")) {
         	write_user(user,"Personal rooms do not have access controls.\n");
         	return;
         	}
+		if (user->room->access==ROOT_CONSOLE) {
+			write_user(user, "Root console do not have access controls.\n");
+			return;
+			}
         if ( user->level < command_table[FIX].level
                 && user->level < command_table[UNFIX].level
                 && user->level < command_table[CTOPIC].level
@@ -211,10 +223,10 @@ if (!strcmp(word[1],"audioPLAY")) {
         return;
         }
 if (!strcmp(word[1],"audioVOL")) {
-        if (!strncmp(word[2],"muteVOL")) write_user(user,"</xch_mudtext><img xch_volume=0><xch_mudtext>");
-        if (!strncmp(word[2],"minVOL")) write_user(user,"</xch_mudtext><img xch_volume=33><xch_mudtext>");
-        if (!strncmp(word[2],"medVOL")) write_user(user,"</xch_mudtext><img xch_volume=66><xch_mudtext>");
-        if (!strncmp(word[2],"maxVOL")) write_user(user,"</xch_mudtext><img xch_volume=100><xch_mudtext>");
+        if (!strcmp(word[2],"muteVOL")) write_user(user,"</xch_mudtext><img xch_volume=0><xch_mudtext>");
+        if (!strcmp(word[2],"minVOL")) write_user(user,"</xch_mudtext><img xch_volume=33><xch_mudtext>");
+        if (!strcmp(word[2],"medVOL")) write_user(user,"</xch_mudtext><img xch_volume=66><xch_mudtext>");
+        if (!strcmp(word[2],"maxVOL")) write_user(user,"</xch_mudtext><img xch_volume=100><xch_mudtext>");
         return;
         }
 }
@@ -225,6 +237,7 @@ void disp_song(UR_OBJECT user, int num)
 	UR_OBJECT u;
 	char *name;
 
+	set_crash();
 	if (user->vis) name=user->name;  else name=invisname;
 	if (!user->vis) { sprintf(text,"%s[%s] ",colors[CSYSTEM],user->name); write_duty(user->level,text,user->room,user,0); }
 	sprintf(text,"o/~ %s plays \"%s\" on the Jukebox. o/~\n",name,jb_titles[num]);
@@ -240,6 +253,7 @@ void disp_song(UR_OBJECT user, int num)
 void pblo_jukebox(UR_OBJECT user)
 {
 int i,cnt,pos;
+	set_crash();
 i=0; cnt=0; pos=0;
 if (word_count<2) {
         for (i=0; jb_titles[i][0]!='*'; i++) {
@@ -271,8 +285,9 @@ void pblo_listexits(UR_OBJECT user)
 {
 	RM_OBJECT rm;
 	char temp[125];
-	int i,exits;
+	int i,exits=0;
 
+	set_crash();
 	rm=user->room;
 
 if (rm->access!=PERSONAL_LOCKED && rm->access!=PERSONAL_UNLOCKED) sprintf(text,"The exits for this room (%s) are:",rm->name);
@@ -324,9 +339,11 @@ char audiofiles[8][30]={
         "ap_f-shutdown.wav",    /* 06: Shutdown/Reboot alert (female)  */
         "ap_m-shutdown.wav"     /* 07: Shutdown/Reboot alert (male)    */
         };
+
+	set_crash();
 if (user!=NULL) {
         /* Check user prefs. */
-        if (!user->pueblo) return;
+        if (!user->pueblo) return 0;
         if (!pager && !user->pueblo_mm) return 0;
         if (pager  && !user->pueblo_pg) return 0;
 
@@ -347,6 +364,7 @@ for (u=user_first; u!=NULL; u=u->next) {
         sprintf(text,"</xch_mudtext><img xch_sound=play xch_device=wav href=\"%s%s%s\"><xch_mudtext>",reg_sysinfo[TALKERHTTP],reg_sysinfo[PUEBLOWEB],audiofiles[prmpt+u->voiceprompt]);
         write_user(u,text);
         }
+	return 0;
 }
 
 
@@ -355,6 +373,7 @@ void query_img(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	char *name;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"ppic <picture URL>");
 		return;
@@ -404,6 +423,7 @@ void query_aud(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	char *name;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"paudio <soundfile URL>");
 		return;
@@ -439,3 +459,5 @@ void query_aud(UR_OBJECT user, char *inpstr)
 		return;
 		}
 }
+
+#endif /* pueblo.c */

@@ -1,59 +1,65 @@
+/* vi: set ts=4 sw=4: ai*/
 /*****************************************************************************
-                Funkcie OS Star v1.1.0 suvisiace s ignoraciami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                Funkcie Lotos v1.2.0 suvisiace s ignoraciami
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __CT_IGNORE_C__
+#define __CT_IGNORE_C__ 1
+
+#include <stdlib.h>
 #include <time.h>
 #include <string.h>
 
 #include "define.h"
-#include "ur_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
 #include "ct_ignore.h"
 #include "comvals.h"
 #include "ignval.h"
 
-/* */
-UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
 
 
 /*** Switch ignoring all on and off ***/
 void toggle_ignall(UR_OBJECT user)
 {
-	if (!user->ignall) {
+	set_crash();
+	if (!user->ignore.all) {
 		write_user(user,"You are now ignoring everyone.\n");
 		if (user->vis) vwrite_room_except(user->room,user,"%s~RS is now ignoring everyone.\n",user->recap);
 		else vwrite_room_except(user->room,user,"%s~RS is now ignoring everyone.\n",invisname);
-		user->ignall=1;
+		user->ignore.all=1;
 		return;
 		}
 	write_user(user,"You will now hear everyone again.\n");
 	if (user->vis) vwrite_room_except(user->room,user,"%s~RS is listening again.\n",user->recap);
 	else vwrite_room_except(user->room,user,"%s~RS is listening again.\n",invisname);
-	user->ignall=0;
+	user->ignore.all=0;
 }
 
 
 /* displays what the user is currently listening to/ignoring */
 void show_ignlist(UR_OBJECT user)
 {
+	set_crash();
 write_user(user,"+----------------------------------------------------------------------------+\n");
-if (user->ignall) {
+if (user->ignore.all) {
   write_user(user,"| Momentalne ignorujes ~OL~FRvsetko~RS                                                |\n");
   write_user(user,"+----------------------------------------------------------------------------+\n");
   return;
   }
 vwrite_user(user,"| Ignoring shouts   : ~OL%-3s~RS    Ignoring tells  : ~OL%-3s~RS    Ignoring logons : ~OL%-3s~RS  |\n",
-	noyes2[user->ignshouts],noyes2[user->igntells],noyes2[user->ignlogons]);
+	noyes2[user->ignore.shouts],noyes2[user->ignore.tells],noyes2[user->ignore.logons]);
 vwrite_user(user,"| Ignoring pictures : ~OL%-3s~RS    Ignoring greets : ~OL%-3s~RS    Ignoring beeps  : ~OL%-3s~RS  |\n",
-	noyes2[user->ignpics],noyes2[user->igngreets],noyes2[user->ignbeeps]);
+	noyes2[user->ignore.pics],noyes2[user->ignore.greets],noyes2[user->ignore.beeps]);
 if (user->level>=WIZ) {
 	vwrite_user(user,"| Ignoring wiztells : ~OL%-3s~RS    Ign. transports : ~OL%-3s~RS    Ignoring funs   : ~OL%-3s~RS  |\n",
-  		noyes2[user->ignwiz], noyes2[user->igntr], noyes2[user->ignfuns]);
+  		noyes2[user->ignore.wiz], noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
   }
 else {
 	vwrite_user(user,"| Ign. transports   : ~OL%-3s~RS    Ignoring funs   : ~OL%-3s~RS                           |\n",
-  		noyes2[user->igntr], noyes2[user->ignfuns]);
+  		noyes2[user->ignore.transp], noyes2[user->ignore.funs]);
   }
 write_user(user,"+----------------------------------------------------------------------------+\n\n");
 }
@@ -65,6 +71,7 @@ void set_igusers(UR_OBJECT user)
 	UR_OBJECT u;
 	int i=0;
 
+	set_crash();
 	if (word_count<3) {
 		show_igusers(user);
 		return;
@@ -98,45 +105,46 @@ void user_listen(UR_OBJECT user)
 {
 	int yes;
 
+	set_crash();
 	yes=0;
-	if (user->ignall) {
-		user->ignall=0;
+	if (user->ignore.all) {
+		user->ignore.all=0;
 		yes=1;
 		}
-	if (user->igntells) {
-		user->igntells=0;
+	if (user->ignore.tells) {
+		user->ignore.tells=0;
 		yes=1;
 		}
-	if (user->ignshouts) {
-		user->ignshouts=0;
+	if (user->ignore.shouts) {
+		user->ignore.shouts=0;
 		yes=1;
 		}
-	if (user->ignpics) {
-		user->ignpics=0;
+	if (user->ignore.pics) {
+		user->ignore.pics=0;
 		yes=1;
 		}
-	if (user->ignlogons) {
-		user->ignlogons=0;
+	if (user->ignore.logons) {
+		user->ignore.logons=0;
 		yes=1;
 		}
-	if (user->ignwiz) {
-		user->ignwiz=0;
+	if (user->ignore.wiz) {
+		user->ignore.wiz=0;
 		yes=1;
 		}
-	if (user->igngreets) {
-		user->igngreets=0;
+	if (user->ignore.greets) {
+		user->ignore.greets=0;
 		yes=1;
 		}
-	if (user->ignbeeps) {
-		user->ignbeeps=0;
+	if (user->ignore.beeps) {
+		user->ignore.beeps=0;
 		yes=1;
 		}
-	if (user->igntr) {
-		user->igntr=0;
+	if (user->ignore.transp) {
+		user->ignore.transp=0;
 		yes=1;
 		}
-	if (user->ignfuns) {
-		user->ignfuns=0;
+	if (user->ignore.funs) {
+		user->ignore.funs=0;
 		yes=1;
 		}
 	if (yes) {
@@ -153,6 +161,7 @@ void user_listen(UR_OBJECT user)
 void set_ign_word(UR_OBJECT user)
 {
 	char *pp;
+	set_crash();
 	if (word_count<3) {
 		if (user->ign_word!=NULL)
 			vwrite_user(user, "Teraz ignorujes slovo '%s'.\n", user->ign_word);
@@ -194,6 +203,7 @@ void set_ignores(UR_OBJECT user)
 {
 	int i, ignattrval=-1;
 
+	set_crash();
 	if (word_count<2) goto IGN_JUMP;
 	i=0;
 	strtolower(word[1]);
@@ -223,41 +233,41 @@ IGN_JUMP:
 			toggle_ignall(user);
 			return;
 		case IGN_TELLS:
-	 		switch(user->igntells) {
-				case 0: user->igntells=1;
+	 		switch(user->ignore.tells) {
+				case 0: user->ignore.tells=1;
 					write_user(user,"You will now ignore tells.\n");
 					break; 
-				case 1: user->igntells=0;
+				case 1: user->ignore.tells=0;
 					write_user(user,"You will now hear tells.\n");
 					break;
 				}
 			return;
 		case IGN_SHOUTS:
-			switch(user->ignshouts) {
-				case 0: user->ignshouts=1;
+			switch(user->ignore.shouts) {
+				case 0: user->ignore.shouts=1;
 					write_user(user,"You will now ignore shouts.\n");
 					break; 
-				case 1: user->ignshouts=0;
+				case 1: user->ignore.shouts=0;
 					write_user(user,"You will now hear shouts.\n");
 					break;
 				}
 			return;
 		case IGN_PICS:
-			switch(user->ignpics) {
-				case 0: user->ignpics=1;
+			switch(user->ignore.pics) {
+				case 0: user->ignore.pics=1;
 					write_user(user,"You will now ignore pictures.\n");
 					break; 
-				case 1: user->ignpics=0;
+				case 1: user->ignore.pics=0;
 					write_user(user,"You will now see pictures.\n");
 					break;
 				}
 			return;
 		case IGN_LOGONS:
-			switch(user->ignlogons) {
-				case 0: user->ignlogons=1;
+			switch(user->ignore.logons) {
+				case 0: user->ignore.logons=1;
 					write_user(user,"You will now ignore all logons and logoffs.\n");
 					break;
-				case 1: user->ignlogons=0;
+				case 1: user->ignore.logons=0;
 					write_user(user,"You will now see all logons and logoffs.\n");
 					break;
 				}
@@ -267,41 +277,41 @@ IGN_JUMP:
 				write_user(user, "Nemas na to level !\n");
 				return;
 				}
-			switch(user->ignwiz) {
-				case 0: user->ignwiz=1;
+			switch(user->ignore.wiz) {
+				case 0: user->ignore.wiz=1;
 					write_user(user,"You will now ignore all wiztells and wizemotes.\n");
 					break;
-				case 1: user->ignwiz=0;
+				case 1: user->ignore.wiz=0;
 					write_user(user,"You will now listen to all wiztells and wizemotes.\n");
 					break;
 				}
 			return;
 		case IGN_GREETS:
-			switch(user->igngreets) {
-				case 0: user->igngreets=1;
+			switch(user->ignore.greets) {
+				case 0: user->ignore.greets=1;
 					write_user(user,"You will now ignore all greets.\n");
 					break;
-				case 1: user->igngreets=0;
+				case 1: user->ignore.greets=0;
 					write_user(user,"You will now see all greets.\n");
 					break;
 				}
 			return;
 		case IGN_BEEPS:
-			switch(user->ignbeeps) {
-				case 0: user->ignbeeps=1;
+			switch(user->ignore.beeps) {
+				case 0: user->ignore.beeps=1;
 					write_user(user,"You will now ignore all beeps from users.\n");
 					break;
-				case 1: user->ignbeeps=0;
+				case 1: user->ignore.beeps=0;
 					write_user(user,"You will now hear all beeps from users.\n");
 					break;
 				}
 			return;
 		case IGN_TRANSP:
-			switch(user->igntr) {
-				case 0: user->igntr=1;
+			switch(user->ignore.transp) {
+				case 0: user->ignore.transp=1;
 					write_user(user,"You will now ignore all transports.\n");
 					break;
-				case 1: user->igntr=0;
+				case 1: user->ignore.transp=0;
 					write_user(user,"You will now hear all transports.\n");
 					break;
 				}
@@ -314,14 +324,16 @@ IGN_JUMP:
 			return;
 			
 		case IGN_FUNS:
-	 		switch(user->ignfuns) {
-				case 0: user->ignfuns=1;
+	 		switch(user->ignore.funs) {
+				case 0: user->ignore.funs=1;
 					write_user(user,"You will now ignore funs.\n");
 					break; 
-				case 1: user->ignfuns=0;
+				case 1: user->ignore.funs=0;
 					write_user(user,"You will now hear funs.\n");
 					break;
 				}
 			return;
 		}
 }
+
+#endif /* ct_ignore.c */

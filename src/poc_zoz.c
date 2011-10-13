@@ -1,24 +1,33 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-          Funkcie OS Star v1.1.0 na pracu s pocitadlami a zoznamami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+            Funkcie Lotos v1.2.0 na pracu s pocitadlami a zoznamami
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __POC_ZOZ_C__
+#define __POC_ZOZ_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <dirent.h>
 #include <time.h>
 #include <string.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "syspp_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_syspp.h"
 #include "poc_zoz.h"
+
 
 void load_counters(void)
 {
 	FILE *fp;
 	int err=0, i, tmp=0;
 
+	set_crash();
 	printf("Nacitavam pocitadla ");
 	if ((fp=fopen(TCOUNTER, "r"))==NULL) {
 		write_syslog(ERRLOG, 0, "Nemozem otvorit fajl s tcountrom, nulujem\n");
@@ -29,7 +38,7 @@ void load_counters(void)
 		err=1;
 		}
 	else {
-		fscanf(fp, "%ld %ld %ld %d",
+		fscanf(fp, "%ld %ld %ld %ld",
 			&syspp->tcounter[0], &syspp->tcounter[1],
 			&syspp->tcounter[2], &syspp->tcounter[3]
 			);
@@ -61,7 +70,7 @@ void load_counters(void)
 		err=1;
 		}
 	else {
-		fscanf(fp, "%ld %ld %ld %d",
+		fscanf(fp, "%ld %ld %ld %ld",
 			&syspp->mcounter[0], &syspp->mcounter[1],
 			&syspp->mcounter[2], &syspp->mcounter[3]
 			);
@@ -80,8 +89,9 @@ void save_counters(void)
 	FILE *fp;
 	int i;
 
+	set_crash();
 	if ((fp=fopen(TCOUNTER, "w"))==NULL) {
-		write_syslog(ERRLOG, "Nemozem otvorit tcounter fajl pre zapis v save_counters()\n");
+		write_syslog(ERRLOG, 1, "Nemozem otvorit tcounter fajl pre zapis v save_counters()\n");
 		return;
 		}
 	for (i=0; i<4; i++)
@@ -90,7 +100,7 @@ void save_counters(void)
 	fclose(fp);
 
 	if ((fp=fopen(MCOUNTER, "w"))==NULL) {
-		write_syslog(ERRLOG, "Nemozem otvorit mcounter fajl pre zapis v save_counters()\n");
+		write_syslog(ERRLOG, 1, "Nemozem otvorit mcounter fajl pre zapis v save_counters()\n");
 		return;
 		}
 	for (i=0; i<4; i++)
@@ -102,6 +112,7 @@ void save_counters(void)
 
 void show_counters(UR_OBJECT user)
 {
+	set_crash();
 	write_user(user, "Aktualny stav pocitadiel:\n\n");
 	write_user(user, "                   Loginy                      Useri\n");
 	write_user(user, "Pohlavie   |   Total        Boot     |  Maximum     Aktual\n");
@@ -126,6 +137,7 @@ int count_musers(UR_OBJECT user, char *inpstr)
 	char multiliststr[ARR_SIZE];
 	char *strbck, *p=inpstr;
 
+	set_crash();
 	strbck=strdup(inpstr);
 	reset_murlist(user);
 
@@ -209,17 +221,18 @@ void list_txt_files(UR_OBJECT user)
 	char filename[500];
 	int cnt, tcnt;
 
+	set_crash();
 	cnt=tcnt=0;
 	if (!user) printf("Vytvaram zoznam textovych suborov ... ");
 	else write_user(user, "Vytvaram zoznam textovych suborov ");
 
 	if (!(dirp=opendir(TEXTFILES))) {
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Directory open failure in list_txt_files().\n");
+			fprintf(stderr, "\nLotos: Directory open failure in list_txt_files().\n");
 			boot_exit(101);
 			}
 		else {
-			write_user(user, "\nOS Star: Directory open failure in list_txt_files().\n");
+			write_user(user, "\nLotos: Directory open failure in list_txt_files().\n");
 			return;
 			}
 		}
@@ -227,11 +240,11 @@ void list_txt_files(UR_OBJECT user)
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Nemozem vytvorit tempfajl v list_txt_files().\n");
+			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
 			boot_exit(102);
 			}
 		else {
-			write_user(user, "\nOS Star: Nemozem vytvorit tempfajl v list_txt_files().\n");
+			write_user(user, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
 			return;
 			}
 		}
@@ -247,11 +260,11 @@ void list_txt_files(UR_OBJECT user)
 		if ((ifp=fopen(filename, "r"))==NULL) {
 			(void) closedir(dirp);
 			if (!user) {
-				fprintf(stderr, "\nOS Star: Nemozem otvorit subor na citanie v list_txt_files().\n");
+				fprintf(stderr, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
 				boot_exit(103);
 				}
 			else {
-				write_user(user, "\nOS Star: Nemozem otvorit subor na citanie v list_txt_files().\n");
+				write_user(user, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
 				return;
 				}
 			}
@@ -273,11 +286,11 @@ void list_txt_files(UR_OBJECT user)
 	cnt=0;
 	if (!(dirp=opendir(ADMINFILES))) {
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Directory open failure in list_txt_files().\n");
+			fprintf(stderr, "\nLotos: Directory open failure in list_txt_files().\n");
 			boot_exit(101);
 			}
 		else {
-			write_user(user, "\nOS Star: Directory open failure in list_txt_files().\n");
+			write_user(user, "\nLotos: Directory open failure in list_txt_files().\n");
 			return;
 			}
 		}
@@ -285,11 +298,11 @@ void list_txt_files(UR_OBJECT user)
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Nemozem vytvorit tempfajl v list_txt_files().\n");
+			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
 			boot_exit(102);
 			}
 		else {
-			write_user(user, "\nOS Star: Nemozem vytvorit tempfajl v list_txt_files().\n");
+			write_user(user, "\nLotos: Nemozem vytvorit tempfajl v list_txt_files().\n");
 			return;
 			}
 		}
@@ -305,11 +318,11 @@ void list_txt_files(UR_OBJECT user)
 			(void) closedir(dirp);
 			fclose(ofp);
 			if (!user) {
-				fprintf(stderr, "\nOS Star: Nemozem otvorit subor na citanie v list_txt_files().\n");
+				fprintf(stderr, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
 				boot_exit(103);
 				}
 			else {
-				write_user(user, "\nOS Star: Nemozem otvorit subor na citanie v list_txt_files().\n");
+				write_user(user, "\nLotos: Nemozem otvorit subor na citanie v list_txt_files().\n");
 				return;
 				}
 			}
@@ -335,22 +348,23 @@ void list_txt_files(UR_OBJECT user)
 void list_pic_files(UR_OBJECT user)
 {
 	DIR *dirp;
-	FILE *ifp, *ofp;
+	FILE *ofp;
 	struct dirent *dp;
 	char filename[500];
 	char fntname[50];
 	int cnt=0, cl, pc;
 
+	set_crash();
 	if (!user) printf("Vytvaram zoznam obrazkovych suborov ... ");
 	else write_user(user, "Vytvaram zoznam obrazkovych suborov ");
 
 	if (!(dirp=opendir(PICTFILES))) {
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Directory open failure in list_pic_files().\n");
+			fprintf(stderr, "\nLotos: Directory open failure in list_pic_files().\n");
 			boot_exit(101);
 			}
 		else {
-			write_user(user, "\nOS Star: Directory open failure in list_pic_files().\n");
+			write_user(user, "\nLotos: Directory open failure in list_pic_files().\n");
 			return;
 			}
 		}
@@ -358,11 +372,11 @@ void list_pic_files(UR_OBJECT user)
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Nemozem vytvorit tempfajl v list_pic_files().\n");
+			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_pic_files().\n");
 			boot_exit(102);
 			}
 		else {
-			write_user(user, "\nOS Star: Nemozem vytvorit tempfajl v list_pic_files().\n");
+			write_user(user, "\nLotos: Nemozem vytvorit tempfajl v list_pic_files().\n");
 			return;
 			}
 		}
@@ -403,22 +417,23 @@ void list_pic_files(UR_OBJECT user)
 void list_fnt_files(UR_OBJECT user)
 {
 	DIR *dirp;
-	FILE *ifp, *ofp;
+	FILE *ofp;
 	struct dirent *dp;
 	char filename[500];
 	char name[ARR_SIZE];
-	int cnt=0, cl, pc;
+	int cnt=0, pc;
 
+	set_crash();
 	if (!user) printf("Vytvaram zoznam fontov ... ");
 	else write_user(user, "Vytvaram zoznam fontov ");
 
 	if (!(dirp=opendir(FIGLET_FONTS))) {
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Directory open failure in list_fnt_files().\n");
+			fprintf(stderr, "\nLotos: Directory open failure in list_fnt_files().\n");
 			boot_exit(101);
 			}
 		else {
-			write_user(user, "\nOS Star: Directory open failure in list_fnt_files().\n");
+			write_user(user, "\nLotos: Directory open failure in list_fnt_files().\n");
 			return;
 			}
 		}
@@ -426,11 +441,11 @@ void list_fnt_files(UR_OBJECT user)
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Nemozem vytvorit tempfajl v list_fnt_files().\n");
+			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_fnt_files().\n");
 			boot_exit(102);
 			}
 		else {
-			write_user(user, "\nOS Star: Nemozem vytvorit tempfajl v list_fnt_files().\n");
+			write_user(user, "\nLotos: Nemozem vytvorit tempfajl v list_fnt_files().\n");
 			return;
 			}
 		}
@@ -472,18 +487,19 @@ void list_kill_msgs(UR_OBJECT user)
 	struct dirent *dp;
 	char filename[500];
 	char *pp, line[82];
-	int cnt=0, cl, pc;
+	int cnt=0, pc;
 
+	set_crash();
 	if (!user) printf("Vytvaram zoznam 'kill hlasok' ... ");
 	else write_user(user, "Vytvaram zoznam 'kill hlasok' ");
 
 	if (!(dirp=opendir(KILLMSGS))) {
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Directory open failure in list_kill_msgs().\n");
+			fprintf(stderr, "\nLotos: Directory open failure in list_kill_msgs().\n");
 			boot_exit(101);
 			}
 		else {
-			write_user(user, "\nOS Star: Directory open failure in list_kill_msgs().\n");
+			write_user(user, "\nLotos: Directory open failure in list_kill_msgs().\n");
 			return;
 			}
 		}
@@ -491,11 +507,11 @@ void list_kill_msgs(UR_OBJECT user)
 	if ((ofp=fopen(filename, "w"))==NULL) {
 		(void) closedir(dirp);
 		if (!user) {
-			fprintf(stderr, "\nOS Star: Nemozem vytvorit tempfajl v list_kill_msgs().\n");
+			fprintf(stderr, "\nLotos: Nemozem vytvorit tempfajl v list_kill_msgs().\n");
 			boot_exit(102);
 			}
 		else {
-			write_user(user, "\nOS Star: Nemozem vytvorit tempfajl v list_kill_msgs().\n");
+			write_user(user, "\nLotos: Nemozem vytvorit tempfajl v list_kill_msgs().\n");
 			return;
 			}
 		}
@@ -533,3 +549,5 @@ void list_kill_msgs(UR_OBJECT user)
 	if (!user) printf(" spolu %d\n", cnt);
 	else vwrite_user(user, " spolu %d\n", cnt);
 }
+
+#endif /* poc_zoz.c */

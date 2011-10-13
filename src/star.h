@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                       Hlavickovy subor Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __STAR_H__
+#define __STAR_H__ 1
 
  /* attempt to stop freezing time.  Thanks to Arny ('Paris' code creator)
    and Cygnus ('Ncohafmuta' code creator) for this */
@@ -68,6 +72,8 @@ extern struct {
 char *default_jail="windows";
 char *default_warp="procesor";
 char *default_shoot="null";
+char *default_bank="bank";
+char *default_casino="casino";
 
 /* The rooms listed here are just examples of what can be added
    You may add more or remove as many as you like, but you MUST
@@ -85,7 +91,7 @@ struct {
   char *txt_code;
   } colour_codes[]={
     /* Standard stuff */
-    { "\033[0m", "RS" }, /* reset */
+    { "\033[0m\033[37m\033[40m", "RS" }, /* reset */
     { "\033[1m", "OL" }, /* bold */
     { "\033[4m", "UL" }, /* underline */
     { "\033[5m", "LI" }, /* blink */
@@ -109,7 +115,7 @@ struct {
     { "\033[46m", "BT" }, /* turquiose */
     { "\033[47m", "BW" }, /* white */
     /* Beep - ascii bell */
-    { "\07",      "BP" }, /* beep */
+    { "\007",      "BP" }, /* beep */
     /* Clear screen */
 //    { "\033[2J",  "CS" },
     { "\033[H\033[J","CS"},
@@ -184,12 +190,18 @@ extern char *reg_sysinfo[];
 extern char susers_restrict[];
 extern char *restrict_string;
 
+extern int crash_step;
+
 extern char *help_style[];
 extern char *who_style[];
 
 extern struct {
 	char cmenu, *type, *name, *desc;
 	} set_tab[];
+
+extern struct {
+	char cmenu, *type, *name, *desc;
+	} setterm_tab[];
 
 extern struct {
 	char *name, *str;
@@ -210,8 +222,10 @@ extern char *password_bad;
 extern char *user_banned_prompt, *shout_cbuff_prompt;
 extern char *flood_prompt, *flood_prompt_r, *autopromo_prompt;
 extern char *eq_hi_lev_prompt, *this_m_ban_prompt;
-extern char *nuts_credits, *amnuts_credits, *star_credits;
 extern char *sys_port_closed, *wiz_port_closed;
 extern char *continue2;
 extern char *auto_afk_mesg;
 extern char *default_personal_room_desc, *default_personal_room_topic;
+extern char *room_setup_enter;
+
+#endif /* star.h */

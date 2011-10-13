@@ -1,22 +1,26 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                  Funkcie OS Star v1.1.0 pre pracu s fontami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                   Funkcie Lotos v1.2.0 pre pracu s fontami
+original: figlets system from CryptV5 
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __FONTS_C__
+#define __FONTS_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
-#include "sys_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_sys.h"
 #include "fonts.h"
-
-/* prototypy */
-UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
-char * censor_swear_words(char *has_swears);
 
 
 #ifdef __STDC__
@@ -30,6 +34,7 @@ char *myalloc(int size)
 	extern void *malloc();
 #endif
 
+	set_crash();
 	if ((ptr = (char*)malloc(size))==NULL) {
 		write_room(NULL,"~FR~OLSYSTEM: Malloc failed in figlet().\n");
 		return NULL;
@@ -52,6 +57,7 @@ void readfontchar(FILE *file, long theord, char *line, int maxlen)
 	char endchar;
 	fcharnode *fclsave;
 
+	set_crash();
 	fclsave = fcharlist;
 
 	fcharlist = (fcharnode*)myalloc(sizeof(fcharnode));
@@ -85,6 +91,7 @@ void skiptoeol(FILE *fp)
 {
 	int dummy;
 
+	set_crash();
 	while (dummy=getc(fp),dummy!='\n'&&dummy!=EOF) ;
 }
 
@@ -104,6 +111,7 @@ int readfont(char *fontname)
 	FILE *fontfile;
 	char fontpath[500];
 
+	set_crash();
 	sprintf(fontpath, "%s/%s.flf", FIGLET_FONTS, fontname);
 
 	fontfile=fopen(fontpath,"r");
@@ -162,6 +170,7 @@ void write_text_figlet(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *fig_text
 	char fig1[ARR_SIZE];
 	char fig2[ARR_SIZE];
 
+	set_crash();
 	if (strcmp(font,"standard"))
 		sprintf(fig1,"~FRBanner od ~OL%s~RS~FR (%s font): ~RS%s\n",
 			name, font, fig_text
@@ -215,6 +224,7 @@ void fclearline(void)
 {
 	int i;
 
+	set_crash();
 	for (i=0;i<charheight;i++)
 		outline[i][0] = '\0';
 	outlinelen = 0;
@@ -225,6 +235,7 @@ void fclearline(void)
 /*** Write figlet lines to users that want them ***/
 void write_broadcast_figlet(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *fig_text)
 {
+	set_crash();
 	if (u) {
 		write_user(u, fig_text);
 		return;
@@ -253,6 +264,7 @@ void putstring(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *string)
 	int i,j=0,len;
 	char t;
 
+	set_crash();
 	len = MYSTRLEN(string);
 	if (outputwidth>1) {
 		if (len>outputwidth-1) len = outputwidth-1;
@@ -283,6 +295,7 @@ void printline(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm)
 {
 	int i;
 
+	set_crash();
 	for (i=0;i<charheight;i++)
 		putstring(user, u, rm, outline[i]);
 	fclearline();
@@ -299,6 +312,7 @@ void getletter(long c)
 {
 	fcharnode *charptr;
 
+	set_crash();
 	for (charptr=fcharlist; charptr==NULL?0:charptr->ord!=c; charptr=charptr->next) ;
 	if (charptr!=NULL) currchar = charptr->thechar;
 	else {
@@ -320,6 +334,7 @@ int addchar(long c)
   int smushamount,row;
   char *templine;
 
+	set_crash();
   getletter(c);
   smushamount=0;
   if (outlinelen+currcharwidth>outlinelenlimit
@@ -354,9 +369,10 @@ int addchar(long c)
 ****************************************************************************/
 void splitline(UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm)
 {
-	int i,gotspace,lastspace,len1,len2;
+	int i,gotspace,lastspace=0,len1,len2;
 	long *part1,*part2;
 
+	set_crash();
 	part1 = (long*)myalloc(sizeof(long)*(inchrlinelen+1));
 	part2 = (long*)myalloc(sizeof(long)*(inchrlinelen+1));
 	gotspace = 0;
@@ -394,8 +410,8 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 	char *p=inpstr, *name;
 	fcharnode *fclsave;
 	char fontname[256]="standard";
-	char filename[512];
 
+	set_crash();
 	if (user->muzzled) {
 		write_user(user, "Si muzzled, nemozes bannerovat\n");
 		return;
@@ -441,11 +457,11 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 			vwrite_user(user,"%s~RS is ignoring tells from you.\n",u->recap);
 			return;
 			}
-		if (u->igntells && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) {
 			vwrite_user(user,"%s~RS is ignoring tells at the moment.\n",u->recap);
 			return;
 			}
-		if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
 			if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is using the editor at the moment.\n",u->recap);
 			else vwrite_user(user,"%s~RS is ignoring everyone at the moment.\n",u->recap);
 			return;
@@ -605,3 +621,5 @@ void figlet(UR_OBJECT user, char *inpstr, int typ)
 		} while (fclsave!=NULL);
 	return;
 }
+
+#endif /* fonts.c */

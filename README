@@ -1,0 +1,25 @@
++------------------------------------------------------------------------------+
+                       Lopov Talkrovy OS Star (Lotos)
++------------------------------------------------------------------------------+
+
+   Vitajte v OS Star verzie 1.2.0
+
+ Vsetky textove dokumenty tykajuce sa Lotos-a su umiestnene v adresari docs.
+Su tam nasledujuce:
+COPYRIGHT - informacie o autorstve, autorskej licencii a dalsom sireni Lotos-a
+manual.txt - hlavna napoveda k Lotos-u
+userdata.txt - usporiadanie suborov s nastaveniami userov
+compiling.txt - informacie s radami ku kompilacii
+config.txt - obsah a nastavovanie konfiguracneho suboru
+redhat.txt - dolezite upozornenia pre pouzivatelov systemu RedHat
+bugs.txt - zoznam znamych chyb
+changes.txt - zoznam zmien v jednotlivych verziach
+plugins_api.txt
+
+
+Vdaka za pouzivanie Lotos-a !
+
+                                                                   Pavol Hluchy
++------------------------------------------------------------------------------+
+email: lotos@losys.net                               web: http://lotos.losys.net
++------------------------------------------------------------------------------+

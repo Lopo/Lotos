@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                      Hlavickovy subor Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __FONTS_H__
+#define __FONTS_H__ 1
 
 extern UR_OBJECT user_first;
 extern RM_OBJECT room_first;
@@ -35,3 +39,5 @@ extern int charheight, defaultmode;
 extern char *invisname;
 extern char *notloggedon;
 extern char *noswearing;
+
+#endif /* fonts.h */

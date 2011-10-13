@@ -1,27 +1,30 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-            Funkcie OS Star v1.1.0 na pracu so spravami typu mail
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+              Funkcie Lotos v1.2.0 na pracu so spravami typu mail
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __MAIL_C__
+#define __MAIL_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+	#include "obj_nl.h"
 #endif
 #include "mail.h"
 #include "comvals.h"
-
-/* prototypy */
-char * colour_com_strip(char *str);
-char * remove_first(char *inpstr);
-UR_OBJECT get_user(char *name);
-
 
 
 #ifdef NETLINKS
@@ -31,12 +34,13 @@ void send_external_mail(NL_OBJECT nl, UR_OBJECT user, char *to, char *ptr)
 FILE *fp;
 char filename[500];
 
+	set_crash();
 /* Write out to spool file first */
 sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,user->name,to,nl->service);
 if (!(fp=fopen(filename,"a"))) {
   sprintf(text,"%s: unable to spool mail.\n",syserror);
   write_user(user,text);
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to append in send_external_mail().\n",filename);
+  write_syslog(ERRLOG,1,"Couldn't open file %s to append in send_external_mail().\n",filename);
   return;
   }
 putc('\n',fp);
@@ -54,7 +58,6 @@ write_user(user,"Mail sent to external talker.\n");
 /*** This is function that sends mail to other users ***/
 int send_mail(UR_OBJECT user, char *to, char *ptr, int iscopy)
 {
-UR_OBJECT u;
 #ifdef NETLINKS
   NL_OBJECT nl;
 #endif
@@ -63,6 +66,7 @@ char *c,d,*service,filename[500],cc[4],header[ARR_SIZE];
 int amount,size,tmp1,tmp2;
 struct stat stbuf;
 
+	set_crash();
 /* See if remote mail */
 c=to;  service=NULL;
 while(*c) {
@@ -84,7 +88,7 @@ while(*c) {
 /* Local mail */
 if (!(outfp=fopen("tempfile","w"))) {
   write_user(user,"Error in mail delivery.\n");
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in send_mail().\n");
+  write_syslog(ERRLOG,1,"Couldn't open tempfile in send_mail().\n");
   return 0;
   }
 /* Copy current mail file into tempfile if it exists */
@@ -274,6 +278,7 @@ void send_copies(UR_OBJECT user, char *ptr)
 {
 	int i,found=0;
 
+	set_crash();
 	for (i=0; i<MAX_COPIES; i++) {
 		if (!user->copyto[i][0]) continue;
 		if (++found==1)
@@ -292,6 +297,7 @@ UR_OBJECT u;
 int remote,has_account;
 char *c;
 
+	set_crash();
 if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot mail anyone.\n");  return;
   }
@@ -375,6 +381,7 @@ int tmp1,tmp2,amount,size,cnt=0;
 struct user_dir_struct *entry;
 struct stat stbuf;
 
+	set_crash();
 if ((entry=first_dir_entry)==NULL) return 0;
 while (entry!=NULL) {
   /*    just wizzes                            specific level    */
@@ -386,7 +393,7 @@ while (entry!=NULL) {
   entry->name[0]=toupper(entry->name[0]);
   if (!(outfp=fopen("tempfile","w"))) {
     write_user(user,"Error in mail delivery.\n");
-    write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in send_broadcast_mail().\n");
+    write_syslog(ERRLOG,1,"Couldn't open tempfile in send_broadcast_mail().\n");
     entry=entry->next;
     continue;
     }
@@ -447,8 +454,9 @@ return 1;
 void dmail(UR_OBJECT user)
 {
 int num,cnt;
-char filename[100];
+char filename[500];
 
+	set_crash();
 if (word_count<2) {
   write_user(user,"Pouzitie: dmail all\n");
   write_user(user,"Pouzitie: dmail <#>\n");
@@ -475,7 +483,7 @@ cnt=wipe_messages(filename,user->wipe_from,user->wipe_to,1);
 reset_mail_counts(user);
 if (cnt==num) {
   unlink(filename);
-  vwrite_user(user, dmail_too_many, PLTEXT_WAS(cnt),cnt,PLTEXT_S(cnt));
+  vwrite_user(user, dmail_too_many, cnt, grm_gnd(8, cnt));
   return;
   }
 vwrite_user(user,"%d mail message%s deleted.\n",cnt,PLTEXT_S(cnt));
@@ -490,6 +498,7 @@ FILE *fp;
 int valid,cnt,tmp1,tmp2,nmail;
 char w1[ARR_SIZE],line[ARR_SIZE],filename[500];
 
+	set_crash();
 sprintf(filename,"%s/%s.M", USERMAILS,user->name);
 if (!(fp=fopen(filename,"r"))) {
   write_user(user,"You have no mail.\n");
@@ -520,6 +529,7 @@ void copies_to(UR_OBJECT user)
 int remote,i=0,docopy,found,cnt;
 char *c;
 
+	set_crash();
 if (com_num==NOCOPIES) {
   for (i=0; i<MAX_COPIES; i++) user->copyto[i][0]='\0';
   write_user(user,"Sending no copies of your next smail.\n");  return;
@@ -592,6 +602,7 @@ void level_mail(UR_OBJECT user, char *inpstr, int done_editing)
 {
 int level,i;
 
+	set_crash();
 if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot mail anyone.\n");  return;
   }
@@ -675,6 +686,7 @@ void friend_smail(UR_OBJECT user, char *inpstr, int done_editing)
 {
 int i,fcnt;
 
+	set_crash();
 if (user->muzzled) {
   write_user(user,"You are muzzled, you cannot mail anyone.\n");  return;
   }
@@ -831,6 +843,7 @@ FILE *fp;
 int valid,cnt,new,size;
 char w1[ARR_SIZE],line[ARR_SIZE],filename[500],*str;
 
+	set_crash();
 cnt=new=size=0;
 name[0]=toupper(name[0]);
 sprintf(filename,"%s/%s.M", USERMAILS,name);
@@ -866,6 +879,7 @@ int reset_mail_counts(UR_OBJECT user)
 	char c,filename[500];
 	struct stat stbuf;
 
+	set_crash();
 	sprintf(filename,"%s/%s.M", USERMAILS,user->name);
 	/* get file size */
 	if (stat(filename,&stbuf)==-1) size=0;
@@ -890,3 +904,5 @@ int reset_mail_counts(UR_OBJECT user)
 	fclose(infp);
 	return 1;
 }
+
+#endif /* mail.c */

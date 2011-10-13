@@ -1,3 +1,48 @@
+23.4.2000 v1.2.0
+----------------
+pri starte generuje subor BIN/kill - sluzi na nasilne ukoncenie talkra
+novy prikaz .pldebug - len doplneny link na funkciu oss_debugger() - asi som ho
+ doteraz zabudol :)
+pridany 'crash' system - vhodne pri DEBUG - uklada aktualny subor a riadok
+pridana funkcia build_datetime() - v samostatnom subore ktory sa kombajnuje pri
+ kazdej kompilacii - datum a cas kompilacie zobrazeny pri .system
+upraveny system pre restart kvoli plug-in modulom
+opravene funkcie is_fnumber() a is_inumber()
+novy prikaz .bank + par dalsich - praca s peniazmi
+doplneny parameter `credit' do .modify
+pridany system kreditov
+room_struct uz neobsahuje parametre na transporty ale len pointer na strukturu
+doplnene zobrazovanie typu prikazu pri napovede k nemu
+doplneny prikaz .restore - obnovenie levelu po .tpromote a .tdemote
+ujednotene pomenovanie suborov `objektov' - obj_*.h
+.sayto premenovane na .to, .cbuff na .revclear
+premenovane funkcie echo, instr, beep, move na s_xxxx() kvoli curses.h ktore som
+ aj tak nakoniec nepouzil
+opravena chyba v check_macros - nepadne pri prvom slove dlhsom ako 10 znakov
+uz sa GOD nedostane do RTC roomy
+vylepseny Makefile
+autodemote+jail pri edite userfajlu na level 12-ROOT
+doplneny farebny kod ~RS-reset kvoli programu telbin
+opravene demote roota pri .save a autoafk
+prerobeny system nastavovania parametrov - lahsie doplnanie novych skupin
+novy prikaz .terminal - nastavovanie veci tykajucich sa terminaloveho okna
+novy parameter pre userov na nastavenie - blind > vypne vypisy na terminal
+moznost pouzit parameter -b pri .afk lock > blind
+moznost pouzit 'who' po .afk lock - vhodne pri sucasnom -b (blind)
+doplnene parametre 'level' a 'gnd' pri .modify
+doplneny system ukladania a pouzivania zistenych DNS adries z IP adries - GAEN
+novy prikaz .identify - zistenie email adresy usera pomocou auth
+ukladanie niektorych casti user_details do samostatneho suboru v binarnej forme
+prestahovanie na iny server - nove adresy: lotos@losys.net & lotos.losys.net
+odstranena strasna spusta bugov, svabov a podobnej havede + kopec drobnych oprav
+ a vylepseni,prevazne kozmetickeho charakteru
+
+4.10.2000 v1.1.1
+-----------------
+opravene resetovanie farieb aby fungovalo aj cez telbin
+opravene funkcie na who typy 1, 4, 5
+ukladanie pid procesu do suboru v korenovom adresari
+
 20.8.2000 v1.1.0
 ----------------
 (-; zacatie pouzivania nazvu LOTOS (skratka z `Lopov Talkrovy OS Star') ;-)

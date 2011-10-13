@@ -6,4 +6,4 @@ obsahovat aj znaky ako nahradu:
 `*' - viac pismen
 Nemozes ale zadat **, ?*, *?
 Napriklad: `.grepu an??' najde: Andy, Andi, Anne and so on.
-         : `.grepu an*' najde: Andy, Anne, Another, Anthony and so on.
+         : `.grepu an*' najde: Andy, Anne, Another, Anthony a podobne

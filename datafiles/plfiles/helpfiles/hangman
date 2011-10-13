@@ -1,0 +1,11 @@
+~OLPouzitie :~RS hangman start/stop/ukaz/status/vloz [<#>]
+
+Tento prikaz sluzi na hranie hry hangman - obesenec.
+Vyznam jednotlivych povelov:
+start - zacne hru (ak prave nehras) s nahodnym slovom
+stop - skonci hru
+ukaz - ukaze aktualny stav hry
+status - pomer tvojich vyhier a prehier
+vloz <#> - vlozis hadane pismeno
+
+~OLPozri:~RS

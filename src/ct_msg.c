@@ -1,20 +1,32 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                  Funkcie OS Star v1.1.0 suvisiace so spravami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                  Funkcie Lotos v1.2.0 suvisiace so spravami
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __CT_MSG_C__
+#define __CT_MSG_C__ 1
+
+#include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <ctype.h>
+#include <netinet/in.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "sys_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_sys.h"
 #include "ct_msg.h"
 
 
 /* verify that mail has been sent to the address supplied */
 void verify_email(UR_OBJECT user)
 {
+	set_crash();
 if (word_count<2) {
   write_usage(user,"verify <verification code>");
   return;
@@ -47,6 +59,7 @@ void show_reminders(UR_OBJECT user, int stage)
 char temp[ARR_SIZE];
 int i,j,d,m,y,cnt_total,cnt_today,del,done;
 
+	set_crash();
 cnt_total=cnt_today=0;
 
 /* display manually */
@@ -190,8 +203,8 @@ if (!stage) {
       }
     }
   write_user(user,"+----------------------------------------------------------------------------+\n");
-  sprintf(temp,"Your reminders for %d%s %s, %d",d,ordinal_text(d),month[m-1],y);
-  vwrite_user(user,"| ~OL~FT%-74.74s~RS |\n",temp);
+  sprintf(temp, "Your reminders for %d%s %s, %d", d, ordinal_text(d), month[m-1], y);
+  vwrite_user(user,"| ~OL~FT%-74.74s~RS |\n", temp);
   write_user(user,"+----------------------------------------------------------------------------+\n\n");
   cnt_today=0;
   for (i=0;i<MAX_REMINDERS;i++) {
@@ -276,3 +289,5 @@ switch(stage) {
     return;
   }
 }
+
+#endif /* ct_msg.c */

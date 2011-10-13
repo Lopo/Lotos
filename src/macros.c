@@ -1,27 +1,33 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                  Funkcie OS Star v1.1.0 na pracu s makrami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                   Funkcie Lotos v1.2.0 na pracu s makrami
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __MACROS_C__
+#define __MACROS_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "mc_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_mc.h"
 #include "macros.h"
-
-/* prototypy */
-char * remove_first(char *inpstr);
 
 
 MC_OBJECT create_macro(void)
 {
 	MC_OBJECT mc;
 	
+	set_crash();
 	if ((mc=(MC_OBJECT)malloc(sizeof(struct macro_struct)))==NULL) {
-		write_syslog(SYSLOG, 0, "ERROR: Chyba alokacie pamate v create_macro().\n");
+		write_syslog(ERRLOG, 1, "Chyba alokacie pamate v create_macro().\n");
 		return NULL;
 		}
 	mc->name[0]='\0';
@@ -38,14 +44,14 @@ void save_macros(UR_OBJECT user)
 	FILE *fp;
 	char filename[ARR_SIZE];
 
+	set_crash();
 	if (user->first_macro==NULL) return;
 
 	sprintf(filename, "%s/%s.MAC", USERMACROS, user->name);
 
 	if ((fp=fopen(filename, "w"))==NULL) {
 		write_user(user, "SYSTEM: Chyba pri zapise makier do suboru\n");
-		sprintf(text, "~OL~FRSYSTEM~RS: Chyba pri zapise makier do suboru %s\n", filename);
-		write_syslog(text, 1, SYSLOG);
+		write_syslog(ERRLOG, 1, "Chyba pri zapise makier do suboru %s\n", filename);
 		return;
 		}
 	for (mc=user->first_macro; mc!=NULL; mc=mc->next) {
@@ -63,6 +69,7 @@ void get_macros(UR_OBJECT user)
 	MC_OBJECT mc;
 	char filename[500], line[ARR_SIZE*2];
 	
+	set_crash();
 	if (user->type==REMOTE_TYPE) return;
 	sprintf(filename,"%s/%s.MAC",USERMACROS,user->name);
 
@@ -101,6 +108,7 @@ void show_macros(UR_OBJECT user)
 	int cnt;
 	MC_OBJECT mc;
 
+	set_crash();
 	write_user(user,"~OLTvoje aktualne makra:\n");
 	if (user->first_macro==NULL) {
 		write_user(user, "\nNemas ziadne makro\n");
@@ -117,6 +125,7 @@ void show_macros(UR_OBJECT user)
 
 void delete_macro(UR_OBJECT user, MC_OBJECT mc)
 {
+	set_crash();
 	if (mc==user->first_macro) {
 		user->first_macro=mc->next;
 		if (mc==user->last_macro) user->last_macro=NULL;
@@ -137,9 +146,10 @@ void delete_macro(UR_OBJECT user, MC_OBJECT mc)
 /*** Manipulacia s makrami ***/
 void macros(UR_OBJECT user, char *inpstr)
 {
-	MC_OBJECT mc, mac;
-	char *p, *n, *c, *s;
+	MC_OBJECT mc;
+	char *p, *n, *c;
 	int i;
+	set_crash();
 #ifdef NETLINKS
 	if (user->type==REMOTE_TYPE) {
 		write_user(user,"Due to software limitations, remote users cannot have macros.\n");
@@ -189,7 +199,7 @@ void macros(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if ((n=(char *)malloc(MC_NAME_LEN+1))==NULL) {
-		write_syslog(SYSLOG, 1, "ERROR: chyba alokacie pamate v macros()\n");
+		write_syslog(ERRLOG, 1, "chyba alokacie pamate v macros()\n");
 		write_user(user, "~FRSYSTEM: chyba alokacie pamate\n");
 		return;
 		}
@@ -207,7 +217,7 @@ void macros(UR_OBJECT user, char *inpstr)
 		return;
 		}
 	if ((mc=create_macro())==NULL) {
-		write_syslog(SYSLOG, 1, "ERROR: chyba alokacie pamate v macros()\n");
+		write_syslog(ERRLOG, 1, "chyba alokacie pamate v macros()\n");
 		write_user(user, "~FRSYSTEM: ~RSchyba alokacie pamate\n");
 		free(n);
 		return;
@@ -233,20 +243,23 @@ void macros(UR_OBJECT user, char *inpstr)
 /*** See if command just executed by the user was a macro ***/
 int check_macros(UR_OBJECT user, char *inpstr)
 {
-	char filename[500];
-	FILE *fp;
 	MC_OBJECT mc;
-	char com[MC_NAME_LEN+1], outstr[ARR_SIZE*2];
+	char com[MC_NAME_LEN+1], tmp[MC_NAME_LEN+1], outstr[ARR_SIZE*2];
 	int found, zn=0, max;
-	char ch[2], *zost;
+	char ch[2], *zost=NULL;
 
+	set_crash();
 	if (user->type==REMOTE_TYPE) return 1;
 	if (user->first_macro==NULL) return 1;
 
 	word_count=wordfind(inpstr);
-	sscanf(inpstr, "%s ", com);
-	if (strlen(com)>MC_NAME_LEN) return 1;
-
+	strncpy(tmp, inpstr, 10);
+	tmp[MC_NAME_LEN]='\0';
+	sscanf(tmp, "%s ", com);
+	found=strlen(com);
+	if (found>MC_NAME_LEN) {
+		return (1);
+	}
 	found=0;
 	for (mc=user->first_macro; mc!=NULL; mc=mc->next) {
 		if (!strcmp(mc->name, com)) {
@@ -255,7 +268,6 @@ int check_macros(UR_OBJECT user, char *inpstr)
 			}
 		}
 	if (!found) return 1;
-
 	outstr[0]='\0';
 	if (strstr(mc->comstr, "$*")) {
 		zn=1;
@@ -310,3 +322,5 @@ int check_macros(UR_OBJECT user, char *inpstr)
 	strcpy(inpstr, outstr);
 	return 1;
 }
+
+#endif /* macros.c */

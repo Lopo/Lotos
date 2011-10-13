@@ -1,0 +1,13 @@
+-9  load user data
+-8  save normal
+-7  1st to save
+-6  talker shutdown
+-5  trigger heartbeat
+-4  -not used ?-
+-3  -not used ?-
+-2  reinit load
+-1  reinit save
+ 0  -not used ?-
+---------------
+1 - N  cmd calls
+

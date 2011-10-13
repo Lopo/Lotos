@@ -4,7 +4,17 @@ Umoznuje ti napisat si dlhsi popis tvojej osoby. Bude zobrazovany pri prikaze
 ~FG.examine~RS. V texte mozes pouzit specialne sekvencie, ktore budu
 pri zobrazeni popisu nahradene prislusnymi textami. Su to:
 
-{level} - nazov levelu usera \ ktoremu sa to zobrazuje
-{name} - meno usera          /
+{level} - nazov levelu usera
+{name} - meno usera          
+{nameg} - meno usera v 2. pade
+{named} - meno usera v 3. pade
+{namea} - meno usera v 4. pade
+{namel} - meno usera v 6. pade
+{namei} - meno usera v 7. pade
+{namex} - meno usera v privlastnovacom tvare pre muzsky rod
+{namey} - meno usera v privlastnovacom tvare pre zensky rod
+{namez} - meno usera v privlastnovacom tvare pre stredny rod
+
+vsetky tvary - user ktory to cita
 
 ~OLPozri:~RS examine, desc

@@ -1,0 +1,14 @@
+~FM     .-------------------------------------------------------------------.
+~FM     |  ~FG               Atributy ktore si mozes nastavit ...              ~FM|
+~FM     |=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=|
+~FM     |  ~CW'~CRrecap~CW'    ~CB=~FT Name Recap          ~CW'~CRgnd~CW'     ~CB=~FT Gender              ~RS~FM|
+~FM     |  ~CW'~CRvoice~CW     ~CB=~FT Audio Prompt Gender ~CW'~CRage~CW'     ~CB=~FT vek                 ~RS~FM|
+~FM     |  ~CW'~CRemail~CW'    ~CB=~FT Email               ~CW'~CRroom~CW'    ~CB=~FT Login Ruuma         ~RS~FM|
+~FM     |  ~CW'~CRwww~CW'      ~CB=~FT Homepage            ~CW'~CRcmd~CW'     ~CB=~FT Typ vypisu prikazov ~RS~FM|
+~FM     |  ~CW'~CRfwd~CW'      ~CB=~FT Autoforward zap/vyp ~CW'~CRhide~CW'    ~CB=~FT Hide email zap/vyp  ~RS~FM|
+~FM     |  ~CW'~CRicq~CW'      ~CB=~FT ICQ Cislo           ~CW'~CRpswd~CW'    ~CB=~FT Zobrazovanie hesla  ~RS~FM|
+~FM     |  ~CW'~CRrdesc~CW'    ~CB=~FT Room Desc zap/vyp   ~CW'~CRalert~CW'   ~CB=~FT Alert zap/vyp       ~RS~FM|
+~FM     |  ~CW'~CRaudio~CW'    ~CB=~FT PAdudio Prompting   ~CW'~CRmode~CW'    ~CB=~FT prikazovy/kecaci mod~RS~FM|
+~FM     |  ~CW'~CRppa~CW'      ~CB=~FT Pueblo Pager Audio  ~CW'~CRprompt~CW'  ~CB=~FT Prompt              ~RS~FM|
+~FM     |  ~CW'~CRwho~CW'      ~CB=~FT Who styl                                            ~RS~FM|
+~FM     `-.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.-'

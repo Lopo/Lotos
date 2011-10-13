@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                      Hlavickovy subor Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __CT_GENERAL_H__
+#define __CT_GENERAL_H__ 1
 
 extern UR_OBJECT user_first;
 extern RM_OBJECT room_first;
@@ -43,7 +47,7 @@ extern char *noyes1[], *noyes2[], *minmax[];
 extern char *nosuchroom, *notloggedon, *nosuchuser;
 extern char *invisname, *noswearing;
 
-extern char *default_warp, *default_jail, *default_shoot;
+extern char *default_warp, *default_jail, *default_shoot, *default_bank;
 
 extern struct {
   char *name;
@@ -67,7 +71,10 @@ extern char *reg_sysinfo[];
 /* prompts */
 extern char *people_here_prompt, *no_people_here_prompt;
 extern char *message_prompt, *single_message_prompt, *no_message_prompt;
-extern char *topic_prompt, *no_exits;
+extern char *topic_prompt, *notopic_prompt, *no_exits;
 extern char *user_knock_prompt, *user_room_knock_prompt, *room_knock_prompt;
 extern char *private_review_prompt, *review_header, *no_review_prompt;
-extern char *entroom_edit_header;
+extern char *entroom_edit_header, *prooms_disabled;
+extern char *continue2;
+
+#endif /* ct_general.h */

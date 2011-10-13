@@ -1,4 +1,5 @@
-/* OS Star plugin                      pre verziu 1.1.0 a vyssiu
+/* vi: set ts=4 sw=4: */
+/* Lotos plugin                        pre verziu 1.1.0 a vyssiu
    -------------------------------------------------------------
    Inicializacny riadok pre tento plugin:
    	if (tmp=plugin_00x000_init(cmd)) cmd=cmd+tmp;
@@ -21,7 +22,7 @@ int plugin_00x000_init(int cm)
 
 /* create plugin */
 	if ((plugin=create_plugin())==NULL) {
-		write_syslog(SYSLOG, 0, "ERROR: Unable to create new registry entry!\n");
+		write_syslog(ERRLOG, 1, "Unable to create new registry entry!\n");
 		return 0;
 		}
 	strcpy(plugin->name,"TalkerMagicEightBall");    /* Plugin Description   */
@@ -37,7 +38,7 @@ int plugin_00x000_init(int cm)
 
 /* create associated command */
 	if ((com=create_cmd())==NULL) {
-		write_syslog(SYSLOG, 0, "ERROR: Unable to add command to registry!\n");
+		write_syslog(ERRLOG, 1, "Unable to add command to registry!\n");
 		return 0;
 		}
 	i++;                                            /* Keep track of number created */

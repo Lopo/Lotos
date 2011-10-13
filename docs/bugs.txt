@@ -1,12 +1,12 @@
-L o t o s   v1.1.0
+L o t o s   v1.2.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Informacie o chybach
 --------------------
 V tomto dokumente su spisane vsetky chyby o ktorych vyskyte viem.
 
-(-: Momentalne nie su zname ziadne chyby. :-)
+Obcas mi to z nevysvetlitelnych pricin pada. Stale nemozem zistit preco. :(
 
-Takze prosim kazdeho, kto pouzije OS Star, nech sa ozve
-na osstar@star.sjf.stuba.sk s oznamenim, ci sa chyba prejavuje a na akom
-systeme OS Star skusal. Samozrejme nech tam napise kazdy, kto si mysli,
-ze vie ako tu chybu odstranit, pripadne ak nasiel dalsiu chybu.
+Takze prosim kazdeho, kto pouzije Lotos, nech sa ozve
+na lotos@losys.net s oznamenim, ci sa chyba prejavuje a na akom systeme Lotos
+skusal. Samozrejme nech tam napise kazdy, kto si mysli, ze vie ako tu chybu
+odstranit, pripadne ak nasiel dalsiu chybu.

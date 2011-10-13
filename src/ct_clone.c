@@ -1,23 +1,22 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                   Funkcie OS Star v1.1.0 suvisiace s klonmi
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                    Funkcie Lotos v1.2.0 suvisiace s klonmi
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __CT_CLONE_C__
+#define __CT_CLONE_C__ 1
+
 #include <time.h>
+#include <string.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
-#include "sys_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_sys.h"
 #include "ct_clone.h"
-
-/* ------------------------------------------------------------- */
-RM_OBJECT get_room(char *name);
-UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
-char * colour_com_strip(char *str);
-UR_OBJECT create_user(void);
-/* ------------------------------------------------------------- */
 
 
 /*** Clone a user in another room ***/
@@ -28,6 +27,7 @@ void create_clone(UR_OBJECT user)
 	char *name;
 	int cnt;
 
+	set_crash();
 	if (user->restrict[RESTRICT_CLON]==restrict_string[RESTRICT_CLON]) {
 		write_user(user,">>>You have no right to use this command! Sorry...\n");
 		return;
@@ -45,7 +45,7 @@ if (!has_room_access(user,rm)) {
   write_user(user,"That room is currently private, you cannot create a clone there.\n");  
   return;
   }
-if (rm->tr && user->level<ARCH) {
+if (rm->transp!=NULL && user->level<ARCH) {
 	write_user(user, "Nemozes si robit klony v transportoch !\n");
 	return;
 	}
@@ -67,7 +67,7 @@ for(u=user_first;u!=NULL;u=u->next) {
 /* Create clone */
 if ((u=create_user())==NULL) {		
   vwrite_user(user,"%s: Unable to create copy.\n",syserror);
-  write_syslog(SYSLOG,0,"ERROR: Unable to create user copy in clone().\n");
+  write_syslog(ERRLOG,1,"Unable to create user copy in clone().\n");
   return;
   }
 u->type=CLONE_TYPE;
@@ -85,7 +85,7 @@ else
 	vwrite_user(user, clone_prompt, rm->name);
 if (user->vis) name=user->name; else name=invisname;
 vwrite_room_except(user->room, user, "~FB~OL%s waves their hands...\n",name);
-write_room_except(rm, user, "~FB~OLA clone of %s appears in a swirling magical mist!\n",user->bw_recap);
+vwrite_room_except(rm, user, "~FB~OLA clone of %s appears in a swirling magical mist!\n",user->bw_recap);
 }
 
 
@@ -96,6 +96,7 @@ UR_OBJECT u,u2;
 RM_OBJECT rm;
 char *name;
 
+	set_crash();
 /* Check room and user */
 if (word_count<2) rm=user->room;
 else {
@@ -137,6 +138,7 @@ void myclones(UR_OBJECT user)
 	UR_OBJECT u;
 	int cnt;
 
+	set_crash();
 	if (user->restrict[RESTRICT_CLON]==restrict_string[RESTRICT_CLON]) {
 		write_user(user,">>>You have no right to use this command! Sorry...\n");
 		return;
@@ -158,6 +160,7 @@ void allclones(UR_OBJECT user)
 	UR_OBJECT u;
 	int cnt;
 
+	set_crash();
 	if (user->restrict[RESTRICT_CLON]==restrict_string[RESTRICT_CLON]) {
 		write_user(user,">>>You have no right to use this command! Sorry...\n");
 		return;
@@ -181,6 +184,7 @@ UR_OBJECT u,tu;
 RM_OBJECT rm;
 int cnt=0;
 
+	set_crash();
 /* if no room was given then check to see how many clones user has.  If 1, then
    move the user to that clone, else give an error
 */
@@ -236,6 +240,7 @@ void clone_say(UR_OBJECT user, char *inpstr)
 	RM_OBJECT rm;
 	UR_OBJECT u;
 
+	set_crash();
 	if (user->muzzled) {
 		write_user(user,"You are muzzled, your clone cannot speak.\n");
 		return;
@@ -265,6 +270,7 @@ void clone_hear(UR_OBJECT user)
 RM_OBJECT rm;
 UR_OBJECT u;
 
+	set_crash();
 if (word_count<3  
     || (strcmp(word[2],"all") 
     && strcmp(word[2],"swears") 
@@ -304,6 +310,7 @@ void clone_emote(UR_OBJECT user,char *inpstr)
 RM_OBJECT rm;
 UR_OBJECT u;
 
+	set_crash();
 if (user->muzzled>1) {
   write_user(user,"You are muzzled, your clone cannot emote.\n");
   return;
@@ -322,3 +329,5 @@ for(u=user_first;u!=NULL;u=u->next) {
   }
 write_user(user,"You do not have a clone in that room.\n");
 }
+
+#endif /* ct_clone.c */

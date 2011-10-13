@@ -1,23 +1,27 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                     Hlavne definicie pre OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                     Hlavne definicie pre Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
-/* cislo verzie - TVERSION moze mat akekolvek cislo,
+#ifndef __DEFINE_H__
+#define __DEFINE_H__ 1
+
+/* cislo verzie talkra - TVERSION moze mat akekolvek cislo,
    ostatne musia byt nezmenene */
 
-#define TVERSION "2.0.1"
-#define OSSVERSION "1.1.0"
+#define TVERSION "1.0.0"
+#define OSSVERSION "1.2.0"
 #define AMNUTSVER "2.2.1"
 #define NUTSVER "3.3.3"
-#define USERVER "0.11"
-#define RUN_VER "110"
+#define USERVER "0.12"
+#define RUN_VER "120"
 
 #define FSTART "???"
 
 /* general directories */
-#define ROOTDIR "/home/osstar110"
+#define ROOTDIR "/home/lotos/lotos120"
 #define DATAFILES ROOTDIR"/datafiles"
 #define CONFFILES DATAFILES"/conffiles"
 #define MAPFILES DATAFILES"/mapfiles"
@@ -40,6 +44,7 @@
 #define KILLMSGS DATAFILES"/killmsgs"
 #define COUNTFILES DATAFILES"/counters"
 #define SCRFILES DATAFILES"/screens"
+#define BINFILES ROOTDIR"/bin"
 
 /* user directories */
 #define USERFILES ROOTDIR"/userfiles"
@@ -76,6 +81,9 @@
 #define MAINHELP HELPFILES"/mainhelp"
 #define FONTLIST MISCFILES"/fontslist"
 #define CREDITS MISCFILES"/credits"
+#define PIDFILE ROOTDIR"/star.pid"
+#define HOSTSFILE MISCFILES"/hostsfile"
+#define KILLFILE BINFILES"/kill"
 
 /* fun files */
 #define HUGFILE MISCFILES"/hug"
@@ -105,9 +113,9 @@
 #define MAX_WORDS        10	/* max. words processed by commands */
 #define WORD_LEN         80	/* length of words */
 #define ARR_SIZE       1000	/* array chars size */
-#define MAX_LINES        15	/* max. lines in editor */
+#define MAX_LINES        20	/* max. lines in editor */
 #define REVIEW_LINES     30	/* review conversation buffer lines */
-#define REVTELL_LINES    20	/* review .tells buffer lines */
+#define REVTELL_LINES    30	/* review .tells buffer lines */
 #define REVIEW_LEN      400	/* review conversation buffer line capacity */
 #define BUFSIZE        1000
 #define ROOM_NAME_LEN    20	/* room name length */
@@ -120,9 +128,9 @@
 #define MAX_SWEARS       20	/* max. size of swears list */
 
 /* netlink defines */
+#define SITE_NAME_LEN    80	/* site name length */
 #ifdef NETLINKS
   #define SERV_NAME_LEN  80	/* server name length */
-  #define SITE_NAME_LEN  80	/* site name length */
   #define VERIFY_LEN     20	/* verify string length */
   #define UNCONNECTED     0
   #define INCOMING        1
@@ -143,7 +151,7 @@
 #define PHRASE_LEN       40 /* in/out phrase length */
 #define PASS_LEN         20 /* only the 1st 8 chars will be used by crypt() though */
 #define PASS_MIN_LEN      3 /* min. password length */
-#define ROOM_DESC_LEN (MAX_LINES*80)+MAX_LINES /* MAX_LINES lines of 80 chars each + MAX_LINES nl */
+#define ROOM_DESC_LEN (MAX_LINES*100)+MAX_LINES /* MAX_LINES lines of 80 chars each + MAX_LINES nl */
 #define TOPIC_LEN        60 /* room topic length */
 #define ICQ_LEN          20
 #define NEUTER            0
@@ -285,7 +293,7 @@
 #define CBOARDHEAD 23
 #define CBOARDDATE 24
 
-/* Definicie systemovych informacii OS Star */
+/* Definicie systemovych informacii Lotos */
 #define TALKERNAME 1
 #define SERIALNUM  2
 #define REGUSER    3
@@ -332,21 +340,60 @@
 #define RESTRICT_EXEC	13		/* execution of commands */
 #define RESTRICT_MASK  ".............." /* mask used by load_user_details() */
 
-#define MIN_LEV_AUTORST WIZ	/* minumum level to set default restrictions */
-#define MIN_LEV_NOSWR   GOD	/* minimum level to ignore swear_action() */
+/* minimum levels */
+#define MIN_LEV_AUTORST WIZ	/* to set default restrictions */
+#define MIN_LEV_NOSWR   GOD	/* to ignore swear_action() */
+#define MIN_LEV_BLIND   ARCH    /* to use .terminal blind */
 
 /* pre zalohovanie talkra */
 #define BACKUPDIR ROOTDIR"/backups"
 #define BACKUPFILE "backup"
 
-/* pre menu screens */
-#define MENU_BANK 1
-#define MENU_SET 2
-#define MENU_SETUP 3
-#define MENU_BANKOPS 4
-#define MENU_BUY 5
-#define MENU_SELL 6
+/* rezimy set */
+#define SET_NONE 0
+#define SET_MAIN 1
+#define SET_TERM 2
+#define SET_BANK 3
 
+/* rozmery struktur */
 #define NUM_HELP 3
 #define NUM_PROMPT 2
 #define NUM_WHO 6
+
+
+/* error codes used by identify() */
+#define ID_OK           0
+#define ID_CONNERR     -1
+#define ID_NOFOUND     -2
+#define ID_CLOSED      -3
+#define ID_READERR     -4
+#define ID_WRITEERR    -5
+#define ID_NOMEM       -6
+#define ID_TIMEOUT     -7
+#define ID_CRAP        -8
+#define ID_NOUSER      -9
+#define ID_INVPORT    -10
+#define ID_UNKNOWNERR -11
+#define ID_COMERR     -12
+#define ID_UNKNOWN    -13
+#define ID_HIDDENUSER -14
+
+#define ID_BUFFLEN    196 /* max. buffer length for reads and writes in identify() */
+#define ID_READTIMEOUT 30 /* number of seconds after a socket read operation is timed out. */
+
+/* money */
+#define DEFAULT_MONEY 1000
+#define DEFAULT_BANK 3000
+#define MAX_DONATION 5000
+#define CREDITS_PER_HOUR 10
+#define MIN_CREDIT_UPDATE_LEVEL SUPER
+
+/* DEBUG inspired by NooK */
+#ifdef DEBUG
+#	define CRASH_HISTORY 1024
+#	define set_crash() { s_crash(__FILE__, __LINE__); }
+#else
+#	define set_crash() ((void)0)
+#endif
+
+#endif /* define.h */

@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                     hodnoty prikazov pre OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                     hodnoty prikazov pre Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __COMVALS_H__
+#define __COMVALS_H__ 1
 
 /* Values of commands, used in switch in exec_com() */
 enum comvals {
@@ -23,6 +27,7 @@ enum comvals {
   PRIVCOM,
   LETMEIN,
   INVITE,
+  SAYTO,
   TOPIC,
   MOVE,
   BCAST,
@@ -154,7 +159,6 @@ enum comvals {
   GCOM,
   SFROM,
   SETAUTOPROMO,
-  SAYTO,
   FRIENDS,
   FSAY,
   FEMOTE,
@@ -179,6 +183,7 @@ enum comvals {
   REMINDER,
   FSMAIL,
   VIEWPLUG,
+  PLDEBUG,
   PRIKAZY,
   TPLANE,
   IGNORE,
@@ -211,9 +216,18 @@ enum comvals {
   KISS,
   RESTART,
   MYXTERM,
-  ALLXTERM,
+	ALLXTERM,
 #ifdef DEBUG
-  TEST,
+	TEST,
 #endif
-  JUKEBOX
+	JUKEBOX,
+	TERMINAL,
+	IDENTIFY,
+	DONATE,
+	CASH,
+	MONEY,
+	BANK,
+	RESTORE
 } com_num;
+
+#endif /* comvals.h */

@@ -1,0 +1,9 @@
+~OLPouzitie :~RS terminal [<atribut> [<hodnota>]]
+
+Umoznuje nastavit rozne atributy zobrazovania.
+Bez zadania atributu sa system opyta ci chces pouzit menu. Nastavovanie pomocou
+neho je velmi pohodlne a jednoduche.
+Na zobrazenie aktualnych nastaveni pouzi atribut `show'. Pre detailnejsie
+info o kazdom atribude pouzi tvar ~FG.help term_show~RS.
+
+~OLPozri:~RS ignore, set

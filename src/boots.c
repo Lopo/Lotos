@@ -1,30 +1,41 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                   Funkcie OS Star v1.1.0 pre start systemu
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                    Funkcie pre Lotos v1.2.0 na start systemu
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __BOOTS_C__
+#define __BOOTS_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <time.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 #include <signal.h>
 #include <dirent.h>
+#include <string.h>
+#include <ctype.h>
+#include <unistd.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_tr.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+	#include "obj_nl.h"
 #endif
-#include "sys_obj.h"
-#include "pl_obj.h"
-#include "mc_obj.h"
-#include "syspp_obj.h"
+#include "obj_sys.h"
+#include "obj_pl.h"
+#include "obj_mc.h"
+#include "obj_syspp.h"
 #include "boots.h"
 #include "prototypes.h"
+
 
 #ifndef NUM_LEVELS
 	#define NUM_LEVELS SIZEOF(user_level)
@@ -36,8 +47,9 @@ void create_system(void)
 int i;
 struct utsname uts;
 
+set_crash();
 if ((amsys=(SYS_OBJECT)malloc(sizeof(struct system_struct)))==NULL) {
-  fprintf(stderr,"OS Star: Failed to create system object in create_system().\n");
+  fprintf(stderr,"Lotos: Failed to create system object in create_system().\n");
   boot_exit(21);
   }
 
@@ -120,6 +132,8 @@ user_first=NULL;
 user_last=NULL;
 room_first=NULL;
 room_last=NULL; /* This variable isn't used yet */
+transport_first=NULL;
+transport_last=NULL;
 first_dir_entry=NULL;
 first_command=NULL;
 first_wiz_entry=NULL;
@@ -150,22 +164,23 @@ strcpy(susers_restrict, RESTRICT_MASK);
 /*** Initialise the signal traps etc ***/
 void init_signals(void)
 {
-SIGNAL(SIGTERM,sig_handler);
-SIGNAL(SIGSEGV,sig_handler);
-SIGNAL(SIGBUS,sig_handler);
-SIGNAL(SIGILL,SIG_IGN);
-SIGNAL(SIGTRAP,SIG_IGN);
-SIGNAL(SIGIOT,SIG_IGN);
-SIGNAL(SIGTSTP,SIG_IGN);
-SIGNAL(SIGCONT,SIG_IGN);
-SIGNAL(SIGHUP,SIG_IGN);
-SIGNAL(SIGINT,SIG_IGN);
-SIGNAL(SIGQUIT,SIG_IGN);
-SIGNAL(SIGABRT,SIG_IGN);
-SIGNAL(SIGFPE,SIG_IGN);
-SIGNAL(SIGPIPE,SIG_IGN);
-SIGNAL(SIGTTIN,SIG_IGN);
-SIGNAL(SIGTTOU,SIG_IGN);
+	set_crash();
+	SIGNAL(SIGTERM,sig_handler);
+	SIGNAL(SIGSEGV,sig_handler);
+	SIGNAL(SIGBUS,sig_handler);
+	SIGNAL(SIGILL,SIG_IGN);
+	SIGNAL(SIGTRAP,SIG_IGN);
+	SIGNAL(SIGIOT,SIG_IGN);
+	SIGNAL(SIGTSTP,SIG_IGN);
+	SIGNAL(SIGCONT,SIG_IGN);
+	SIGNAL(SIGHUP,SIG_IGN);
+	SIGNAL(SIGINT,SIG_IGN);
+	SIGNAL(SIGQUIT,SIG_IGN);
+	SIGNAL(SIGABRT,SIG_IGN);
+	SIGNAL(SIGFPE,SIG_IGN);
+	SIGNAL(SIGPIPE,SIG_IGN);
+	SIGNAL(SIGTTIN,SIG_IGN);
+	SIGNAL(SIGTTOU,SIG_IGN);
 }
 
 
@@ -185,6 +200,7 @@ RM_OBJECT rm1,rm2;
   NL_OBJECT nl;
 #endif
 
+set_crash();
 section_in=0;
 got_init=0;
 got_rooms=0;
@@ -193,7 +209,7 @@ got_transport=0;
 
 printf("Parsing config file \"%s\"...\n", confile);
 if (!(fp=fopen(confile,"r"))) {
-  perror("OS Star: Can't open config file\n");  boot_exit(1);
+  perror("Lotos: Can't open config file\n");  boot_exit(1);
   }
 /* Main reading loop */
 config_line=0;
@@ -213,7 +229,7 @@ while(!feof(fp)) {
     else if (!strcmp(wrd[0],"SITES:")) section_in=4;
     else if (!strcmp(wrd[0],"TRANSPORTS:")) section_in=5;
     else {
-      fprintf(stderr,"OS Star: Unknown section header on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown section header on line %d.\n",config_line);
       fclose(fp);  boot_exit(1);
       }
     }
@@ -229,7 +245,7 @@ while(!feof(fp)) {
 #endif
     case 5: parse_transports_section(); got_transport=1; break;
     default:
-      fprintf(stderr,"OS Star: Section header expected on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Section header expected on line %d.\n",config_line);
       fclose(fp);  boot_exit(1);
     }
   fgets(line,81,fp);
@@ -238,44 +254,44 @@ fclose(fp);
 /* See if required sections were present (SITES and TOPICS is optional) and if
    required parameters were set. */
 if (!got_init) {
-  fprintf(stderr,"OS Star: INIT section missing from config file.\n");
+  fprintf(stderr,"Lotos: INIT section missing from config file.\n");
   boot_exit(1);
   }
 if (got_topics && !got_rooms) {
-  fprintf(stderr,"OS Star: TOPICS section must come after ROOMS section in the config file.\n");
+  fprintf(stderr,"Lotos: TOPICS section must come after ROOMS section in the config file.\n");
   boot_exit(1);
   }
 if (got_transport && !got_rooms) {
-  fprintf(stderr,"OS Star: TRANSPORTS section must come after ROOMS section in the config file.\n");
+  fprintf(stderr,"Lotos: TRANSPORTS section must come after ROOMS section in the config file.\n");
   boot_exit(1);
   }
 if (got_topics && !got_transport) {
-  fprintf(stderr,"OS Star: TOPICS section must come after TRANSPORTS section in the config file.\n");
+  fprintf(stderr,"Lotos: TOPICS section must come after TRANSPORTS section in the config file.\n");
   boot_exit(1);
   }
 if (!got_rooms) {
-  fprintf(stderr,"OS Star: ROOMS section missing from config file.\n");
+  fprintf(stderr,"Lotos: ROOMS section missing from config file.\n");
   boot_exit(1);
   }
 if (!got_transport) {
-  fprintf(stderr,"OS Star: TRANSPORTS section missing from config file.\n");
+  fprintf(stderr,"Lotos: TRANSPORTS section missing from config file.\n");
   boot_exit(1);
   }
 if (!port[0]) {
-  fprintf(stderr,"OS Star: Main port number not set in config file.\n");
+  fprintf(stderr,"Lotos: Main port number not set in config file.\n");
   boot_exit(1);
   }
 if (!port[1]) {
-  fprintf(stderr,"OS Star: Wiz port number not set in config file.\n");
+  fprintf(stderr,"Lotos: Wiz port number not set in config file.\n");
   boot_exit(1);
   }
 #ifdef NETLINKS
 	if (!port[2]) {
-		fprintf(stderr,"OS Star: Link port number not set in config file.\n");
+		fprintf(stderr,"Lotos: Link port number not set in config file.\n");
 		boot_exit(1);
 		}
 	if (!verification[0]) {
-		fprintf(stderr,"OS Star: Verification not set in config file.\n");
+		fprintf(stderr,"Lotos: Verification not set in config file.\n");
 		boot_exit(1);
 		}
 	if (port[0]==port[1]
@@ -285,41 +301,41 @@ if (!port[1]) {
 #else
 	if (port[0]==port[1]) {
 #endif
-  fprintf(stderr,"OS Star: Port numbers must be unique.\n");
+  fprintf(stderr,"Lotos: Port numbers must be unique.\n");
   boot_exit(1);
   }
 if (room_first==NULL) {
-  fprintf(stderr,"OS Star: No rooms configured in config file.\n");
+  fprintf(stderr,"Lotos: No rooms configured in config file.\n");
   boot_exit(1);
   }
 if (!syspp->auto_save) {
-  fprintf(stderr,"OS Star: autosave period not set in config file.\n");
+  fprintf(stderr,"Lotos: autosave period not set in config file.\n");
   boot_exit(1);
   }
 	if (syspp->auto_afk && syspp->auto_afk_time>=(amsys->user_idle_time-60)) {
-		fprintf(stderr, "OS Star: Auto_afk_time musi byt vacsie ako user_idle_time-60.\n");
+		fprintf(stderr, "Lotos: Auto_afk_time musi byt vacsie ako user_idle_time-60.\n");
 		exit(1);
 		}
 
 /* Parsing done, now check data is valid. Check room stuff first. */
-for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
-  if (rm1->tr && rm1->link_label[1]=='\0') {
-  	fprintf(stderr, "Rooma %s je transport, preto musi mat minimalne 2 linky\n",
-  		rm1->name);
-  	boot_exit(1);
-  	}
+for (rm1=room_first; rm1!=NULL; rm1=rm1->next) {
+	if (rm1->transp!=NULL && rm1->link_label[1]=='\0') {
+		fprintf(stderr, "Rooma %s je transport, preto musi mat minimalne 2 linky\n",
+		rm1->name);
+		boot_exit(1);
+		}
   for(i=0;i<MAX_LINKS;++i) {
     if (!rm1->link_label[i][0]) break;
-    if ((!strcmp(rm1->link_label[i], no_leave)) && (!rm1->tr)) break;
-    if ((!strcmp(rm1->link_label[i], no_leave)) && rm1->tr) {
-    	fprintf(stderr,"OS Star: Rooma %s je transport, preto nemoze byt bez linkov\n",
+    if ((!strcmp(rm1->link_label[i], no_leave)) && (rm1->transp==NULL)) break;
+    if ((!strcmp(rm1->link_label[i], no_leave)) && rm1->transp!=NULL) {
+    	fprintf(stderr,"Lotos: Rooma %s je transport, preto nemoze byt bez linkov\n",
     		rm1->name);
     	boot_exit(1);
     	}
     for(rm2=room_first;rm2!=NULL;rm2=rm2->next) {
       if (rm1==rm2) continue;
       if (!strcmp(rm1->link_label[i],rm2->label)) {
-        if (rm2->tr) {
+        if (rm2->transp!=NULL) {
         	fprintf(stderr,"Rooma %s nemoze byt nalinkovana na iny transport\n",
         		rm1->name);
         	boot_exit(1);
@@ -329,7 +345,7 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
         }
       }
     if (rm1->link[i]==NULL) {
-      fprintf(stderr,"OS Star: Room %s has undefined link label '%s'.\n",rm1->name,rm1->link_label[i]);
+      fprintf(stderr,"Lotos: Room %s has undefined link label '%s'.\n",rm1->name,rm1->link_label[i]);
       boot_exit(1);
       }
     }
@@ -338,14 +354,14 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
 #ifdef NETLINKS
 /* Check external links */
 for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
-  if (rm1->netlink_name[0] && rm1->tr) {
+  if (rm1->netlink_name[0] && rm1->transp!=NULL) {
   	fprintf(stderr, "Rooma %s je nadefinovana ako transport a preto nemoze mat netlink\n",
   	rm1->name);
   	boot_exit(1);
   	}
   for(nl=nl_first;nl!=NULL;nl=nl->next) {
     if (!strcmp(nl->service,rm1->name)) {
-      fprintf(stderr,"OS Star: Service name %s is also the name of a room.\n",nl->service);
+      fprintf(stderr,"Lotos: Service name %s is also the name of a room.\n",nl->service);
       boot_exit(1);
       }
     if (rm1->netlink_name[0] && !strcmp(rm1->netlink_name,nl->service)) {
@@ -354,7 +370,7 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
       }
     }
   if (rm1->netlink_name[0] && rm1->netlink==NULL) {
-    fprintf(stderr,"OS Star: Service name %s not defined for room %s.\n",rm1->netlink_name,rm1->name);
+    fprintf(stderr,"Lotos: Service name %s not defined for room %s.\n",rm1->netlink_name,rm1->name);
     boot_exit(1);
     }
   }
@@ -362,19 +378,19 @@ for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
 
 /* Load room descriptions */
 for(rm1=room_first;rm1!=NULL;rm1=rm1->next) {
- if (rm1->tr) sprintf(filename,"%s/%s.R", TRFILES, rm1->name);
+ if (rm1->transp!=NULL) sprintf(filename,"%s/%s.R", TRFILES, rm1->name);
  else sprintf(filename,"%s/%s.R", ROOMFILES, rm1->name);
   if (!(fp=fopen(filename,"r"))) {
-    fprintf(stderr,"OS Star: Can't open description file for room %s.\n",rm1->name);
-    write_syslog(SYSLOG,0,"ERROR: Couldn't open description file for room %s.\n",rm1->name);
+    fprintf(stderr,"Lotos: Can't open description file for room %s.\n",rm1->name);
+    write_syslog(ERRLOG,1,"Couldn't open description file for room %s.\n",rm1->name);
     continue;
     }
   i=0;
   c=getc(fp);
   while(!feof(fp)) {
     if (i==ROOM_DESC_LEN) {
-      fprintf(stderr,"OS Star: Description too long for room %s.\n",rm1->name);
-      write_syslog(SYSLOG,0,"ERROR: Description too long for room %s.\n",rm1->name);
+      fprintf(stderr,"Lotos: Description too long for room %s.\n",rm1->name);
+      write_syslog(ERRLOG,1,"Description too long for room %s.\n",rm1->name);
       break;
       }
     rm1->desc[i]=c;  
@@ -395,7 +411,7 @@ char name[USER_NAME_LEN];
 RM_OBJECT rm;
 
 if (!(dirp=opendir(USERROOMS))) {
-  fprintf(stderr,"OS Star: Directory open failure in parse_user_rooms().\n");
+  fprintf(stderr,"Lotos: Directory open failure in parse_user_rooms().\n");
   boot_exit(19);
   }
 /* parse the names of the files but don't include . and .. */
@@ -406,7 +422,7 @@ while((dp=readdir(dirp))!=NULL) {
     name[strlen(name)-2]='\0';
     rm=create_room();
     if (!(personal_room_store(name,0,rm))) {
-      write_syslog(SYSLOG,1,"ERROR: Could not read personal room attributes.  Using standard config.\n");
+      write_syslog(ERRLOG,1,"Could not read personal room attributes.  Using standard config.\n");
       }
     strtolower(name);
     sprintf(rm->name,"(%s)",name);
@@ -429,7 +445,7 @@ levels=found=0;
 for (i=0; i<NUM_LEVELS; ++i) {
   for (j=i+1; j<NUM_LEVELS; ++j) {
     if (!strcmp(user_level[i].name,user_level[j].name)) {
-      fprintf(stderr,"OS Star: Level names are not unique.\n");
+      fprintf(stderr,"Lotos: Level names are not unique.\n");
       boot_exit(14);
       }
     }
@@ -437,48 +453,48 @@ for (i=0; i<NUM_LEVELS; ++i) {
 i=0;
 /* check the directories needed exist */
 if (stat(USERFILES, &stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERMAILS, &stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERPROFILES,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERFRIENDS,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERHISTORYS,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERCOMMANDS,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERMACROS,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 if (stat(USERROOMS,&stbuf)==-1) {
-  fprintf(stderr,"OS Star: Directory stat failure in check_directories().\n");
+  fprintf(stderr,"Lotos: Directory stat failure in check_directories().\n");
   boot_exit(15);
   }
 if ((stbuf.st_mode & S_IFMT)!=S_IFDIR) goto SKIP;
 return;
 SKIP:
-fprintf(stderr,"OS Star: Directory structure is incorrect.\n");
+fprintf(stderr,"Lotos: Directory structure is incorrect.\n");
 boot_exit(16);
 }
 
@@ -496,11 +512,11 @@ UR_OBJECT u;
 /* open the directory file up */
 dirp=opendir(USERFILES);
 if (dirp==NULL) {
-  fprintf(stderr,"OS Star: Directory open failure in process_users().\n");
+  fprintf(stderr,"Lotos: Directory open failure in process_users().\n");
   boot_exit(12);
   }
 if ((u=create_user())==NULL) {
-  fprintf(stderr,"OS Star: Create user failure in process_users().\n");
+  fprintf(stderr,"Lotos: Create user failure in process_users().\n");
   (void) closedir(dirp);
   boot_exit(17);
   }
@@ -517,7 +533,7 @@ while((dp=readdir(dirp))!=NULL) {
       add_user_date_node(u->name,u->date);
       } /* end if */
     else {
-      fprintf(stderr,"OS Star: Could not load userfile for '%s' in process_users().\n",name);
+      fprintf(stderr,"Lotos: Could not load userfile for '%s' in process_users().\n",name);
       (void) closedir(dirp);
       boot_exit(18);
       }
@@ -537,7 +553,7 @@ void parse_commands(void)
 	cnt=0;
 	while(command_table[cnt].name[0]!='*') {
 		if (!(add_command(cnt))) {
-			fprintf(stderr,"OS Star: Memory allocation failure in parse_commands().\n");
+			fprintf(stderr,"Lotos: Memory allocation failure in parse_commands().\n");
 			boot_exit(13);
 			}
 		++cnt;
@@ -624,12 +640,12 @@ char *options[]={
   "colour_def","time_out_afks","charecho_def","time_out_maxlevel","auto_purge",
   "allow_recaps","auto_promote","personal_rooms","random_motds","startup_room_parse",
   "resolve_ip","flood_protect", "pueblo_enh", "auto_save", "susers_restrict",
-  "auto_afk", "*"
+  "auto_afk", "use_hosts_file", "*"
   };
 
 if (!strcmp(wrd[0],"INIT:")) { 
   if (++in_section>1) {
-    fprintf(stderr,"OS Star: Unexpected INIT section header on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unexpected INIT section header on line %d.\n",config_line);
     boot_exit(1);
     }
   return;
@@ -637,17 +653,17 @@ if (!strcmp(wrd[0],"INIT:")) {
 op=0; tmp=0;
 while(strcmp(options[op],wrd[0])) {
   if (options[op][0]=='*') {
-    fprintf(stderr,"OS Star: Unknown INIT option on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unknown INIT option on line %d.\n",config_line);
     boot_exit(1);
     }
   ++op;
   }
 if (!wrd[1][0]) {
-  fprintf(stderr,"OS Star: Required parameter missing on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Required parameter missing on line %d.\n",config_line);
   boot_exit(1);
   }
 if (wrd[2][0] && wrd[2][0]!='#') {
-  fprintf(stderr,"OS Star: Unexpected word following init parameter on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Unexpected word following init parameter on line %d.\n",config_line);
   boot_exit(1);
   }
 val=atoi(wrd[1]);
@@ -658,14 +674,14 @@ switch (op) {
   case 2: /* link */
 #endif
     if ((port[op]=val)<1 || val>65535) {
-      fprintf(stderr,"OS Star: Illegal port number on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Illegal port number on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
   
   case 3:  
     if ((tmp=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: System_logging must be ON or OFF on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: System_logging must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     /* set the bits correctly */
@@ -684,7 +700,7 @@ switch (op) {
   case 4:
     if ((amsys->minlogin_level=get_level(wrd[1]))==-1) {
       if (strcmp(wrd[1],"NONE")) {
-	fprintf(stderr,"OS Star: Unknown level specifier for minlogin_level on line %d.\n",config_line);
+	fprintf(stderr,"Lotos: Unknown level specifier for minlogin_level on line %d.\n",config_line);
 	boot_exit(1);	
         }
       amsys->minlogin_level=-1;
@@ -693,35 +709,35 @@ switch (op) {
     
   case 5:  /* message lifetime */
     if ((amsys->mesg_life=val)<1) {
-      fprintf(stderr,"OS Star: Illegal message lifetime on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Illegal message lifetime on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 6: /* wizport_level */
     if ((amsys->wizport_level=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for wizport_level on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for wizport_level on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
 
   case 7: /* prompt defaults */
     if ((amsys->prompt_def=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Prompt_def must be ON or OFF on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Prompt_def must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 8: /* gatecrash level */
     if ((amsys->gatecrash_level=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for gatecrash_level on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for gatecrash_level on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
 
   case 9:
     if (val<1) {
-      fprintf(stderr,"OS Star: Number too low for min_private_users on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Number too low for min_private_users on line %d.\n",config_line);
       boot_exit(1);
       }
     amsys->min_private_users=val;
@@ -729,7 +745,7 @@ switch (op) {
 
   case 10:
     if ((amsys->ignore_mp_level=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for ignore_mp_level on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for ignore_mp_level on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
@@ -739,7 +755,7 @@ switch (op) {
        account. ie if level set to WIZ a GOD can only be a WIZ if logging in 
        from another server unless he has a local account of level GOD */
     if ((amsys->rem_user_maxlevel=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for rem_user_maxlevel on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for rem_user_maxlevel on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
@@ -748,7 +764,7 @@ switch (op) {
     /* Default level of remote user who does not have an account on site and
        connection is from a server of version 3.3.0 or lower. */
     if ((amsys->rem_user_deflevel=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for rem_user_deflevel on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for rem_user_deflevel on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
@@ -756,7 +772,7 @@ switch (op) {
 #ifdef NETLINKS
   case 13:
     if (strlen(wrd[1])>VERIFY_LEN) {
-      fprintf(stderr,"OS Star: Verification too long on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Verification too long on line %d.\n",config_line);
       boot_exit(1);	
       }
     strcpy(verification,wrd[1]);
@@ -770,75 +786,75 @@ switch (op) {
 	|| !isdigit(wrd[1][1])
 	|| !isdigit(wrd[1][3]) 
 	|| !isdigit(wrd[1][4])) {
-      fprintf(stderr,"OS Star: Invalid message check time on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid message check time on line %d.\n",config_line);
       boot_exit(1);
       }
     sscanf(wrd[1],"%d:%d",&amsys->mesg_check_hour,&amsys->mesg_check_min);
     if (amsys->mesg_check_hour>23 || amsys->mesg_check_min>59) {
-      fprintf(stderr,"OS Star: Invalid message check time on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid message check time on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
 
   case 15:
     if ((amsys->max_users=val)<1) {
-      fprintf(stderr,"OS Star: Invalid value for max_users on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid value for max_users on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 16:
     if ((amsys->heartbeat=val)<1) {
-      fprintf(stderr,"OS Star: Invalid value for heartbeat on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid value for heartbeat on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 17:
     if ((amsys->login_idle_time=val)<10) {
-      fprintf(stderr,"OS Star: Invalid value for login_idle_time on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid value for login_idle_time on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 18:
     if ((amsys->user_idle_time=val)<10) {
-      fprintf(stderr,"OS Star: Invalid value for user_idle_time on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid value for user_idle_time on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 19: 
     if ((amsys->password_echo=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Password_echo must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Password_echo must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 20: 
     if ((amsys->ignore_sigterm=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Ignore_sigterm must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Ignore_sigterm must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 21:
     if ((amsys->auto_connect=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Auto_connect must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Auto_connect must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 22:
     if ((amsys->max_clones=val)<0) {
-      fprintf(stderr,"OS Star: Invalid value for max_clones on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Invalid value for max_clones on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 23:
     if ((amsys->ban_swearing=minmax_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Ban_swearing must be OFF, MIN or MAX on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Ban_swearing must be OFF, MIN or MAX on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
@@ -848,110 +864,110 @@ switch (op) {
     else if (!strcmp(wrd[1],"IGNORE")) amsys->crash_action=1;
     else if (!strcmp(wrd[1],"REBOOT")) amsys->crash_action=2;
     else {
-      fprintf(stderr,"OS Star: Crash_action must be NONE, IGNORE or REBOOT on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Crash_action must be NONE, IGNORE or REBOOT on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 25:
     if ((amsys->colour_def=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Colour_def must be ON or OFF on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Colour_def must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 26:
     if ((amsys->time_out_afks=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Time_out_afks must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Time_out_afks must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 27:
     if ((amsys->charecho_def=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Charecho_def must be ON or OFF on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Charecho_def must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 28:
     if ((amsys->time_out_maxlevel=get_level(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Unknown level specifier for time_out_maxlevel on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unknown level specifier for time_out_maxlevel on line %d.\n",config_line);
       boot_exit(1);	
       }
     return;
 
   case 29: /* auto purge on boot up */
     if ((amsys->auto_purge=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Auto_purge must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Auto_purge must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 30: /* allow recapping of names */
     if ((amsys->allow_recaps=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Allow_recaps must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Allow_recaps must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 31: /* define whether auto promotes are on or off */
     if ((amsys->auto_promote=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: auto_promote must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: auto_promote must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       } 
     return;
 
   case 32:
     if ((amsys->personal_rooms=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Personal_rooms must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Personal_rooms must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 33:
     if ((amsys->random_motds=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Random_motds must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Random_motds must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 34:
     if ((amsys->startup_room_parse=yn_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Startup_room_parse must be YES or NO on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Startup_room_parse must be YES or NO on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 35: 
     if ((amsys->resolve_ip=resolve_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Resolve_ip must be OFF, AUTO or MANUAL on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Resolve_ip must be OFF, AUTO or MANUAL on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
 
   case 36: /* turns flood protection and auto-baning on and off */
     if ((amsys->flood_protect=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr,"OS Star: Flood_protect must be ON or OFF on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Flood_protect must be ON or OFF on line %d.\n",config_line);
       boot_exit(1);
       }
     return;
   
   case 37: /* povoli rozsirenie pre Pueblo */
     if ((syspp->pueblo_enh=onoff_check(wrd[1]))==-1) {
-      fprintf(stderr, "OS Star: Pueblo_enh musi byt ON alebo OFF na riadku %d.\n", config_line);
+      fprintf(stderr, "Lotos: Pueblo_enh musi byt ON alebo OFF na riadku %d.\n", config_line);
       boot_exit(1);
       }
     return;
 
   case 38: /* perioda ukladania userfajlov v minutach */
     if (!is_inumber(wrd[1])) {
-      fprintf(stderr, "OS Star: Auto_save na riadku %d musi byt cele kladne cislo alebo -1.\n", config_line);
+      fprintf(stderr, "Lotos: Auto_save na riadku %d musi byt cele kladne cislo alebo -1.\n", config_line);
       boot_exit(1);
       }
     syspp->auto_save=atoi(wrd[1]);
     if (syspp->auto_save==0 || syspp->auto_save<(-1)) {
-      fprintf(stderr, "OS Star: Auto_save na riadku %d ma chybny parameter.\n", config_line);
+      fprintf(stderr, "Lotos: Auto_save na riadku %d ma chybny parameter.\n", config_line);
       boot_exit(1);
       }
     return;
@@ -960,14 +976,20 @@ switch (op) {
     return;
   case 40: /* auto_afk */
     if (!is_number(wrd[1])) {
-      	fprintf(stderr, "OS Star: Auto_afk na riadku %d musi byt cele kladne cislo\n", config_line);
+      	fprintf(stderr, "Lotos: Auto_afk na riadku %d musi byt cele kladne cislo\n", config_line);
       	boot_exit(1);
       	}
     syspp->auto_afk_time=atoi(wrd[1]);
     if (syspp->auto_afk_time>0) syspp->auto_afk=1;
     else syspp->auto_afk=0;
     return;
-    
+  case 41: /* use_hosts_file */
+    if ((use_hostsfile=yn_check(wrd[1]))==-1) {
+      fprintf(stderr, "Lotos: use_hosts_file musi byt YES alebo NO na riadku %d.\n", config_line);
+      boot_exit(1);
+      }
+    return;
+
   } /* end switch */
 }
 
@@ -982,35 +1004,35 @@ RM_OBJECT room;
 
 if (!strcmp(wrd[0],"ROOMS:")) {
   if (++in_section>1) {
-    fprintf(stderr,"OS Star: Unexpected ROOMS section header on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unexpected ROOMS section header on line %d.\n",config_line);
     boot_exit(1);
     }
   return;
   }
 if (!wrd[3][0]) {
-  fprintf(stderr,"OS Star: Required parameter(s) missing on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Required parameter(s) missing on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[0])>ROOM_NAME_LEN) {
-  fprintf(stderr,"OS Star: Room map name too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room map name too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[1])>ROOM_LABEL_LEN) {
-  fprintf(stderr,"OS Star: Room label too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room label too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[2])>ROOM_NAME_LEN) {
-  fprintf(stderr,"OS Star: Room name too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room name too long on line %d.\n",config_line);
   boot_exit(1);
   }
 /* Check for duplicate label or name */
 for(room=room_first;room!=NULL;room=room->next) {
   if (!strcmp(room->label,wrd[1])) {
-    fprintf(stderr,"OS Star: Duplicate room label on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Duplicate room label on line %d.\n",config_line);
     boot_exit(1);
     }
   if (!strcmp(room->name,wrd[2])) {
-    fprintf(stderr,"OS Star: Duplicate room name on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Duplicate room name on line %d.\n",config_line);
     boot_exit(1);
     }
   }
@@ -1027,18 +1049,18 @@ ptr2=wrd[3];
 while(1) {
   while(*ptr2!=',' && *ptr2!='\0') ++ptr2;
   if (*ptr2==',' && *(ptr2+1)=='\0') {
-    fprintf(stderr,"OS Star: Missing link label on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Missing link label on line %d.\n",config_line);
     boot_exit(1);
     }
   c=*ptr2;  *ptr2='\0';
   if (!strcmp(ptr1,room->label)) {
-    fprintf(stderr,"OS Star: Room has a link to itself on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Room has a link to itself on line %d.\n",config_line);
     boot_exit(1);
     }
   strcpy(room->link_label[i],ptr1);
   if (c=='\0') break;
   if (++i>=MAX_LINKS) {
-    fprintf(stderr,"OS Star: Too many links on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Too many links on line %d.\n",config_line);
     boot_exit(1);
     }
   *ptr2=c;
@@ -1052,7 +1074,7 @@ else if (!strcmp(wrd[4],"PUB")) room->access=FIXED_PUBLIC;
 else if (!strcmp(wrd[4],"PRIV")) room->access=FIXED_PRIVATE;
 else if (!strcmp(wrd[4],"RTC")) room->access=ROOT_CONSOLE;
 else {
-  fprintf(stderr,"OS Star: Unknown room access type on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Unknown room access type on line %d.\n",config_line);
   boot_exit(1);
   }
 /* Parse external link stuff */
@@ -1060,7 +1082,7 @@ else {
   if (!wrd[5][0] || wrd[5][0]=='#') return;
   if (!strcmp(wrd[5],"ACCEPT")) {  
     if (wrd[6][0] && wrd[6][0]!='#') {
-      fprintf(stderr,"OS Star: Unexpected word following ACCEPT keyword on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unexpected word following ACCEPT keyword on line %d.\n",config_line);
       boot_exit(1);
       }
     room->inlink=1;  
@@ -1068,17 +1090,17 @@ else {
     }
   if (!strcmp(wrd[5],"CONNECT")) {
     if (!wrd[6][0]) {
-      fprintf(stderr,"OS Star: External link name missing on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: External link name missing on line %d.\n",config_line);
       boot_exit(1);
       }
     if (wrd[7][0] && wrd[7][0]!='#') {
-      fprintf(stderr,"OS Star: Unexpected word following external link name on line %d.\n",config_line);
+      fprintf(stderr,"Lotos: Unexpected word following external link name on line %d.\n",config_line);
       boot_exit(1);
       }
     strcpy(room->netlink_name,wrd[6]);
     return;
     }
-  fprintf(stderr,"OS Star: Unknown connection option on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Unknown connection option on line %d.\n",config_line);
   boot_exit(1);
 #else
   return;
@@ -1095,13 +1117,13 @@ RM_OBJECT room;
 
 if (!strcmp(wrd[0],"TOPICS:")) {
   if (++in_section>1) {
-    fprintf(stderr,"OS Star: Unexpected TOPICS section header on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unexpected TOPICS section header on line %d.\n",config_line);
     boot_exit(1);
     }
   return;
   }
 if (!wrd[1][0]) {
-  fprintf(stderr,"OS Star: Required parameter(s) missing on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Required parameter(s) missing on line %d.\n",config_line);
   boot_exit(1);
   }
 /* Check to see if room exists */
@@ -1109,7 +1131,7 @@ exists=0;
 for(room=room_first;room!=NULL;room=room->next)
   if (!strcmp(room->name,wrd[0])) {  ++exists;  break;  }
 if (!exists) {
-  fprintf(stderr,"OS Star: Room does not exist on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room does not exist on line %d.\n",config_line);
   boot_exit(1);
   }
 if (topic[strlen(topic)-1]=='\n') topic[strlen(topic)-1]='\0';
@@ -1126,36 +1148,36 @@ static int in_section=0;
 
 if (!strcmp(wrd[0],"SITES:")) { 
   if (++in_section>1) {
-    fprintf(stderr,"OS Star: Unexpected SITES section header on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unexpected SITES section header on line %d.\n",config_line);
     boot_exit(1);
     }
   return;
   }
 if (!wrd[3][0]) {
-  fprintf(stderr,"OS Star: Required parameter(s) missing on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Required parameter(s) missing on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[0])>SERV_NAME_LEN) {
-  fprintf(stderr,"OS Star: Link name length too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Link name length too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[3])>VERIFY_LEN) {
-  fprintf(stderr,"OS Star: Verification too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Verification too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if ((nl=create_netlink())==NULL) {
-  fprintf(stderr,"OS Star: Memory allocation failure creating netlink on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Memory allocation failure creating netlink on line %d.\n",config_line);
   boot_exit(1);
   }
 if (!wrd[4][0] || wrd[4][0]=='#' || !strcmp(wrd[4],"ALL")) nl->allow=ALL;
 else if (!strcmp(wrd[4],"IN")) nl->allow=IN;
 else if (!strcmp(wrd[4],"OUT")) nl->allow=OUT;
 else {
-  fprintf(stderr,"OS Star: Unknown netlink access type on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Unknown netlink access type on line %d.\n",config_line);
   boot_exit(1);
   }
 if ((nl->port=atoi(wrd[2]))<1 || nl->port>65535) {
-  fprintf(stderr,"OS Star: Illegal port number on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Illegal port number on line %d.\n",config_line);
   boot_exit(1);
   }
 strcpy(nl->service,wrd[0]);
@@ -1176,46 +1198,47 @@ RM_OBJECT room;
 
 if (!strcmp(wrd[0],"TRANSPORTS:")) {
   if (++in_section>1) {
-    fprintf(stderr,"OS Star: Unexpected TRANSPORTS section header on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Unexpected TRANSPORTS section header on line %d.\n",config_line);
     boot_exit(1);
     }
   return;
   }
 if (!wrd[5][0]) {
-  fprintf(stderr,"OS Star: Required parameter(s) missing on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Required parameter(s) missing on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[0])>ROOM_NAME_LEN) {
-  fprintf(stderr,"OS Star: Room map name too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room map name too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[1])>ROOM_LABEL_LEN) {
-  fprintf(stderr,"OS Star: Room label too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room label too long on line %d.\n",config_line);
   boot_exit(1);
   }
 if (strlen(wrd[2])>ROOM_NAME_LEN) {
-  fprintf(stderr,"OS Star: Room name too long on line %d.\n",config_line);
+  fprintf(stderr,"Lotos: Room name too long on line %d.\n",config_line);
   boot_exit(1);
   }
 /* Check for duplicate label or name */
 for(room=room_first;room!=NULL;room=room->next) {
   if (!strcmp(room->label,wrd[1])) {
-    fprintf(stderr,"OS Star: Duplicate room label on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Duplicate room label on line %d.\n",config_line);
     boot_exit(1);
     }
   if (!strcmp(room->name,wrd[2])) {
-    fprintf(stderr,"OS Star: Duplicate room name on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Duplicate room name on line %d.\n",config_line);
     boot_exit(1);
     }
   }
 room=create_room();
-room->tr=1;
+room->transp=create_transport();
+room->transp->room=room;
 strcpy(room->map,wrd[0]);
 strcpy(room->label,wrd[1]);
 strcpy(room->name,wrd[2]);
-room->place=atoi(wrd[4]);
-room->route=atoi(wrd[5]);
-room->smer=1;
+room->transp->place=atoi(wrd[4]);
+room->transp->route=atoi(wrd[5]);
+room->transp->smer=1;
 room->access=FIXED_PUBLIC;
 
 /* Parse internal links bit ie hl,gd,of etc. MUST NOT be any spaces between
@@ -1226,18 +1249,18 @@ ptr2=wrd[3];
 while(1) {
   while(*ptr2!=',' && *ptr2!='\0') ++ptr2;
   if (*ptr2==',' && *(ptr2+1)=='\0') {
-    fprintf(stderr,"OS Star: Missing link label on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Missing link label on line %d.\n",config_line);
     boot_exit(1);
     }
   c=*ptr2;  *ptr2='\0';
   if (!strcmp(ptr1,room->label)) {
-    fprintf(stderr,"OS Star: Room has a link to itself on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Room has a link to itself on line %d.\n",config_line);
     boot_exit(1);
     }
   strcpy(room->link_label[i],ptr1);
   if (c=='\0') break;
   if (++i>=MAX_LINKS) {
-    fprintf(stderr,"OS Star: Too many links on line %d.\n",config_line);
+    fprintf(stderr,"Lotos: Too many links on line %d.\n",config_line);
     boot_exit(1);
     }
   *ptr2=c;
@@ -1268,3 +1291,36 @@ void clear_temps(void)
 }
 
 
+void write_pid(void)
+{
+	FILE *fp;
+
+	if ((fp=fopen(PIDFILE, "rb+"))==NULL) return;
+	fprintf(fp, "%d", getpid());
+	fclose(fp);
+	return;
+}
+
+
+void create_kill_file(void)
+{
+	FILE *fp;
+	int i=0;
+
+	set_crash();
+	if ((fp=fopen(KILLFILE, "wb"))==NULL) {
+		write_syslog(ERRLOG, 1, "nemozem vytvorit KILLFILE v create_kill_file()\n");
+		return;
+		}
+	sprintf(text, "kill -9 %d\n", getpid());
+	while (text[i]) {
+		fwrite(text+i, 1, sizeof(char), fp);
+		i++;
+		}
+	fclose(fp);
+	sprintf(text, "chmod 500 %s", KILLFILE);
+	system(text);
+}
+
+
+#endif /* boots.c */

@@ -1,27 +1,24 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-               Funkcie OS Star v1.1.0 na pracu s plugin modulmi
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                Funkcie Lotos v1.2.0 na pracu s plugin modulmi
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __PLUGIN_C__
+#define __PLUGIN_C__ 1
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
-#include <netinet/in.h>
+#include <string.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
-#ifdef NETLINKS
-	#include "nl_obj.h"
-#endif
-#include "sys_obj.h"
-#include "pl_obj.h"
-#include "mc_obj.h"
-#include "syspp_obj.h"
+#include "prototypes.h"
+#include "obj_sys.h"
+#include "obj_pl.h"
+#include "obj_syspp.h"
 
 #include "plugin.h"
-#include "prototypes.h"
 
 /* ---------------------------------------
     Begin PLUGIN INCLUDE code lines here. 
@@ -34,6 +31,7 @@
 
 void destroy_pl_cmd(CM_OBJECT c)
 {
+	set_crash();
 /* Remove from linked list */
 if (c==cmds_first) {
         cmds_first=c->next;
@@ -52,6 +50,7 @@ free(c);
 
 void destroy_plugin(PL_OBJECT p)
 {
+	set_crash();
 /* Remove from linked list */
 if (p==plugin_first) {
         plugin_first=p->next;
@@ -74,6 +73,7 @@ void save_plugin_data(UR_OBJECT user)
 	int i;
 	i=0;
 
+	set_crash();
 	for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
 		if (!i && plugin->req_userfile) { call_plugin_exec(user,"",plugin,-7); i++; }
 		else if (plugin->req_userfile) { call_plugin_exec(user,"",plugin,-8); i++; }
@@ -82,6 +82,7 @@ void save_plugin_data(UR_OBJECT user)
 
 int call_plugin_exec(UR_OBJECT user, char *str, PL_OBJECT plugin, int comnum)
 {
+	set_crash();
 /* ---------------------------------------------------
    Put third-party plugin command calls here!
    example:  if (!strcmp(plugin->registration,"00-000")) { plugin_00x000_main(user,str,comnum); return 1; }
@@ -96,9 +97,9 @@ int call_plugin_exec(UR_OBJECT user, char *str, PL_OBJECT plugin, int comnum)
 
 int oss_run_plugins(UR_OBJECT user, char *str, char *comword, int len)
 {
-	PL_OBJECT plugin;
 	CM_OBJECT com;
 
+	set_crash();
 	for (com=cmds_first; com!=NULL; com=com->next) {
 		if (!(!strncmp(comword,com->command,len))) continue;
 		if (user->level < com->req_lev) return 0;
@@ -113,6 +114,7 @@ int oss_plugin_dump(void)
 	PL_OBJECT p,p2;
 	CM_OBJECT c,c2;
 
+	set_crash();
 	for (c=cmds_first; c!=NULL; c=c2) { c2=c->next; destroy_pl_cmd(c); }
 	for (p=plugin_first; p!=NULL; p=p2) { p2=p->next; call_plugin_exec(NULL,"",p,-6); destroy_plugin(p); }
 	return 1;
@@ -122,6 +124,7 @@ void plugin_triggers(UR_OBJECT user, char *str)
 {
 	PL_OBJECT plugin;
 
+	set_crash();
 	for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
 	if (plugin->triggerable) call_plugin_exec(user,str,plugin,-5);
 	}
@@ -131,6 +134,7 @@ void load_plugin_data(UR_OBJECT user)
 {
 	PL_OBJECT plugin;
 
+	set_crash();
 	for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next)
 		if (plugin->req_userfile) call_plugin_exec(user,"",plugin,-9);
 }
@@ -141,11 +145,12 @@ PL_OBJECT plugin;
 CM_OBJECT com;
 int cm,total;
 
+	set_crash();
 cm=0;  total=0;
 /* write data for each loaded plugin */
 for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
         if (!total) {
-                sprintf(text,"\n%s%s                    OS Star  Plugin  Module  Registry                   \n\n",colors[CHIGHLIGHT],colors[CTEXT]);
+                sprintf(text,"\n%s%s                      Lotos  Plugin  Module  Registry                   \n\n",colors[CHIGHLIGHT],colors[CTEXT]);
                 write_user(user,text);
                 write_user(user,"~FTPos: ID-Auth : Name                       : Cmds : Ver : Author\n");
                 }
@@ -164,10 +169,10 @@ else write_user(user,"\n");
 PL_OBJECT create_plugin(void)
 {
 PL_OBJECT plugin;
-int i;
 
+	set_crash();
 if ((plugin=(PL_OBJECT)malloc(sizeof(struct plugin_struct)))==NULL) {
-        write_syslog(SYSLOG, 0, "ERROR: Memory allocation failure in create_plugin().\n");
+        write_syslog(ERRLOG, 1, "Memory allocation failure in create_plugin().\n");
         return NULL;
         }
 
@@ -192,12 +197,13 @@ return plugin;
 }
 
 /* -------------------
-    OS Star Debuger
+    Plug-in Debuger
    ------------------- */
 void oss_debugger(UR_OBJECT user)
 {
+	set_crash();
 	if (word_count<2) {
-		write_user(user,"OS Star DEBUGGER:  Specifikuj debug modul/parametre.\n");
+		write_user(user,"Lotos DEBUGGER:  Specifikuj debug modul/parametre.\n");
 		return;
 		}
 	if (!strncmp(word[1],"com",3)) {
@@ -220,10 +226,11 @@ PL_OBJECT plugin;
 CM_OBJECT com;
 int i,pos,num,sysN,plc,pl,total;
 
+	set_crash();
 i=0; pos=0; num=0; sysN=0; plc=0; pl=0; total=0;
 
 for (i=0; command_table[i].name[0]!='*'; i++) {
-        if (!total) write_user(user,"\n        OS Star DEBUGGER:  Command Listing by Memory Address\n\n");
+        if (!total) write_user(user,"\n          Lotos DEBUGGER:  Command Listing by Memory Address\n\n");
         if (!pos) write_user(user,"  ");
         total++;  sysN++;  pos++;
         sprintf(text,"%10s - %3d   ",command_table[i].name,sysN);
@@ -232,7 +239,7 @@ for (i=0; command_table[i].name[0]!='*'; i++) {
         }
 
 for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
-        if (!total) write_user(user,"\n        OS Star DEBUGGER:  Command Listing by Addressable Location\n\n");
+        if (!total) write_user(user,"\n          Lotos DEBUGGER:  Command Listing by Addressable Location\n\n");
         for (com=cmds_first; com!=NULL; com=com->next) {
                 if (com->plugin != plugin) continue;
                 if (!pos) write_user(user,"  ");
@@ -244,12 +251,13 @@ for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
         pl++;
         }
 if (pos!=4) write_user(user,"\n");
-sprintf(text,"\nDebuger:  Addressable command search finished.\n           Najdenych spolu %d prikazov.\n           %d OS Star  /  %d z %d plugin-ov.\n\n",total,sysN,plc,pl);
+sprintf(text,"\nDebuger:  Addressable command search finished.\n           Najdenych spolu %d prikazov.\n           %d Lotos  /  %d z %d plugin-ov.\n\n",total,sysN,plc,pl);
 write_user(user,text);
 }
 
 void oss_debug_allinput(UR_OBJECT user)
 {
+	set_crash();
 if (syspp->debug_input) {
         syspp->debug_input=0;  syspp->highlev_debug_on--;
         write_syslog(SYSLOG, 1, "%s deaktivoval Debuger systemoveho vstupu.\n",user->name);
@@ -272,6 +280,7 @@ PL_OBJECT plugin;
 CM_OBJECT cmd;
 int num,cnt,found;
 
+	set_crash();
 num = -1;       cnt = 0;       found = 0;       plugin = plugin_first;
 if (word_count<3) {
 	write_user(user,"DEBUG PluginData requires the plugin position to retrieve data.\n");
@@ -281,7 +290,7 @@ if ((num=atoi(word[2]))==-1) {
 	write_user(user,"DEBUG PluginData requires the NUMERICAL position for data retrieval.\n");
 	return;
 	}
-write_user(user,"OS Star DEBUGGER:  Retrieving addressable plugin information by location...\n\n");
+write_user(user,"Lotos DEBUGGER:  Retrieving addressable plugin information by location...\n\n");
 if (plugin_first!=NULL) {
         for (plugin=plugin_first; plugin!=NULL; plugin=plugin->next) {
                 if (cnt==num) { found++; break; }
@@ -315,6 +324,7 @@ write_user(user,"Debugger:  Search finished.\n");
 
 void oss_debug_alert(UR_OBJECT user)
 {
+	set_crash();
 if (syspp->highlev_debug_on) {
         write_user(user,"~OL~FYATTENTION!!!     ATTENTION!!!   ATTENTION!!!\n\n");
         write_user(user,"Higher-level debug features are currently active on this\n");
@@ -328,10 +338,10 @@ if (syspp->highlev_debug_on) {
 CM_OBJECT create_cmd(void)
 {
 CM_OBJECT cmd;
-int i;
 
+	set_crash();
 if ((cmd=(CM_OBJECT)malloc(sizeof(struct plugin_cmd)))==NULL) {
-        write_syslog(SYSLOG, 0, "ERROR: Memory allocation failure in create_cmd().\n");
+        write_syslog(ERRLOG, 1, "Memory allocation failure in create_cmd().\n");
         return NULL;
         }
 
@@ -353,3 +363,22 @@ cmd->req_lev=99;
 cmd->plugin=NULL;
 return cmd;
 }
+
+
+void load_plugins(void)
+{
+	int tmp=0, cmd=0;
+	set_crash();
+/* --------------------------------------------------
+   Place third-party plugin initialization calls HERE
+   Ex: if ((tmp=plugin_00x000_init(cmd))) cmd=cmd+tmp;
+   -------------------------------------------------- */
+	if ((tmp=plugin_00x000_init(cmd))) cmd=cmd+tmp;
+	if ((tmp=plugin_02x100_init(cmd))) cmd=cmd+tmp;
+/* ------------------------------------------------
+   End third-party plugin initialization calls HERE
+   ------------------------------------------------ */
+}
+
+
+#endif /* plugin.c */

@@ -1,8 +1,26 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-           Hlavickovy subor s prototypmi funkcii pre OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+           Hlavickovy subor s prototypmi funkcii pre Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __PROTOTYPES_H__
+#define __PROTOTYPES_H__ 1
+
+#include <stdio.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_tr.h"
+#include "obj_pl.h"
+#include "obj_mc.h"
+#ifdef NETLINKS
+	#include "obj_nl.h"
+#endif
+
 
 #define args(list) list
 
@@ -42,12 +60,24 @@ void      strtolower args((char *str));
 int       is_number args((char *str));
 char *    istrstr args((char *str, char *pat));
 char *    replace_string args((char *inpstr,char *old,char *new));
-int       instr args((char *s1,char *s2));
+int       s_instr args((char *s1,char *s2));
 void      midcpy args((char *strf,char *strt,int fr,int to));
 char *    ordinal_text args((int num));
 char *    long_date args((int which));
 void      smiley_type args((char *str, char *type));
 char *    center_string args((int cstrlen,int mark,char *marker,char *str,...));
+char *    center args((char *string, int clen));
+int       is_fnumber args((char *str));
+int       is_inumber args((char *str));
+char *    replace_swear args((char *inpstr, char *old));
+void      reset_murlist args((UR_OBJECT user));
+char *    grm_gnd args((int typ, int gnd));
+char *    grm_num args((int typ, int n));
+void      split_com_str_num args((char *inpstr, int num));
+void      nick_grm args((UR_OBJECT user));
+int       contains_extension args((char *str, int type));
+void      resetbuff args((char *buff));
+char      stricmp args((char *str1, char *str2));
 
 /* Object functions */
 
@@ -259,7 +289,7 @@ void      tell args((UR_OBJECT user, char *inpstr));
 void      emote args((UR_OBJECT user, char *inpstr));
 void      semote args((UR_OBJECT user, char *inpstr));
 void      pemote args((UR_OBJECT user, char *inpstr));
-void      echo args((UR_OBJECT user, char *inpstr));
+void      s_echo args((UR_OBJECT user, char *inpstr));
 void      mutter args((UR_OBJECT user, char *inpstr));
 void      plead args((UR_OBJECT user, char *inpstr));
 void      wizshout args((UR_OBJECT user, char *inpstr));
@@ -272,7 +302,7 @@ void      think_it args((UR_OBJECT user, char *inpstr));
 void      sing_it args((UR_OBJECT user, char *inpstr));
 void      bcast args((UR_OBJECT user, char *inpstr));
 void      wake args((UR_OBJECT user, char *inpstr));
-void      beep args((UR_OBJECT user,char *inpstr));
+void      s_beep args((UR_OBJECT user,char *inpstr));
 void      quick_call args((UR_OBJECT user));
 void      revedit args((UR_OBJECT user));
 void      revafk args((UR_OBJECT user));
@@ -282,8 +312,6 @@ void      revtell args((UR_OBJECT user));
 void      review args((UR_OBJECT user));
 void      status args((UR_OBJECT user));
 void      examine args((UR_OBJECT user));
-void      set_attributes args((UR_OBJECT user, char *inpstr));
-void      show_attributes args((UR_OBJECT user));
 void      prompt args((UR_OBJECT user));
 void      toggle_charecho args((UR_OBJECT user));
 void      set_desc args((UR_OBJECT user, char *inpstr));
@@ -312,7 +340,7 @@ void      clone_emote args((UR_OBJECT user, char *inpstr));
 void      clone_hear args((UR_OBJECT user));
 void      go args((UR_OBJECT user));
 void      move_user args((UR_OBJECT user,RM_OBJECT rm,int teleport));
-void      move args((UR_OBJECT user));
+void      s_move args((UR_OBJECT user));
 void      set_room_access args((UR_OBJECT user));
 void      change_room_fix args((UR_OBJECT user,int fix));
 void      invite args((UR_OBJECT user));
@@ -330,7 +358,7 @@ void      promote args((UR_OBJECT user, char *inpstr));
 void      demote args((UR_OBJECT user, char *inpstr));
 void      muzzle args((UR_OBJECT user));
 void      unmuzzle args((UR_OBJECT user));
-void      arrest args((UR_OBJECT user));
+void      arrest args((UR_OBJECT user, int type));
 void      unarrest args((UR_OBJECT user));
 void      change_pass args((UR_OBJECT user));
 void      kill_user args((UR_OBJECT user, char *inpstr));
@@ -476,15 +504,11 @@ void      remote_stat args((UR_OBJECT user));
 void      oss_versionVerify args((void));
 int       show_file args((UR_OBJECT user, char *filename));
 void      reply args((UR_OBJECT user, char *inpstr));
-void      split_com_str_num args((char *inpstr, int num));
 void      shoutto args((UR_OBJECT user, char *inpstr));
 void      tellall args((UR_OBJECT user, char *inpstr));
 void      write_room_except2 args((RM_OBJECT rm, char *str, UR_OBJECT user, UR_OBJECT user2));
-void      nick_grm args((UR_OBJECT user));
 void      show_nick_grm args((UR_OBJECT user, UR_OBJECT u));
 void      com_nick_grm args((UR_OBJECT user));
-char *    grm args((int typ, int n));
-int       contains_extension args((char *str, int type));
 void      auth_user args((UR_OBJECT user));
 char *    getanswer args((FILE *popfp, char *buff, int eol));
 void      check_alarm args((void));
@@ -492,14 +516,10 @@ void      set_ualarm args((UR_OBJECT user));
 void      finger_host args((UR_OBJECT user));
 void      clear_temps args((void));
 void      check_autosave args((void));
-int       is_fnumber args((char *str));
-int       is_inumber args((char *str));
-char *    replace_swear args((char *inpstr, char *old));
 void      list_txt_files args((UR_OBJECT user));
 void      list_pic_files args((UR_OBJECT user));
 void      reloads args((UR_OBJECT user));
 int       count_musers args((UR_OBJECT user, char *inpstr));
-void      reset_murlist args((UR_OBJECT user));
 void      quit_user args((UR_OBJECT user, char *inpstr));
 void      show_map args((UR_OBJECT user));
 void      list_kill_msgs args((UR_OBJECT user));
@@ -510,7 +530,6 @@ void      restrict args((UR_OBJECT user));
 void      list_cmdas args((UR_OBJECT user));
 void      system_access args((UR_OBJECT user, char *inpstr, int co));
 void      force_backup args((UR_OBJECT user));
-char *    gnd_grm args((int typ, int gnd));
 void      set_follow args((UR_OBJECT user));
 void      follow args((UR_OBJECT user));
 void      load_counters args((void));
@@ -535,8 +554,8 @@ void      reinit_sockets args((void));
 void      restore_structs args((void));
 void      myxterm args((UR_OBJECT user, char *inpstr));
 void      allxterm args((UR_OBJECT user, char *inpstr));
-void      print_menu args((UR_OBJECT user, int type));
-int       set_ops args((UR_OBJECT user, char *inpstr));
+void      print_menu args((UR_OBJECT user));
+int       setmain_ops args((UR_OBJECT user, char *inpstr));
 void      who_short args((UR_OBJECT user));
 void      who_moebyroom args((UR_OBJECT user));
 void      who_hope args((UR_OBJECT user));
@@ -544,7 +563,7 @@ void      who_stairway args((UR_OBJECT user));
 void      who_nuts333 args((UR_OBJECT user));
 int       inroom args((RM_OBJECT rm));
 int       reinit_save_user args((UR_OBJECT user));
-int       reinit_load_user args((UR_OBJECT user));
+int       reinit_load_user args((UR_OBJECT user, int stage));
 int       reinit_save_user_malloc args((UR_OBJECT user));
 int       reinit_load_user_malloc args((UR_OBJECT user));
 int       reinit_save_room args((RM_OBJECT room));
@@ -552,6 +571,23 @@ int       reinit_load_room args((RM_OBJECT room));
 #ifdef DEBUG
 void      test args((UR_OBJECT user, char *inpstr));
 #endif
+void      write_pid args((void));
+void      identify args((UR_OBJECT user));
+struct hostent *fgethostbyname args((char *hostname));
+int       isproces args((char *procname, char *prg));
+int       isrunning args((char *prog));
+int       file_exists args((char *fname));
+void      restore args((UR_OBJECT user));
+void      build_datetime args((char *str));
+void      create_kill_file args((void));
+
+/* net */
+void      init_hostsfile args((void));
+int       check_host args((char *ip_site, char *named_site));
+void      add_host args((char *siteaddr, char *sitename));
+void      get_net_addresses args((struct sockaddr_in acc_addr, char *ip_site, char *named_site));
+int       ident_request args((struct hostent *rhost, int rport, int lport, char *accname));
+int       mail_id_request args((struct hostent *rhost, char *accname, char *email));
 
 /* pluginy */
 void      destroy_pl_cmd args((CM_OBJECT c));
@@ -568,12 +604,15 @@ void      oss_debugger args((UR_OBJECT user));
 void      oss_debug_commands args((UR_OBJECT user));
 void      oss_debug_allinput args((UR_OBJECT user));
 void      oss_debug_plugindata args((UR_OBJECT user));
+void      load_plugins args((void));
 
 /* transport */
 void      transport_plane args((UR_OBJECT user));
-void      write_transport args((RM_OBJECT tr, char *str));
-void      write_transport_except args((RM_OBJECT tr, char *str, UR_OBJECT user));
+void      write_transport args((TR_OBJECT tr, char *str));
+void      write_transport_except args((TR_OBJECT tr, char *str, UR_OBJECT user));
 void      transport args((void));
+TR_OBJECT create_transport args((void));
+void      destruct_transport args((TR_OBJECT tr));
 
 /* makra */
 void      save_macros args((UR_OBJECT user));
@@ -604,7 +643,7 @@ void      query_aud args((UR_OBJECT user, char *inpstr));
 #endif
 void      figlet args((UR_OBJECT user, char *inpstr, int typ));
 int       readfont args((char *fontname));
-void      write_text_figlet args((char *fig_text, char *name, char *font));
+void      write_text_figlet args((UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *fig_text, char *name, char *font));
 void      fclearline args((void));
 void      printline args((UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm));
 int       addchar args((long c));
@@ -614,3 +653,32 @@ void      skiptoeol args((FILE *fp));
 void      readfontchar args((FILE *file, long theord, char *line, int maxlen));
 void      getletter args((long c));
 void      write_broadcast_figlet args((UR_OBJECT user, UR_OBJECT u, RM_OBJECT rm, char *fig_text));
+void      list_fnt_files args((UR_OBJECT user));
+
+/* money */
+void      donate_cash args((UR_OBJECT));
+void      show_money args((UR_OBJECT));
+void      check_credit_updates args((void));
+void      global_money args((UR_OBJECT));
+
+/* menu */
+int       setops args((UR_OBJECT user, char *inpstr));
+// main
+void      show_attributes args((UR_OBJECT user));
+void      set_attributes args((UR_OBJECT user, char *inpstr));
+// terminal
+void      showattribs_term args((UR_OBJECT user));
+void      set_terminal args((UR_OBJECT user, char *inpstr));
+int       setops_term args((UR_OBJECT user, char *inpstr));
+// bank
+void      showattribs_bank args((UR_OBJECT user));
+void      set_bank args((UR_OBJECT user, char *inpstr));
+int       setops_bank args((UR_OBJECT user, char *inpstr));
+
+/* debug */
+#ifdef DEBUG
+void      s_crash args((char *file, int line));
+void      crash_dump args((void));
+#endif
+
+#endif /* prototypes.h */

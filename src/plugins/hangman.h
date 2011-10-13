@@ -1,4 +1,5 @@
-/* OS Star         Hangman Plugin - hlavickovy fajl
+/* vi: set ts=4 sw=4: */
+/* Lotos         Hangman Plugin - hlavickovy fajl
   -----------------------------------------------*/
 
 #define HANGDICT "hangdata"

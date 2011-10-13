@@ -1,4 +1,4 @@
-L o t o s   verzia 1.1.0
+L o t o s   verzia 1.2.0
 ==============================================================================
                  Instalacia, nastavenie, pouzivatelsky manual
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -8,7 +8,7 @@ POZN.: Pozri samostatne specializovane manualy
        OBSAH
        -----
           i. Uvod
-         ii. Historia OS Star
+         ii. Historia Lotos-a
 
           Odstavec A - Nastavenie a instalacia
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,14 +29,14 @@ POZN.: Pozri samostatne specializovane manualy
           9. Ucel plugin modulov
          10. Technicke rozdiely medzi pluginom a 'Hard-code'
          11. Pridavanie plugin modulov do systemu
-	 12. Odoberanie plugin modulov zo systemu
+         12. Odoberanie plugin modulov zo systemu
          13. Problemy s plugin modulmi
 
 
    i. UVOD
       ----
        Lotos je zalozeny na kode AmNUTS 2.2.1 od Andrew Collingtona
-      chraneneho autorskym pravom. Okrem kodu AmNUTS 2.2.1 su v OS Star pouzite
+      chraneneho autorskym pravom. Okrem kodu AmNUTS 2.2.1 su v Lotos-e pouzite
       casti kodov z inych modifikacii NUTS-u.
       Tu je ich zoznam s popisom co z nich bolo pouzite:
        1. TalkerOS 4.03
@@ -54,6 +54,7 @@ POZN.: Pozri samostatne specializovane manualy
         - fonty a praca s nimi
        6. nejake doplnky z roznych slovenskych talkrov
        	- Star AMD talker
+        - NooK
        	- Hysteria - pocitadla
        	- M.A.R.S talker - restart (reinicializacia)
         - Kesican - system transportov
@@ -63,7 +64,7 @@ POZN.: Pozri samostatne specializovane manualy
       na prve spustenie.
 
 
-  ii. Historia OS Star
+  ii. Historia Lotos-a
       ----------------
        Myslienka na vlastny talkrovy OS sa vo mne zrodila cez letne
       prazdniny v roku 1999 po tom co som presusil studium na vysokej
@@ -72,9 +73,9 @@ POZN.: Pozri samostatne specializovane manualy
       pohladal na internete zdrojove kody co najviac talkrov a prestudoval
       som si ich. Po kratkej uvahe moja volba padla na AmNUTS. Mal totizto
       najviac novych vlastnosti oproti povodnemu NUTS. K tomu este
-      prispelo, ze som na nom zalozil poslednu neOS Star-ovsku verziu
-      talkra Star (z neho je aj meno OS Star). Talkrovy OS Star som zacal
-      programovat 6.8.1999 o 7.30 :). Povodne som zacinal v minilinuxe
+      prispelo, ze som na nom zalozil poslednu neLotos-ovsku verziu
+      talkra Star (z neho je aj meno Lotos - Lopov talkrovy OS Star). Lotos som
+      zacal programovat 6.8.1999 o 7.30 :). Povodne som zacinal v minilinuxe
       (Monkey). Az v januari 2000 som si zohnal Red Hat 6.1 cz, v ktorom
       bol system dokonceny. Najprv som kod AmNUTS rozdelil na viacero
       suborov podla zamerania funkcii v nich obsiahnutych. K tomu som si
@@ -86,8 +87,8 @@ POZN.: Pozri samostatne specializovane manualy
       sa na to cele vy... (dopln podla uvazenia :). Do vianoc 1999 som toho moc
       neurobil, v podstate som len podrobnejsie pozeral zdrojove kody
       jednotlivych talkrov a vyberal si co vsetko pouzijem v mojom systeme.
-      Ale potom to uz islo celkom rychlo, a tak priblizne kazde dva mesiace
-      davam na internet novu verziu.
+      Odvtedy stale nieco pridavam, prerabam, opravujem, vylepsujem a pod.
+      V pravidelne nepravidelnych ;) intervaloch uverejnujem novu verziu.
 
    ---------------------------------------------
    O d s t a v e c   A - nastavenie a instalacia
@@ -101,54 +102,55 @@ POZN.: Pozri samostatne specializovane manualy
         a pripadne aj GZIP. Obidva by mali byt standardne dostupne na kazdom
         UN*X konte. Takze najprv sa treba prihlasit na svoje konto.
         Potom nasledujte tieto kroky:
-        `cd ~´ - prepne do vasho domovskeho adresara
-        `cp <stary_adresar>/osstar110.tar.gz .´ skopiruje balik do domovskeho
+        `cd ~' - prepne do vasho domovskeho adresara
+        `cp <stary_adresar>/lotos120.tar.gz .' skopiruje balik do domovskeho
         adresara ak uz je balik stiahnuty z internetu. Ak nie je, tak ho
-        treba najprv stiahnut z OS Star domovskej web stranky do vasho 
+        treba najprv stiahnut z Lotos domovskej web stranky do vasho 
         domovskeho adresara.
-        `gzip -d osstar110.tar.gz´ rozbali subor a premenuje ho na osstar110.tar
-        `tar -xvf osstar.tar´ rozbali subor na jednotlive subory a adresare
-        v jednom adresari osstar110. Ak chcete iny nazov adresara, treba pouzit
-        prikaz `mv ./osstar110 ./<novy_nazov>´. Po tomto je uz OS Star kompletne
+        `gzip -d lotos120.tar.gz' rozbali subor a premenuje ho na lotos120.tar
+        `tar -xvf lotos120.tar' rozbali subor na jednotlive subory a adresare
+        v jednom adresari lotos120. Ak chcete iny nazov adresara, treba pouzit
+        prikaz `mv ./lotos120 ./<novy_nazov>'. Po tomto je uz Lotos kompletne
         naistalovany.
 
     2. SYSTEM SUBOROV
        --------------
-         Adresar s OS Star obsahuje dalsie podadresare. V nich sa nachadzuju
+         Adresar s Lotos-om obsahuje dalsie podadresare. V nich sa nachadzuju
         subory triedene podla ich urcenia. Ich zoznam s urcenim:
         BACKUPS - zalohy systemu vytvorene rucne zo systemu
-        BIN - spustaci subor systemu
-        DATAFILES - rozne subory potrebne na beh systemu
+        BIN - (len) spustaci subor systemu
+        DATAFILES - rozne datove subory vacsinu potrebne na beh systemu
         DOCS - dokumentacia k systemu
         DUMPFILES - rozne obrazy systemu vytvorene pocas behu
         LOGFILES - log subory
         OBJS - objektove subory jednotlivych casti vytvorene pri kompilacii
         SRC - zdrojove kody systemu
-        TEMPFILES - docasne subory vytvorene systemom
+        TEMPFILES - docasne subory vytvorene za behu systemu
         USERFILES - subory s nastaveniami jednotlivych userov
 
          Adresar DATAFILES sa dalej deli nasledovne:
         CONFFILES - konfiguracne subory
-        COUNTERS - pocitadla
+        COUNTERS - pocitadla userov
         FONTS - fonty pre bannery
         HELPFILES - subory s napovedou k jednotlivym prikazom
         KILLMSGS - subory s kill hlaskami
-        MAILSPOOL - pouziva posta
+        MAILSPOOL - pouziva sa pri posielani posty
         MAPFILES - mapy
-        MISCFILES - rozne doplnkove dokumenty a zoznamy
+        MISCFILES - rozne doplnkove dokumenty, zoznamy a obrazky
         MOTDS - prihlasovacie a odhlasovacie obrazovky
         PICTFILES - ascii obrazky na posielanie
-        PLFILES - subory k plugin modulom
+        PLFILES - subory k plugin modulom - napoveda, data, ...
         ROOMFILES - nastenky, popisy a pod. k miestnostiam
-        TEXTFILES - rozsirene napovedy
-        TRFILES - nastenky, popisy a po. k transportom
-        VOTEFILES - subory k volbam
-        SCREENS - subory s obrazovkami pre rozne mody, zatial len pre .set
+        SCREENS - subory obsahujuce obrazovky najcastejsie pouzivane pri
+                   nastavovani parametrov
+        TEXTFILES - rozsirene napovedy - texty
+        TRFILES - nastenky, popisy a pod. k transportom
+        VOTEFILES - subory k volbam - popisy, vysledky
 
     3. PRVE NASTAVENIE
        ---------------
-         Je uplne lahke nastavit OS Star. Aj ked ma velmi vela moznosti
-        na nastavovanie. Aj napriek tomu, ze OS Star je uz standardne nastaveny,
+         Je uplne lahke nastavit Lotos. Aj ked ma velmi vela moznosti
+        na nastavovanie. Aj napriek tomu, ze Lotos je uz standardne nastaveny,
         je nutne nastavit niekolko veci.
           POZNAMKA: hlavne nastavenia treba urobit v subore
            DATAFILES/CONFFILES/config podla suboru DOCS/config.txt.
@@ -157,28 +159,27 @@ POZN.: Pozri samostatne specializovane manualy
         boots.h - nazvy levelov v strukture user_level
         prompts.c - kratke texty, hlasky, popisy a pod.
         star.h - nazvy defaultnych miestnosti
+        A najdolezitejsie:
         define.h - korenovy adresar > `ROOTDIR'
 
    4. PRVA KOMPILACIA A SPUSTENIE
       ---------------------------
-        Na konmpilaciu sluzi subor makefile. Takze staci napisat `make´
+        Na konmpilaciu sluzi subor Makefile. Takze staci napisat `make'
         v adresari SRC a vsetko sa automaticky skompiluje. Ak sa vyskytnu nejake
         chyby, treba skontrolovat subor, v ktorom je podla kompilatora chyba.
         Ak ste neurobily v zdrojovych kodoch ziadne zmeny, nemali by sa
         pri kompilacii vyskytnut ziadne chyby.
-         POZNAKMA: Red Hat system vyzaduje kniznicu crypt. Ta sa prida
-                   dopisanim do suboru makefile. (Pozri redhat.txt)
         Ak kompilacia prebehla bez chyb, staci uz len spustit program. Na to
-        sa treba presunut do adresara z programom - `cd ../bin´ a spustit
-        program prikazom `./osstar´. Tym sa nastartuje talker a vy sa mozete
-        pripojit cez port nastaveny v konfiguracnom subore.
-        OS Star je dodavany s nasledujucim kontom nastavenym na najvyssi level.
+        sa treba presunut do adresara z programom - `cd ../bin' a spustit
+        program prikazom `./lotos'. Tym sa nastartuje talker a vy sa mozete
+        pripojit cez port nastaveny v konfiguracnom subore (defaultne 7000).
+        Lotos je dodavany s nasledujucim kontom nastavenym na najvyssi level.
                 Username: fred
                 Password: test
         Ak ste zmenili meno majitela v strukture reg_sysinfo, treba najprv
         premenovat subor s tymto defaultnym userom. To sa dosiahne prikazom
-        `mv Fred.D <novemeno>.D´ v adresari USERFILES. Potom uz staci len
-        napisat `telnet localhost <port>´. Ak ste nezmenili meno, tak to radim
+        `mv Fred.D <novemeno>.D' v adresari USERFILES. Potom uz staci len
+        napisat `telnet localhost <port>'. Ak ste nezmenili meno, tak to radim
         urobit kvoli bezpecnosti !
 
    ----------------------------------------------
@@ -191,10 +192,11 @@ POZN.: Pozri samostatne specializovane manualy
         tak popisem len tie najhlavnejsie. Su tam:
         PID - sidlo procesu, cas startu, cas prevadzky a porty.
         Ak by sa program vymkol konrole, staci napisat z UN*X konta kill <PID>.
+        Pripadne spustit skript `kill' v adresari BIN.
         Inac pozor - PID cislo je pri kazdom starte systemu ine. Cisla portov
         uvadzaju, na ktorych portoch system akceptuje pripojenia.
         MAINport- pre vsetkych userov, WIZ - pre wizardov a adminov
-        a LINKport pre pripojenie dalsich talkrov.
+        a LINKport pre pripojenie dalsich talkrov (ak je zakompilovane).
         MINLOGIN level urcuje, aky musi mat user minimalny level, aby sa mohol
         pripojit cez MAINport. Dalej su dolezite LEVEL hodnoty. Tie treba mat
         velmi starostlivo nastavene.
@@ -204,7 +206,7 @@ POZN.: Pozri samostatne specializovane manualy
      6. BEZPECNOSTNE PROBLEMY
         ---------------------
          Ak by boli nejake problemy s niektorym userom, su nejake moznosti
-        ako si ho udrzat `od tela´ a mat v systeme klud.
+        ako si ho udrzat `od tela' a mat v systeme klud.
         "krok 1"
           MUZZLE - znemozni userovi rozpravat a viest akukolvek
                    konverzaciu.
@@ -224,12 +226,13 @@ POZN.: Pozri samostatne specializovane manualy
 
      7. SYSTEMOVE LOGOVANIE
         -------------------
-         OS Star vytvara 5 typov logov:
+         Lotos vytvara 5 typov logov:
         SYSTEM LOG - vacsina systemovych zaznamov
         NETLINK LOG - zaznamy LINKportu - ak je zakopilovany
         ACCREQ LOG - zaznamy ziadosti o prve promote
         DEBUG LOG - zaznamy pri odladovani systemu
         ERROR LOG - zaznamy vacsiny chyb
+         Je vhodne ich pravidelne citat, hlavne ERRLOG.
 
      8. ONLINE UTILITY
         --------------
@@ -243,19 +246,19 @@ POZN.: Pozri samostatne specializovane manualy
    ---------------------------------------------------------
    O d s t a v e c   C - Pridavanie funkci cez plugin moduly
    ---------------------------------------------------------
-     5. UCEL PLUGIN MODULOV
+     9. UCEL PLUGIN MODULOV
         -------------------
          Pretoze sa casto doplnaju rozne hry, funkcie a pod z inych systemov,
         alebo sa do inych systemov exportuju, rozhodol som sa pridat rozsirenie
         (prebrate z TOS) na pridavanie takychto veci cez plugin moduly. Takze
-        ak je plugin napisane spravne a aj druhy system ma toto rozhranie,
+        ak je plugin napisany spravne a aj druhy system ma toto rozhranie,
         nie je potom problem prenasat ich medzi nimi bez akejkolvek upravy.
         Toto doplnenie plugin modulu potom spociva v dopisani 3-4 riadkov kodu
         pri mensich moduloch, alebo pri 5-6-.. riadkoch pri velkych moduloch.
-        Aj tak je to ale velka uspora oproti desiatkam alebo stovkam oproti
-        tradicnemu doplnaniu.
+        Aj tak je to ale velka uspora oproti desiatkam alebo stovkam riadkov
+        pri tradicnom doplnani.
 
-     5. TECHNICKE ROZDIELY MEDZI PLUGINOM A `HARD-CODE´
+     10. TECHNICKE ROZDIELY MEDZI PLUGINOM A `HARD-CODE'
         -----------------------------------------------
          V tradicnom programovani sa system rozsiroval dopisovanim do zdrojoveho
         kodu systemu. Musel byt pridany kod a obnovene struktury v EXEC_COM(),
@@ -266,7 +269,7 @@ POZN.: Pozri samostatne specializovane manualy
         vsetky prikazy v module obsiahnute. Toto je obrovsky rozdiel medzi
         starym postupom a novym plugin systemom.
 
-     5. PRIDAVANIE PLUGIN MODULOV DO SYSTEMU
+     11. PRIDAVANIE PLUGIN MODULOV DO SYSTEMU
         ------------------------------------
          Je to velmi jednoduche. Vsetky zdrojove subory sa umiestnia do adresara
         SRC/PLUGINS. Na zaciatku .C suboru by mali byt vypisane vsetky riadky,
@@ -282,20 +285,20 @@ POZN.: Pozri samostatne specializovane manualy
                     Put third-party plugin command calls here!
                    -------------------------------------------- */
 
-           v subore adds.c
                 /* --------------------------------------------------
                    Place third-party plugin initialization calls HERE
                    -------------------------------------------------- */
          POZNAMKA: Nejaky vacsi (komplexnejsi) modul mozno bude pozadovat
-                    vlozenie dalsich riadkov napr. do star.h. Ak je to tak,
+                    vlozenie dalsich riadkov napr. do obj_ur.h. Ak je to tak,
                     je to napisane na zaciatku .C suboru plugin modulu.
 
-     13. PRIDAVANIE PLUGIN MODULOV DO SYSTEMU
+     12. ODOBERANIE PLUGIN MODULOV ZO SYSTEMU
          ------------------------------------
          To je lahke. Staci len odstranit riadky, ktore boli pridane. Staci
         pouzit odsek 12 ako navod s tym, ze sa bude pokracovat opacne.
 
-     14. PROBLEMY Z PLUGIN MODULMI
+     13. PROBLEMY Z PLUGIN MODULMI
          -------------------------
-         OS Star neposkytuje podporu na jednotlive pluginy. Ak autor modulu
+         Lotos neposkytuje podporu na jednotlive pluginy. Ak autor modulu
         napise kontaktne informacie, kontaktujte priamo autora pluginu.
+

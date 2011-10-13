@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                      Hlavickovy subor Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __CT_USER_H__
+#define __CT_USER_H__ 1
 
 extern RM_OBJECT room_first;
 extern SYS_OBJECT amsys;
@@ -28,15 +32,8 @@ extern struct {
   short int on;
   } last_login_info[LASTLOGON_NUM+1];
 
-extern char *help_style[];
-extern char *who_style[];
+extern char *color_mods[];
 
-extern struct {
-	char cmenu, *type, *name, *desc;
-	} set_tab[];
-extern struct {
-	char *name, *str;
-	} prompt_tab[];
 
 extern char *restrict_string;
 
@@ -45,3 +42,5 @@ extern char *appear_user_prompt, *appear_prompt;
 extern char *disapear_user_prompt, *disapear_prompt;
 extern char *profile_edit_header, *no_profile_prompt;
 extern char *continue1;
+
+#endif /* ct_user.h */

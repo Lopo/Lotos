@@ -1,5 +1,5 @@
 +------------------------------------------------------------------------------+
-             LOTOS 1.1.0 - konfiguracny subor
+             LOTOS 1.2.0 - konfiguracny subor
 +------------------------------------------------------------------------------+
 
  Subor je rozdeleny do 4 sekcii. V sekcii INIT su hlavne parametre pre nahranie
@@ -86,7 +86,7 @@ auto_afk - cas v sekundach po ktorom bude user automaticky nastaveny na AFK. Ak
 pueblo_enh - ON/OFF, zapina alebo vypina podporu pre Pueblo klienta
 auto_save - nastavuje interval v minutach na automaticke ukladanie userfajlov
    kazdeho nahlaseneho uzivatela. Ak sa nastavi `-1', funkcia bude vypnuta.
-
+use_hosts_file - YES/NO - zapina ukladanie domenovych mien do specialneho suboru
 
 sekcia ROOMS
 ------------

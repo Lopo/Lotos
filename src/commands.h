@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      prikazy pre OS Star v1.1.0
-          Copyright (C) Pavol Hluchy - Posledny update: 15.8.2000
-         osstar@star.sjf.stuba.sk | http://star.sjf.stuba.sk/osstar
+                      prikazy pre Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __COMMANDS_H__
+#define __COMMANDS_H__ 1
 
 /* These are the general function names of the commands */
 char *command_types[]={
@@ -48,6 +52,7 @@ struct {
     { "private",    "",    L_6,     CT_GENERAL },
     { "letmein",    "",    USER,    CT_GENERAL },
     { "invite",     "",    L_6,     CT_GENERAL },
+    { "to",         "/",   USER,    CT_SOCIAL  },
     { "topic",      "",    SUPER,   CT_SOCIAL  },
     { "move",       "",    L_6,     CT_MOVE    },
     { "bcast",      "",    L_6,     CT_SOCIAL  },
@@ -102,7 +107,7 @@ struct {
     { "unfix",      "",    ARCH,    CT_GENERAL },
     { "viewlog",    "",    GOD,     CT_ADMIN   },
     { "accreq",     "",    NEW,     CT_USER    },
-    { "cbuff",      "",    USER,    CT_SOCIAL  },
+    { "revclear",   "",    USER,    CT_SOCIAL  },
     { "clone",      "",    L_6,     CT_CLONE   },
     { "destroy",    "",    L_6,     CT_CLONE   },
     { "myclones",   "",    L_6,     CT_CLONE   },
@@ -183,7 +188,6 @@ struct {
     { "gcom",       "",    L_8,     CT_ADMIN   },
     { "sfrom",      "",    WIZ,     CT_MSG     },
     { "autopromo",  "",    GOD,     CT_ADMIN   },
-    { "sayto",      "/",   USER,    CT_SOCIAL  },
     { "notify",     "",    USER,    CT_SOCIAL  },
     { "nsay",       "",    L_3,     CT_SOCIAL  },
     { "nemote",     "",    L_3,     CT_SOCIAL  },
@@ -208,6 +212,7 @@ struct {
     { "reminder",   "",    SUPER,   CT_MSG     },
     { "nsmail",     "",    L_4,     CT_MSG     },
     { "plugreg",    "",    GOD,     CT_ADMIN   },
+	{ "pldebug",	"",    GOD,		CT_ADMIN   },
     { "prikazy",    "",    JAILED,  CT_GENERAL },
     { "tplane",     "",    USER,    CT_MOVE    },
     { "ignore",     "",    USER,    CT_IGNORE  },
@@ -218,7 +223,7 @@ struct {
     { "auth",       "",    WIZ,     CT_ADMIN   },
     { "alarm",      "",    USER,    CT_USER    },
     { "vote",       "",    USER,    CT_GENERAL },
-    { "finger",     "",    WIZ,     CT_ADMIN   },
+    { "finger",     "",    GOD,     CT_ADMIN   },
     { "rloads",     "",    GOD,     CT_ADMIN   },
     { "banner",     "",    ARCH,    CT_SOCIAL  },
     { "tbanner",    "",    ARCH,    CT_SOCIAL  },
@@ -237,14 +242,21 @@ struct {
     { "talkers",    "",    USER,    CT_GENERAL },
     { "counters",   "",    ARCH,    CT_ADMIN   },
     { "hug",        "",    SUPER,   CT_SOCIAL  },
-    { "kiss",       "",    SUPER,   CT_SOCIAL  },
+	{ "kiss",	"",	SUPER,	CT_SOCIAL	},
 	{ "restart",    "",    ARCH,    CT_ADMIN   },
 	{ "myxterm",    "",    USER,    CT_GENERAL },
 	{ "allxterm",    "",   ARCH,    CT_GENERAL },
 #ifdef DEBUG
-	{ "test", 	"", 	ROOT,   CT_ADMIN },
+	{ "test", 	"", 	JAILED,   CT_ADMIN },
 #endif
-	{ "jukebox",	"",		SUPER,	CT_USER		},
+	{ "jukebox",	"",	SUPER,	CT_USER		},
+	{ "terminal",	"",	JAILED,	CT_USER		},
+	{ "identify",	"",	ARCH,	CT_ADMIN	},
+	{ "donate", 	"", USER,	CT_GENERAL	},
+	{ "cash",		"", USER,	CT_GENERAL	},
+	{ "money",		"",	ARCH,	CT_GENERAL	},
+	{ "bank",		"",	USER,	CT_GENERAL	},
+	{ "restore",	"", WIZ,	CT_ADMIN	},
     { "*","*",-1,-1 } /* stopping clause - do not remove */
   };
 #include "comvals.h"
@@ -270,3 +282,4 @@ struct {
 		{"*",""}
   };
 
+#endif /* commands.h */

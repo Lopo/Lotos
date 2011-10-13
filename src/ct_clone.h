@@ -1,8 +1,12 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                      Hlavickovy subor OS Star v1.1.0
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                      Hlavickovy subor Lotos v1.2.0
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
+
+#ifndef __CT_CLONE_H__
+#define __CT_CLONE_H__ 1
 
 extern UR_OBJECT user_first;
 extern SYS_OBJECT amsys;
@@ -25,3 +29,5 @@ extern char *clone_user_destroy;
 extern char *clone_room_destroy1, *clone_room_destroy2;
 extern char *clone_switch_prompt;
 extern char *clone_desc;
+
+#endif /* ct_clone.h */

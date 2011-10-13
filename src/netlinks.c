@@ -1,34 +1,42 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
  NETLINK FUNCTIONS - NETLINK FUNCTIONS - NETLINK FUNCTIONS - NETLINK FUNCTIONS
  *****************************************************************************/
 /*****************************************************************************
-               Funkcie OS Star v1.1.0 na medzitalkrove spojenie
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                Funkcie Lotos v1.2.0 na medzitalkrove spojenie
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 /*****************************************************************************
    POZOR !!! Tento subor sa vyuziva len ak su povolene NETLINKS
  *****************************************************************************/
+#ifdef NETLINKS
 
+#ifndef __NETLINKS_C__
+#define __NETLINKS_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <signal.h>
 #include <setjmp.h>
 #include <errno.h>
- 
+#include <string.h>
+#include <ctype.h>
+
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
-#include "nl_obj.h"
-#include "sys_obj.h"
-#include "pl_obj.h"
-#include "mc_obj.h"
-#include "syspp_obj.h"
-#include "netlinks.h"
 #include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
+#include "obj_nl.h"
+#include "obj_sys.h"
+#include "obj_syspp.h"
+#include "netlinks.h"
 #include "comvals.h"
 
 
@@ -41,6 +49,7 @@ NL_OBJECT create_netlink(void)
 {
 NL_OBJECT nl;
 
+	set_crash();
 if ((nl=(NL_OBJECT)malloc(sizeof(struct netlink_struct)))==NULL) {
   write_syslog(NETLOG,1,"NETLINK: Memory allocation failure in create_netlink().\n");
   return NULL;
@@ -81,6 +90,7 @@ return nl;
 /*** Destruct a netlink (usually a closed incoming one). ***/
 void destruct_netlink(NL_OBJECT nl)
 {
+	set_crash();
 if (nl!=nl_first) {
   nl->prev->next=nl->next;
   if (nl!=nl_last) nl->next->prev=nl->prev;
@@ -109,6 +119,7 @@ NL_OBJECT nl;
 RM_OBJECT rm;
 int ret,cnt=0;
 
+	set_crash();
 printf("Connecting to remote servers...\n");
 errno=0;
 for(rm=room_first;rm!=NULL;rm=rm->next) {
@@ -145,6 +156,7 @@ struct hostent *he;
 int inetnum;
 char *sn;
 
+	set_crash();
 sn=nl->site;
 /* See if number address */
 while(*sn && (*sn=='.' || isdigit(*sn))) sn++;
@@ -189,6 +201,7 @@ void check_nethangs_send_keepalives(void)
 NL_OBJECT nl;
 int secs;
 
+	set_crash();
 for(nl=nl_first;nl!=NULL;nl=nl->next) {
   if (nl->type==UNCONNECTED) {
     nl->warned=0;  continue;
@@ -234,6 +247,7 @@ NL_OBJECT nl,nl2;
 RM_OBJECT rm;
 char site[81];
 
+	set_crash();
 /* Send server type id and version number */
 sprintf(text,"NUTS %s\n",NUTSVER);
 write_sock(sock,text);
@@ -294,6 +308,7 @@ char *netcom[]={
   "RSTAT","*"
   };
 
+	set_crash();
 /* The buffer is large (ARR_SIZE*2) but if a bug occurs with a remote system
    and no newlines are sent for some reason it may overflow and this will 
    probably cause a crash. Oh well, such is life. */
@@ -407,6 +422,7 @@ void nl_transfer(NL_OBJECT nl, char *name, char *pass, int lev, char *inpstr)
 {
 UR_OBJECT u;
 
+	set_crash();
 /* link for outgoing users only */
 if (nl->allow==OUT) {
   sprintf(text,"DENIED %s 4\n",name);
@@ -507,6 +523,7 @@ void nl_release(NL_OBJECT nl, char *name)
 {
 UR_OBJECT u;
 
+	set_crash();
 if ((u=get_user(name))!=NULL && u->type==REMOTE_TYPE) {
   sprintf(text,"%s leaves this plain of existence.\n",u->name);
   write_room_except(u->room,text,u);
@@ -527,6 +544,7 @@ void nl_action(NL_OBJECT nl, char *name, char *inpstr)
 UR_OBJECT u;
 char *c,ctemp;
 
+	set_crash();
 if (!(u=get_user(name))) {
   sprintf(text,"DENIED %s 8\n",name);
   write_sock(nl->socket,text);
@@ -571,6 +589,7 @@ void nl_granted(NL_OBJECT nl, char *name)
 UR_OBJECT u;
 RM_OBJECT old_room;
 
+	set_crash();
 if (!strcmp(name,"CONNECT")) {
   write_syslog(NETLOG,1,"NETLINK: Connection to %s granted.\n",nl->service);
   /* Send our verification and version number */
@@ -628,6 +647,7 @@ char *neterr[]={
 "you are banned from that service"
 };
 
+	set_crash();
 errnum=0;
 sscanf(remove_first(remove_first(inpstr)),"%d",&errnum);
 if (!strcmp(name,"CONNECT")) {
@@ -659,6 +679,7 @@ void nl_mesg(NL_OBJECT nl, char *name)
 {
 UR_OBJECT u;
 
+	set_crash();
 if (!(u=get_user(name))) {
   write_syslog(NETLOG,1,"NETLINK: Message received for unknown user %s from %s.\n",name,nl->service);
   nl->mesg_user=(UR_OBJECT)-1;
@@ -673,6 +694,7 @@ void nl_prompt(NL_OBJECT nl, char *name)
 {
 UR_OBJECT u;
 
+	set_crash();
 if (!(u=get_user(name))) {
   write_syslog(NETLOG,1,"NETLINK: Prompt received for unknown user %s from %s.\n",name,nl->service);
   return;
@@ -690,6 +712,7 @@ void nl_verification(NL_OBJECT nl, char *w2, char *w3, int com)
 {
 NL_OBJECT nl2;
 
+	set_crash();
 if (!com) {
   /* We're verifiying a remote site */
   if (!w2[0]) {
@@ -753,6 +776,7 @@ void nl_removed(NL_OBJECT nl, char *name)
 {
 UR_OBJECT u;
 
+	set_crash();
 if (!(u=get_user(name))) {
   write_syslog(NETLOG,1,"NETLINK: Removed notification for unknown user %s received from %s.\n",name,nl->service);
   return;
@@ -777,6 +801,7 @@ prompt(u);
 /*** Got an error back from site, deal with it ***/
 void nl_error(NL_OBJECT nl)
 {
+	set_crash();
 if (nl->mesg_user!=NULL) nl->mesg_user=NULL;
 /* lastcom value may be misleading, the talker may have sent off a whole load
    of commands before it gets a response due to lag, any one of them could
@@ -791,6 +816,7 @@ void nl_checkexist(NL_OBJECT nl, char *to, char *from)
 {
 int ld;
 
+	set_crash();
 ld=0;
 if (!(find_user_listed(to))) {
   sprintf(text,"EXISTS_NO %s %s\n",to,from);
@@ -809,6 +835,7 @@ UR_OBJECT user;
 char filename[80];
 char text2[ARR_SIZE];
 
+	set_crash();
 if ((user=get_user(from))!=NULL) {
   sprintf(text,"~OLSYSTEM:~RS User %s does not exist at %s, your mail bounced.\n",to,nl->service);
   write_user(user,text);
@@ -829,6 +856,7 @@ UR_OBJECT user;
 FILE *fp;
 char text2[ARR_SIZE],filename[500],line[82];
 
+	set_crash();
 sprintf(filename,"%s/OUT_%s_%s@%s",MAILSPOOL,from,to,nl->service);
 if (!(fp=fopen(filename,"r"))) {
   if ((user=get_user(from))!=NULL) {
@@ -859,10 +887,11 @@ void nl_mail(NL_OBJECT nl, char *to, char *from)
 {
 char filename[500];
 
+	set_crash();
 write_syslog(NETLOG,1,"NETLINK: Mail received for %s from %s.\n",to,nl->service);
 sprintf(filename,"%s/IN_%s_%s@%s",MAILSPOOL,to,from,nl->service);
 if (!(nl->mailfile=fopen(filename,"w"))) {
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to write in nl_mail().\n",filename);
+  write_syslog(ERRLOG,1,"Couldn't open file %s to write in nl_mail().\n",filename);
   sprintf(text,"MAILERROR %s %s\n",to,from);
   write_sock(nl->socket,text);
   return;
@@ -881,12 +910,13 @@ char c,infile[500],mailfile[500];
 int amount,size,tmp1,tmp2;
 struct stat stbuf;
 
+	set_crash();
 fclose(nl->mailfile);
 nl->mailfile=NULL;
 sprintf(mailfile,"%s/IN_%s_%s@%s",MAILSPOOL,nl->mail_to,nl->mail_from,nl->service);
 /* Copy to users mail file to a tempfile */
 if (!(outfp=fopen("tempfile","w"))) {
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in netlink_endmail().\n");
+  write_syslog(ERRLOG,1,"Couldn't open tempfile in netlink_endmail().\n");
   sprintf(text,"MAILERROR %s %s\n",nl->mail_to,nl->mail_from);
   write_sock(nl->socket,text);
   goto END;
@@ -912,7 +942,7 @@ fclose(infp);
 /* Copy received file */
 SKIP:
 if (!(infp=fopen(mailfile,"r"))) {
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to read in netlink_endmail().\n",mailfile);
+  write_syslog(ERRLOG,1,"Couldn't open file %s to read in netlink_endmail().\n",mailfile);
   sprintf(text,"MAILERROR %s %s\n",nl->mail_to,nl->mail_from);
   write_sock(nl->socket,text);
   goto END;
@@ -937,6 +967,7 @@ void nl_mailerror(NL_OBJECT nl, char *to, char *from)
 {
 UR_OBJECT user;
 
+	set_crash();
 if ((user=get_user(from))!=NULL) {
   sprintf(text,"~OLSYSTEM:~RS An error occured during mail delivery to %s@%s.\n",to,nl->service);
   write_user(user,text);
@@ -953,6 +984,7 @@ void nl_rstat(NL_OBJECT nl, char *to)
 {
 char str[80];
 
+	set_crash();
 gethostname(str,80);
 if (nl->ver_major<=3 && nl->ver_minor<2) sprintf(text,"MSG %s\n\n*** Remote statistics ***\n\n",to);
 else sprintf(text,"MSG %s\n\n~BB*** Remote statistics ***\n\n",to);
@@ -961,7 +993,7 @@ sprintf(text,"NUTS version         : %s\nHost                 : %s\n",NUTSVER,st
 write_sock(nl->socket,text);
 sprintf(text,"Ports (Main/Wiz/Link): %d ,%d, %d\n",port[0],port[1],port[2]);
 write_sock(nl->socket,text);
-sprintf(text,"Number of users      : %d\nRemote user maxlevel : %s\n",syspp->acounter[3],user_level[amsys->rem_user_maxlevel].name);
+sprintf(text,"Number of users      : %ld\nRemote user maxlevel : %s\n",syspp->acounter[3],user_level[amsys->rem_user_maxlevel].name);
 write_sock(nl->socket,text);
 sprintf(text,"Remote user deflevel : %s\n\nEMSG\nPRM %s\n",user_level[amsys->rem_user_deflevel].name,to);
 write_sock(nl->socket,text);
@@ -974,6 +1006,7 @@ void shutdown_netlink(NL_OBJECT nl)
 UR_OBJECT u;
 char mailfile[500];
 
+	set_crash();
 if (nl->type==UNCONNECTED) return;
 
 /* See if any mail halfway through being sent */
@@ -1034,6 +1067,7 @@ nl->warned=0;
 /*** Return to home site ***/
 void home(UR_OBJECT user)
 {
+	set_crash();
 if (user->room!=NULL) {
   write_user(user,"You are already on your home system.\n");
   return;
@@ -1063,6 +1097,7 @@ char *type[]={ "  -"," IN","OUT" };
 char portstr[6],stat[9],vers[8];
 int iu,ou,a;
 
+	set_crash();
 if (nl_first==NULL) {
   write_user(user,"No remote connections configured.\n");  return;
   }
@@ -1106,6 +1141,7 @@ NL_OBJECT nl;
 char from[80],name[USER_NAME_LEN+1];
 int cnt;
 
+	set_crash();
 cnt=0;
 write_user(user,"\n~BB*** Mail receiving status ***\n\n");
 for(nl=nl_first;nl!=NULL;nl=nl->next) {
@@ -1139,6 +1175,7 @@ RM_OBJECT rm;
 NL_OBJECT nl;
 int ret,tmperr;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <room service is linked to>", command_table[CONN].name);
   return;
@@ -1181,6 +1218,7 @@ void disconnect_netlink(UR_OBJECT user)
 RM_OBJECT rm;
 NL_OBJECT nl;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <room service is linked to>", command_table[DISCONN].name);
   return;
@@ -1214,6 +1252,7 @@ void remote_stat(UR_OBJECT user)
 NL_OBJECT nl;
 RM_OBJECT rm;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <room service is linked to>", command_table[RSTAT].name);
   return;
@@ -1237,3 +1276,6 @@ sprintf(text,"RSTAT %s\n",user->name);
 write_sock(nl->socket,text);
 write_user(user,"Request sent.\n");
 }
+
+#endif /* netlinks.c */
+#endif /* NETLINKS */

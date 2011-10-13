@@ -1,0 +1,11 @@
+~FM     .-------------------------------------------------------------------.
+~FM     |  ~FG               Atributy ktore si mozes nastavit ...              ~FM|
+~FM     |=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=|
+~FM     |  ~CW'~CRbckg~CW'     ~CB=~FT farebne pozadia z/v ~CW'~CRtxt~CW'     ~CB=~FT farebny text z/v    ~RS~FM|
+~FM     |  ~CW'~CRrevers~CW'   ~CB=~FT reverzne farby z/v  ~CW'~CRblink~CW'   ~CB=~FT blikanie z/v        ~RS~FM|
+~FM     |  ~CW'~CRbold~CW'     ~CB=~FT zvyrazneny text z/v ~CW'~CRundln~CW'   ~CB=~FT podciarkovanie z/v  ~RS~FM|
+~FM     |  ~CW'~CRclear~CW'    ~CB=~FT sposob mazania obr. ~CW'~CRmusic~CW'   ~CB=~FT Ansimusic z/v       ~RS~FM|
+~FM     |  ~CW'~CRchecho~CW'   ~CB=~FT charecho            ~CW'~CRpager~CW'   ~CB=~FT pager               ~RS~FM|
+~FM     |  ~CW'~CRwrap~CW'     ~CB=~FT zalamovanie         ~CW'~CRblind~CW'   ~CB=~FT blind               ~RS~FM|
+~FM     |  ~CW'~CRxterm~CW'    ~CB=~FT Xterm kompatibilita z/v                             ~RS~FM|
+~FM     `-.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.=.-'

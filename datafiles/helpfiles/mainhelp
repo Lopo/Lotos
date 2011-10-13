@@ -1,7 +1,5 @@
 ~FM******************************************************************************
 
-                  ~FG~BB*** Main help (helpfiles/mainhelp) ***
-
 '~FG.prikazy~RS'         zoznam dostupnych prikazov
 '~FG.help <prikaz>~RS'   help k zadanemu prikazu
 '~FG.levely~RS'          zoznam levelov s podmienkami na dosiahnutie
@@ -10,9 +8,10 @@
 '~FG.files~RS'           zoznam rozsirenych helpov
 '~FG.faq~RS'             caste otazky a odpovede na ne
 
-OS Star homepage : ~FT~OLhttp://star.sjf.stuba.sk/osstar
+talker homepage  : ~CThttp://talker.losys.net
+Lotos homepage   : ~CThttp://lotos.losys.net
 Amnuts homepage  : http://www.talker.com/amnuts
 NUTS homepage    : ~BR~LIhttp://www.wso.co.uk/nuts.html
-Lopo homepage    : ~FR~OLhttp://star.sjf.stuba.sk/~lopo
+Lopo homepage    : ~CRhttp://lopo.losys.net
 
 ~FM******************************************************************************

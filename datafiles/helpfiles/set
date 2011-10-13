@@ -6,4 +6,4 @@ neho je velmipohodlne a jednoduche.
 Na zobrazenie aktualnych nastaveni pouzi atribut `show'. Pre detailnejsie
 info o kazdom atribude pouzi tvar ~FG.help set_show~RS.
 
-~OLPozri:~RS ignore
+~OLPozri:~RS ignore, terminal

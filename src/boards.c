@@ -1,39 +1,41 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-              Funkcie pre OS Star v1.1.0 pracujuce s nastenkami
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                Funkcie pre Lotos v1.2.0 na pracu s nastenkami
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __BOARDS_C__
+#define __BOARDS_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+	#include "obj_nl.h"
 #endif
-#include "sys_obj.h"
+#include "obj_sys.h"
 #include "boards.h"
 #include "comvals.h"
-
-/* */
-RM_OBJECT get_room(char *name);
-char * colour_com_strip(char *str);
-void read_board_specific(UR_OBJECT user, RM_OBJECT rm, int msg_number);
-char * remove_first(char *inpstr);
-
-
 
 
 /*** Read the message board ***/
 void read_board(UR_OBJECT user)
 {
 	RM_OBJECT rm;
-	char filename[500],*name,rmname[USER_NAME_LEN];
+	char fname[500],*name,rmname[USER_NAME_LEN];
 	int ret;
 
+	set_crash();
 	rm=NULL;
 	if (word_count<2)
 		rm=user->room;
@@ -67,10 +69,10 @@ void read_board(UR_OBJECT user)
 	if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 		midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(filename,"%s/%s.B", USERROOMS, rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS, rmname);
 		}
-	else sprintf(filename,"%s/%s.B", ROOMFILES,rm->name);
-	if (!(ret=more(user,user->socket,filename)))
+	else sprintf(fname,"%s/%s.B", ROOMFILES,rm->name);
+	if (!(ret=more(user,user->socket,fname)))
 		vwrite_user(user, read_no_messages, rm->name);
 	else if (ret==1) user->misc_op=2;
 	if (user->vis) name=user->recap;
@@ -85,10 +87,11 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 {
 	FILE *fp;
 	int cnt,inp;
-	char *ptr,*name,filename[500],rmname[USER_NAME_LEN];
+	char *ptr,*name,fname[500],rmname[USER_NAME_LEN];
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot write on the board.\n");  
+		vwrite_user(user, muzzled_cannot, "zapisovat");  
 		return;
 		}
 	if (!done_editing) {
@@ -116,12 +119,12 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 	if (user->room->access==PERSONAL_LOCKED || user->room->access==PERSONAL_UNLOCKED) {
 		midcpy(user->room->name,rmname,1,strlen(user->room->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS,rmname);
 		}
-	else sprintf(filename,"%s/%s.B", ROOMFILES, user->room->name);
-	if (!(fp=fopen(filename,"a"))) {
+	else sprintf(fname,"%s/%s.B", ROOMFILES, user->room->name);
+	if (!(fp=fopen(fname,"a"))) {
 		vwrite_user(user,"%s: cannot write to file.\n",syserror);
-		write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to append in write_board().\n",filename);
+		write_syslog(ERRLOG,1,"Couldn't open file %s to append in write_board().\n",fname);
 		return;
 		}
 	if (user->vis) name=user->bw_recap;
@@ -159,16 +162,17 @@ void write_board(UR_OBJECT user, char *inpstr, int done_editing)
 void wipe_board(UR_OBJECT user)
 {
 	int cnt;
-	char filename[80],*name,rmname[USER_NAME_LEN];
+	char fname[500],*name,rmname[USER_NAME_LEN];
 	RM_OBJECT rm;
 
+	set_crash();
 	rm=user->room;
 	if (word_count<2 && ((user->level>=WIZ && !is_personal_room(rm))
 	    || (is_personal_room(rm) && (is_my_room(user,rm) || user->level>=GOD)))) {
-		write_usage(user,"wipe all\n");
-		write_usage(user,"wipe <#>\n");
-		write_usage(user,"wipe to <#>\n");
-		write_usage(user,"wipe from <#> to <#>\n");
+		write_usage(user,"wipe all");
+		write_usage(user,"wipe <#>");
+		write_usage(user,"wipe to <#>");
+		write_usage(user,"wipe from <#> to <#>");
 		return;
 		}
 	else if (word_count<2
@@ -197,15 +201,15 @@ void wipe_board(UR_OBJECT user)
 	if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 		midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS,rmname);
 		}
-	else sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
+	else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
 	if (!rm->mesg_cnt) {
 		write_user(user, wipe_empty_board);
 		return;
 		}
 	if (user->wipe_from==-1) {
-		unlink(filename);
+		unlink(fname);
 		write_user(user, wipe_user_all_deleted);
 		if (user->level<GOD || user->vis)
 			vwrite_room_except(rm, user, wipe_room_all_deleted, name);
@@ -217,17 +221,17 @@ void wipe_board(UR_OBJECT user)
 		vwrite_user(user,"There %s only %d message%s on the board.\n",PLTEXT_IS(rm->mesg_cnt),rm->mesg_cnt,PLTEXT_S(rm->mesg_cnt));
 		return;
 		}
-	cnt=wipe_messages(filename,user->wipe_from,user->wipe_to,0);
+	cnt=wipe_messages(fname,user->wipe_from,user->wipe_to,0);
 	if (cnt==rm->mesg_cnt) {
-		unlink(filename);
-		vwrite_user(user, wipe_too_many,PLTEXT_WAS(rm->mesg_cnt),rm->mesg_cnt,PLTEXT_S(rm->mesg_cnt));
-		if (user->level<GOD || user->vis) vwrite_room_except(rm,user,"%s wipes the message board.\n",name);
+		unlink(fname);
+		vwrite_user(user, wipe_too_many, rm->mesg_cnt, grm_num(8, rm->mesg_cnt));
+		if (user->level<GOD || user->vis) vwrite_room_except(rm,user,"%s maze nastenku.\n",name);
 		write_syslog(SYSLOG,1,"%s wiped all messages from the board in the %s.\n",user->name,rm->name);
 		rm->mesg_cnt=0;
 		return;
 		}
 	rm->mesg_cnt-=cnt;
-	vwrite_user(user, wipe_user_delete_range, cnt, PLTEXT_S(cnt));
+	vwrite_user(user, wipe_user_delete_range, cnt, grm_num(8, cnt), grm_num(9, cnt));
 	if (user->level<GOD || user->vis) vwrite_room_except(rm,user,"%s wipes some messages from the board.\n",name);
 	write_syslog(SYSLOG,1,"%s wiped %d message%s from the board in the %s.\n",user->name,cnt,PLTEXT_S(cnt),rm->name);
 }
@@ -239,11 +243,12 @@ void check_messages(UR_OBJECT user, int chforce)
 {
 	RM_OBJECT rm;
 	FILE *infp,*outfp;
-	char id[182],filename[500],line[82],rmname[USER_NAME_LEN];
+	char id[182],fname[500],line[82],rmname[USER_NAME_LEN];
 	int valid,pt,write_rest;
 	int board_cnt,old_cnt,bad_cnt,tmp;
 	static int done=0;
 
+	set_crash();
 	infp=outfp=NULL;
 	switch(chforce) {
 		case 0:
@@ -266,7 +271,7 @@ void check_messages(UR_OBJECT user, int chforce)
 					}
 				if (!count_motds(1)) {
 					write_user(user,"Sorry, could not recount the motds at this time.\n");
-					write_syslog(SYSLOG,1,"ERROR: Could not recount motds in check_messages().\n");
+					write_syslog(ERRLOG,1,"Could not recount motds in check_messages().\n");
 					return;
 					}
 				vwrite_user(user,"There %s %d login motd%s and %d post-login motd%s\n",PLTEXT_WAS(amsys->motd1_cnt),amsys->motd1_cnt,PLTEXT_S(amsys->motd1_cnt),amsys->motd2_cnt,PLTEXT_S(amsys->motd2_cnt));
@@ -285,15 +290,15 @@ void check_messages(UR_OBJECT user, int chforce)
 		if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 			midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 			rmname[0]=toupper(rmname[0]);
-			sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+			sprintf(fname,"%s/%s.B", USERROOMS,rmname);
 			}
-		else sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
-		if (!(infp=fopen(filename,"r"))) continue;
+		else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+		if (!(infp=fopen(fname,"r"))) continue;
 		if (chforce<2) {
 			if (!(outfp=fopen("tempfile","w"))) {
 				if (chforce)
-					fprintf(stderr,"OS Star: Couldn't open tempfile.\n");
-				write_syslog(SYSLOG,0,"ERROR: Couldn't open tempfile in check_messages().\n");
+					fprintf(stderr,"Lotos: Couldn't open tempfile.\n");
+				write_syslog(ERRLOG,1,"Couldn't open tempfile in check_messages().\n");
 				fclose(infp);
 				return;
 				}
@@ -335,9 +340,9 @@ void check_messages(UR_OBJECT user, int chforce)
 		fclose(infp);
 		if (chforce<2) {
 			fclose(outfp);
-			unlink(filename);
+			unlink(fname);
 			if (!write_rest) unlink("tempfile");
-			else rename("tempfile",filename);
+			else rename("tempfile",fname);
 			}
 		if (rm->mesg_cnt!=tmp) bad_cnt++;
 		}
@@ -366,6 +371,7 @@ FILE *fp;
 char *c;
 int cnt=0;
 
+	set_crash();
 if (com_num==RSUG) {
   write_user(user,"~BB~FG*** The Suggestions board has the following ideas ***\n\n");
   switch(more(user,user->socket, SUGBOARD)) {
@@ -386,7 +392,7 @@ if (!done_editing) {
   }
 if (!(fp=fopen(SUGBOARD, "a"))) {
   vwrite_user(user,"%s: couldn't add suggestion.\n",syserror);
-  write_syslog(SYSLOG,0,"ERROR: Couldn't open file %s to write in suggestions().\n", SUGBOARD);
+  write_syslog(ERRLOG,1,"Couldn't open file %s to write in suggestions().\n", SUGBOARD);
   return;
   }
 sprintf(text,"~OLFrom: %s  %s\n",user->bw_recap,long_date(0));
@@ -409,6 +415,7 @@ void delete_suggestions(UR_OBJECT user)
 {
 int cnt;
 
+	set_crash();
 if (word_count<2) {
   write_user(user,"Pouzitie: dsug all\n");
   write_user(user,"          dsug <#>\n");
@@ -451,9 +458,10 @@ void board_from(UR_OBJECT user)
 {
 	FILE *fp;
 	int cnt;
-	char id[ARR_SIZE],line[ARR_SIZE],filename[500],rmname[USER_NAME_LEN];
+	char id[ARR_SIZE],line[ARR_SIZE],fname[500],rmname[USER_NAME_LEN];
 	RM_OBJECT rm;
 
+	set_crash();
 	if (word_count<2)
 		rm=user->room;
 	else {
@@ -473,12 +481,12 @@ void board_from(UR_OBJECT user)
 	if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 		midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(filename,"%s/%s.B", USERROOMS, rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS, rmname);
 		}
-	else sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
-	if (!(fp=fopen(filename,"r"))) {
+	else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+	if (!(fp=fopen(fname,"r"))) {
 		write_user(user,"There was an error trying to read message board.\n");
-		write_syslog(SYSLOG,0,"Unable to open message board for %s in board_from().\n",rm->name);
+		write_syslog(ERRLOG,1,"Unable to open message board for %s in board_from().\n",rm->name);
 		return;
 		}
 	vwrite_user(user,"\n~FG~BB*** Posts on the %s message board from ***\n\n",rm->name);
@@ -507,13 +515,14 @@ FILE *fp;
 int cnt;
 char id[ARR_SIZE],line[ARR_SIZE], *str;
 
+	set_crash();
 if (!amsys->suggestion_count) {
   write_user(user,"There are currently no suggestions.\n");
   return;
   }
 if (!(fp=fopen(SUGBOARD, "r"))) {
   write_user(user,"There was an error trying to read the suggestion board.\n");
-  write_syslog(SYSLOG,0,"Unable to open suggestion board in suggestions_from().\n");
+  write_syslog(ERRLOG,1,"Unable to open suggestion board in suggestions_from().\n");
   return;
   }
 write_user(user,"\n~BB*** Suggestions on the suggestions board from ***\n\n");
@@ -539,8 +548,9 @@ void read_board_specific(UR_OBJECT user, RM_OBJECT rm, int msg_number)
 {
 FILE *fp;
 int valid,cnt,pt;
-char id[ARR_SIZE],line[ARR_SIZE],filename[500],*name,rmname[USER_NAME_LEN];
+char id[ARR_SIZE],line[ARR_SIZE],fname[500],*name,rmname[USER_NAME_LEN];
 
+	set_crash();
 if (!rm->mesg_cnt) {
   vwrite_user(user, read_no_messages, rm->name);
   return;
@@ -560,12 +570,12 @@ if (rm!=user->room && !has_room_access(user,rm)) {
 if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
   midcpy(rm->name,rmname,1,strlen(rm->name)-2);
   rmname[0]=toupper(rmname[0]);
-  sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+  sprintf(fname,"%s/%s.B", USERROOMS,rmname);
   }
-else sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
-if (!(fp=fopen(filename,"r"))) {
+else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+if (!(fp=fopen(fname,"r"))) {
   write_user(user,"There was an error trying to read the message board.\n");
-  write_syslog(SYSLOG,0,"Unable to open message board for %s in read_board_specific().\n",rm->name);
+  write_syslog(ERRLOG,1,"Unable to open message board for %s in read_board_specific().\n",rm->name);
   return;
   }
 vwrite_user(user, message_board_header, rm->name);
@@ -600,9 +610,10 @@ int check_board_wipe(UR_OBJECT user)
 {
 	FILE *fp;
 	int valid,cnt,msg_number,yes,pt;
-	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],filename[500],id[ARR_SIZE],rmname[USER_NAME_LEN];
+	char w1[ARR_SIZE],w2[ARR_SIZE],line[ARR_SIZE],line2[ARR_SIZE],fname[500],id[ARR_SIZE],rmname[USER_NAME_LEN];
 	RM_OBJECT rm;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"wipe <message #>");
 		return 0;
@@ -625,12 +636,12 @@ int check_board_wipe(UR_OBJECT user)
 	if (rm->access==PERSONAL_LOCKED || rm->access==PERSONAL_UNLOCKED) {
 		midcpy(rm->name,rmname,1,strlen(rm->name)-2);
 		rmname[0]=toupper(rmname[0]);
-		sprintf(filename,"%s/%s.B", USERROOMS,rmname);
+		sprintf(fname,"%s/%s.B", USERROOMS,rmname);
 		}
-	else sprintf(filename,"%s/%s.B", ROOMFILES, rm->name);
-	if (!(fp=fopen(filename,"r"))) {
+	else sprintf(fname,"%s/%s.B", ROOMFILES, rm->name);
+	if (!(fp=fopen(fname,"r"))) {
 		write_user(user,"There was an error trying to read message board.\n");
-		write_syslog(SYSLOG,0,"Unable to open message board for %s in check_board_wipe().\n",rm->name);
+		write_syslog(ERRLOG,1,"Unable to open message board for %s in check_board_wipe().\n",rm->name);
 		return 0;
 		}
 	valid=1;
@@ -673,3 +684,4 @@ SKIP:
 	return 1;
 }
 
+#endif /* boards.c */

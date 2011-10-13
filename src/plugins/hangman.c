@@ -1,15 +1,15 @@
-/* OS Star plugin                      pre verziu 1.1.0 a vyssiu
+/* vi: set ts=4 sw=4 ai: */
+/* Lotos plugin                        pre verziu 1.1.0 a vyssiu
    -------------------------------------------------------------
    Original: MoeNUTS
-   Modifikoval na plug-in pre OS Star: Lopo
+   Modifikoval na plug-in pre Lotos: Lopo
 
    inicializacny riadok pre tento plugin:
    	if (tmp=plugin_02x100_init(cmd)) cmd=cmd+tmp;
-   je v subore adds.c
 
    Volaci prikazu pre tento plugin:
    	if (!strcmp(plugin->registration,"02-100")) { plugin_02x100_main(user,str,comnum); return 1; }
-   je v subore plugin.c
+   su v subore plugin.c
 
    Nasledujuci riadok MUSI byt vlozeny na koniec struktury
    v subore ur_obj.h:
@@ -18,18 +18,17 @@
  
 #include "hangman.h"
  
-	extern CM_OBJECT create_cmd(void);
-/* ------------------------------------------------------------- */
 
 int plugin_02x100_init(int cm)
 {
 	PL_OBJECT plugin;
 	CM_OBJECT com;
-	int i=0,verFail=0;
+	int i=0;
 
+	set_crash();
 /* create plugin */
 	if ((plugin=create_plugin())==NULL) {
-		write_syslog(ERRLOG, 0, "Nemozem vytvorit novu polozku v registroch pre plugin 'hangman'!\n");
+		write_syslog(ERRLOG, 1, "Nemozem vytvorit novu polozku v registroch pre plugin 'hangman'!\n");
 		return 0;
 		}
 	strcpy(plugin->name,"Hangman");                 /* Plugin Description   */
@@ -72,13 +71,14 @@ int plugin_02x100_init(int cm)
 
 int plugin_02x100_main(UR_OBJECT user, char *str, int comid)
 {
-switch (comid) {
+	set_crash();
+	switch (comid) {
         /* put case calls here for each command needed.
            remember that the commands will be in order, with the first
            command always being 1;
         */
-	case -1: return plugin_02x100_reinit_save(user);
-	case -2: return plugin_02x100_reinit_load(user);
+		case -1: return plugin_02x100_reinit_save(user);
+		case -2: return plugin_02x100_reinit_load(user);
         case -8: if (user->plugin_02x100!=NULL) plugin_02x100_leave(user);
                  return 1;
         case -9: plugin_02x100_signon(user); return 1;
@@ -92,8 +92,8 @@ switch (comid) {
 struct plugin_02x100_player *plugin_02x100_create_player(void)
 {
 	struct plugin_02x100_player *player;
-	int i;
 
+	set_crash();
 if ((player=(struct plugin_02x100_player *)malloc(sizeof(struct plugin_02x100_player)))==NULL) {
         write_syslog(ERRLOG, 1, "chyba alokacie pamate v 02x100_create_player().\n");
         return NULL;
@@ -111,6 +111,7 @@ void plugin_02x100_vloz(UR_OBJECT user)
 {
 	int count,i,blanks;
 
+	set_crash();
 	count=blanks=i=0;
 	if (user->plugin_02x100->stage==-1) {
 		write_user(user,"Nemas zacatu hru.\n");
@@ -182,6 +183,7 @@ void plugin_02x100_switch(UR_OBJECT user, char *str)
 	int i,hcmd;
 	char options[5][20]={"start","stop","ukaz","status", "*"};
 
+	set_crash();
 	if (word_count<2) {
 		write_user(user, "Pouzitie: hangman [start][stop][ukaz][status]<#>\n");
 		write_user(user, "Priklady: hangman start    = Zacne hru hangman\n");
@@ -219,6 +221,7 @@ void plugin_02x100_switch(UR_OBJECT user, char *str)
 
 void plugin_02x100_signon(UR_OBJECT user)
 {
+	set_crash();
 	user->plugin_02x100=NULL;
 }
 
@@ -226,8 +229,9 @@ void plugin_02x100_signon(UR_OBJECT user)
 int plugin_02x100_load_user_details(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[250];
+	char filename[500];
 
+	set_crash();
 	sprintf(filename, "%s/%s.02x100", USERPLDATAS, user->name);
 	if (!(fp=fopen(filename, "r"))) {
 		write_user(user, "HANGMAN: Chyba pri nahravani user dat\n");
@@ -240,6 +244,7 @@ int plugin_02x100_load_user_details(UR_OBJECT user)
 
 void plugin_02x100_leave(UR_OBJECT user)
 {
+	set_crash();
 	if (user->plugin_02x100!=NULL) {
 		plugin_02x100_destruct_player(user);
 		}
@@ -250,8 +255,8 @@ void plugin_02x100_leave(UR_OBJECT user)
 
 void plugin_02x100_destruct_player(UR_OBJECT user)
 {
+	set_crash();
 	if (user->plugin_02x100==NULL) return;
-
 	plugin_02x100_save_user_details(user);
 	free(user->plugin_02x100);
 	user->plugin_02x100=NULL;
@@ -260,12 +265,13 @@ void plugin_02x100_destruct_player(UR_OBJECT user)
 int plugin_02x100_save_user_details(UR_OBJECT user)
 {
 	FILE *fp;
-	char filename[250];
+	char filename[500];
 	
+	set_crash();
 	sprintf(filename, "%s/%s.02x100", USERPLDATAS, user->name);
 	if (!(fp=fopen(filename, "w"))) {
 		write_user(user, "HANGMAN: chyba pri ukladani user dat\n");
-		write_syslog(ERRLOG, 1, "Chyba pri ukladani dat v plugin_02x100_save_user_details()\n");
+		write_syslog(ERRLOG, 1, "Chyba pri ukladani dat v 02x100_save_user_details()\n");
 		return 0;
 		}
 	fprintf(fp, "%d %d", user->plugin_02x100->win, user->plugin_02x100->lose);
@@ -280,6 +286,7 @@ char *plugin_02x100_get_word(char *aword)
 	char filename[250];
 	int lines,cnt,i;
 
+	set_crash();
 	lines=cnt=i=0;
 	sprintf(filename,"%s/%s", PLFILES, HANGDICT);
 	lines=count_lines(filename);
@@ -304,6 +311,7 @@ void plugin_02x100_start(UR_OBJECT user)
 {
 	int i;
 
+	set_crash();
 	if (user->plugin_02x100->stage>-1) {
 		write_user(user,"Ved uz mas rozohratu hru.\n");
 		return;
@@ -318,6 +326,7 @@ void plugin_02x100_start(UR_OBJECT user)
 
 void plugin_02x100_stop(UR_OBJECT user)
 {
+	set_crash();
 	if (user->plugin_02x100->stage==-1) {
 		write_user(user,"nemas rozohrateho hangmana.\n");
 		return;
@@ -332,6 +341,7 @@ void plugin_02x100_stop(UR_OBJECT user)
 
 void plugin_02x100_show(UR_OBJECT user)
 {
+	set_crash();
 	if (user->plugin_02x100->stage==-1) {
 		write_user(user,"You haven't started a game of hangman yet.\n");
 		return;
@@ -345,6 +355,7 @@ void plugin_02x100_show(UR_OBJECT user)
 
 void plugin_02x100_status(UR_OBJECT user)
 {
+	set_crash();
 	write_user(user, "~OL~FM---------------~FT[ ~FYTvoja Hangman statistika ~FT]~FM----------------\n\n");
 	vwrite_user(user, "~FGvyhier ~FY%d ~FG, prehier ~FY%d\n\n", user->plugin_02x100->win, user->plugin_02x100->lose);
 }
@@ -356,6 +367,7 @@ int plugin_02x100_reinit_save(UR_OBJECT user)
 	char fname[250];
 	struct plugin_02x100_player *pl;
 
+	set_crash();
 	if ((pl=user->plugin_02x100)==NULL) return 1;
 	if (!plugin_02x100_save_user_details(user)) return 0;
 	sprintf(fname, "%s/%s.02x100", TEMPFILES, user->name);
@@ -375,6 +387,7 @@ int plugin_02x100_reinit_load(UR_OBJECT user)
 	char fname[250];
 	struct plugin_02x100_player *pl;
 
+	set_crash();
 	sprintf(fname, "%s/%s.02x100", TEMPFILES, user->name);
 	if ((fp=fopen(fname, "r"))==NULL) return 0;
 	user->plugin_02x100=plugin_02x100_create_player();

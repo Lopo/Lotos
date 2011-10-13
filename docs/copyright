@@ -1,8 +1,8 @@
 +------------------------------------------------------------------------------+
      COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT - COPYRIGHT
-                  Copyright informacie pre LOTOS 1.1.0
+                  Copyright informacie pre LOTOS 1.2.0
 +------------------------------------------------------------------------------+
-Tento dokument obsahuje copyright informacie pre LOTOS 1.1.0 a dalsie systemy
+Tento dokument obsahuje copyright informacie pre LOTOS 1.2.0 a dalsie systemy
 pouzite pri jeho tvorbe.
 
 Copyright pre LOTOS
@@ -13,20 +13,20 @@ v datafiles/fonts a originalnu dokumentaciu k Amnuts, NUTS a dalsim pouzitym
 systemom.
 Nie je povolene dalej distribuovat alebo akokolvek pouzivat OS Star za ucelom
 akehokolvek zisku z toho plynuceho bez mojho vyslovneho suhlasu.
-Je dovolene modifikovat OS Star a dalej ho distribuovat. Musi byt ale v prikaze
+Je dovolene modifikovat Lotos a dalej ho distribuovat. Musi byt ale v prikaze
 `.version' a vo version informacii pri prihlasovani jasne uvedene ze je to
-vytvorene z OS Star a nie je to 100%-ny cisty OS Star. Dalej musia byt zachovane
-credits o Amnuts, NUTS a OS Star zobrazovane v `.help credits'. K tomu musia byt
+vytvorene z Lotos a nie je to 100%-ny cisty Lotos. Dalej musia byt zachovane
+credits o Amnuts, NUTS a Lotos zobrazovane v `.help credits'. K tomu musia byt
 zachovane hlavicky na vrchu kazdeho zdrojoveho suboru obsahujuce informacie
-o OS Star.
-OS Star je distribuovany tak ako je a nie je poskytovana ziadna zaruka na skody
+o Lotos-e.
+Lotos je distribuovany tak ako je a nie je poskytovana ziadna zaruka na skody
 sposobene jeho pouzivanim.
 Tento copyright sa vztahuje len na tuto verziu.
-Ak mate problemy s touto copyright licenciou, tak nepouzivajte OS Star.
-Pripadne kontaktujte cez osstar@star.sjf.stuba.sk.
+Ak mate problemy s touto copyright licenciou, tak nepouzivajte Lotos.
+Pripadne kontaktujte cez lotos@losys.net.
 
 Pavol Hluchy
-august, 2000
+januar, 2001
 
 
 Copyright for Amnuts code

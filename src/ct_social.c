@@ -1,39 +1,42 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-           Funkcie OS Star v1.1.0 na rozne medzipouzivatelske akcie
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+            Funkcie Lotos v1.2.0 na rozne medzipouzivatelske akcie
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __CT_SOCIAL_C__
+#define __CT_SOCIAL_C__ 1
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+	#include "obj_nl.h"
 #endif
-#include "sys_obj.h"
+#include "obj_sys.h"
 #include "ct_social.h"
 #include "comvals.h"
-
-/* prototypy */
-char * censor_swear_words(char *has_swears);
-char * remove_first(char *inpstr);
-UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
-void revtell(UR_OBJECT user);
-RM_OBJECT get_room(char *name);
 
 
 /*** Say user speech. ***/
 void say(UR_OBJECT user, char *inpstr)
 {
-char type[15],*name;
+	char type[15], *name;
 
-if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot speak.\n");  return;
-  }
+	set_crash();
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kecat");  return;
+		}
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
   switch(amsys->ban_swearing) {
     case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
@@ -73,80 +76,70 @@ plugin_triggers(user, inpstr);
 /*** Shout something ***/
 void shout(UR_OBJECT user, char *inpstr)
 {
-char *name;
+	char *name;
 
-if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot shout.\n");  return;
-  }
-if (word_count<2) {
-  write_user(user,"Shout what?\n");  return;
-  }
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
-vwrite_user(user,"~OLYou shout:~RS %s\n",inpstr);
-if (user->vis) name=user->bw_recap; else name=invisname;
-if (!user->vis) write_monitor(user,NULL,0);
-sprintf(text,"~OL~FY%s shouts:~RS %s\n",name,inpstr);
-write_room_except(NULL,text,user);
-record_shout(text);
+	set_crash();
+	if (user->muzzled) {
+		vwrite_user(user, muzzled_cannot, "kricat");
+		return;
+		}
+	if (word_count<2) {
+		write_user(user,"Kricat co ?\n");
+		return;
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch(amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
+			default: break; /* do nothing as ban_swearing is off */
+			}
+		}
+	vwrite_user(user, "%sKricis:~RS %s\n", colors[CSHOUT], inpstr);
+	if (user->vis) name=user->bw_recap;
+	else name=invisname;
+	if (!user->vis) write_monitor(user,NULL,0);
+	sprintf(text,"%s~RS %skrici:~RS %s\n", name, colors[CSHOUT], inpstr);
+	write_room_except(NULL,text,user);
+	record_shout(text);
 }
 
 
 /*** Tell another user something ***/
 void tell(UR_OBJECT user, char *inpstr)
 {
-	UR_OBJECT u;
+	UR_OBJECT u=user;
 	char type[15],*name;
 	int mur=0, i, c=0;
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot tell anyone anything.\n");
+		vwrite_user(user, muzzled_cannot, "kecat");
 		return;
 		}
-	/* determine whether this is a quick call */
-	if (inpstr[0]==',') {
-		if (word_count<2) {
-			write_user(user, "tellnut co?\n");
-			return;
-			}
-		u=get_user_name(user, user->call);
-		inpstr=remove_first(inpstr);
-		c=1;
+	/* check for qcall */
+	if (inpstr[0]==',') c=1;
+	if (word_count<2) {
+		if (!c) write_user(user, "Povedat komu co ?\n");
+		else write_user(user, "Povedat co ?\n");
+		return;
 		}
-	else {
-		if (word_count<2) {
-			write_user(user, "Tell komu co?\n");
-			return;
-			}
-		/* if .t <u> with no message */
-		if (word_count<3) {
-			write_user(user,"Tellnut co ?\n");
-			return;
-			}
-		/* test na multi */
-		mur=count_musers(user, word[1]);
-		inpstr=remove_first(inpstr);
+	if (word_count<3 && !c) {
+		write_user(user,"Povedat co ?\n");
+		return;
 		}
+	/* test na multi */
+	if (!c) mur=count_musers(user, word[1]);
+	else mur=1;
+	inpstr=remove_first(inpstr);
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
-			case SBMIN:
-				inpstr=censor_swear_words(inpstr);
-				break;
-			case SBMAX:
-				write_user(user,noswearing);
-				return;
+		switch (amsys->ban_swearing) {
+			case SBMIN: inpstr=censor_swear_words(inpstr); break;
+			case SBMAX: write_user(user,noswearing); return;
 			default : break; /* do nothing as ban_swearing is off */
 			}
 		}
 	if (mur>1) {
-		for (i=0; i<mur, user->murlist[i][0]!='\0'; i++) {
+		for (i=0; i<mur; i++) {
 			u=get_user_name(user, user->murlist[i]);
 			if (!u) {
 				vwrite_user(user, "~OL~FR%s~RS : %s",
@@ -158,45 +151,41 @@ void tell(UR_OBJECT user, char *inpstr)
 					user->murlist[i]);
 				continue;
 				}
-			if ((check_igusers(u, user))!=-1
-			    && (user->level<GOD
-				|| user->level<u->level
-				)
-			    ) {
-				vwrite_user(user,"~OL~FR%s~RS : ignoring tells from you.\n",
+			if ((check_igusers(u, user))!=-1 && (user->level<GOD || user->level<u->level)) {
+				vwrite_user(user,"~OL~FR%s~RS : ignoruje tvoje telly.\n",
 					user->murlist[i]);
 				continue;
 				}
-			if (u->igntells && (user->level<WIZ || u->level>user->level)) {
-				vwrite_user(user,"~OL~FR%s~RS : ignoring tells at the moment.\n",
+			if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) {
+				vwrite_user(user,"~OL~FR%s~RS : ignoruje momentalne telly.\n",
 					user->murlist[i]);
 				continue;
 				}
 			if (u->afk) {
-				if (u->afk_mesg[0]) vwrite_user(user,"~OL~FR%s~RS : ~FRAFK~RS, msg is: %s\n",u->recap,u->afk_mesg);
-				else vwrite_user(user,"~OL~FR%s~RS : ~FRAFK~RS at the moment.\n",u->recap);
+				if (u->afk_mesg[0]) vwrite_user(user,"~OL~FR%s~RS : ~FRAFK~RS, odkaz: %s\n",u->recap,u->afk_mesg);
+				else vwrite_user(user,"~OL~FR%s~RS : ~FRAFK~RS momentalne.\n",u->recap);
 				if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 				else strcpy(type,"tell");
 				if (user->vis || u->level>=user->level) name=user->bw_recap;
 				else name=invisname;
-				sprintf(text,"~FG~OL%s %ss you:~RS %s\n",name,type,inpstr);
+				sprintf(text,"~FG~OL%s %s%ss you:~RS %s\n",name, colors[CTELLUSER], type,inpstr);
 				record_afk(u,text);
 				sprintf(u->ltell, user->name);
 				continue;
 				}
 			if (u->editing) {
-				vwrite_user(user,"~FR~OL%s~RS : in ~FTEDIT~RS mode at the moment (using the line editor).\n",u->recap);
+				vwrite_user(user,"~FR~OL%s~RS : momentalne nieco pise.\n",u->recap);
 				if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 				else strcpy(type,"tell");
 				if (user->vis || u->level>=user->level) name=user->bw_recap;
 				else name=invisname;
-				sprintf(text,"~FG~OL%s %ss you:~RS %s\n",name,type,inpstr);
+				sprintf(text,"~FG~OL%s %s%ss you:~RS %s\n", name, colors[CTELLUSER], type, inpstr);
 				record_edit(u,text);
 				sprintf(u->ltell, user->name);
 				continue;
 				}
-			if (u->ignall && (user->level<WIZ || u->level>user->level)) {
-				if (u->malloc_start!=NULL) vwrite_user(user,"~FR~OL%s~RS : using the editor at the moment.\n",u->recap);
+			if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
+				if (u->malloc_start!=NULL) vwrite_user(user,"~FR~OL%s~RS : momentalne nieco pise.\n",u->recap);
 				else vwrite_user(user,"%s~RS is ignoring everyone at the moment.\n",u->recap);
 				continue;
 				}
@@ -213,21 +202,20 @@ void tell(UR_OBJECT user, char *inpstr)
 			record_tell(user,text);
 			if (user->vis || u->level>=user->level) name=user->bw_recap;
 			else name=invisname;
-			sprintf(text,"~OL~FT%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~OL~FT%s %s%ss you:~RS %s\n", name, colors[CTELLUSER], type, inpstr);
 			write_user(u,text);
 			record_tell(u,text);
 			sprintf(u->ltell, user->name);
 			}
 		}
 	else {
-		if (!c) u=get_user_name(user,word[1]);
-
+		u=get_user_name(user, c?user->call:word[1]);
 		if (!u) {
 			write_user(user,notloggedon);
 			return;
 			}
 		if (u==user) {
-			write_user(user,"Talking to yourself is the first sign of madness.\n");
+			write_user(user,"Sebe ??? hmmmmm...... :(\n");
 			return;
 			}
 		if ((check_igusers(u,user))!=-1
@@ -238,35 +226,35 @@ void tell(UR_OBJECT user, char *inpstr)
 			vwrite_user(user,"%s~RS is ignoring tells from you.\n",u->recap);
 			return;
 			}
-		if (u->igntells && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) {
 			vwrite_user(user,"%s~RS is ignoring tells at the moment.\n",u->recap);
 			return;
 			}
 		if (u->afk) {
-			if (u->afk_mesg[0]) vwrite_user(user,"%s~RS is ~FRAFK~RS, message is: %s\n",u->recap,u->afk_mesg);
-			else vwrite_user(user,"%s~RS is ~FRAFK~RS at the moment.\n",u->recap);
+			if (u->afk_mesg[0]) vwrite_user(user,"%s~RS je ~FRAFK~RS, odkaz: %s\n",u->recap,u->afk_mesg);
+			else vwrite_user(user,"%s~RS je momentalne ~FRAFK~RS.\n",u->recap);
 			write_user(user,"Sending message to their afk review buffer.\n");
 			if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 			else strcpy(type,"tell");
 			if (user->vis || u->level>=user->level) name=user->bw_recap; else name=invisname;
-			sprintf(text,"~FT~OL%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~FT~OL%s %s%ss you:~RS %s\n", name, colors[CTELLUSER], type, inpstr);
 			record_afk(u,text);
 			sprintf(u->ltell, user->name);
 			return;
 			}
 		if (u->editing) {
-			vwrite_user(user,"%s~RS is in ~FTEDIT~RS mode at the moment (using the line editor).\n",u->recap);
+			vwrite_user(user,"%s~RS momentalne nieco pise.\n",u->recap);
 			write_user(user,"Sending message to their edit review buffer.\n");
 			if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 			else strcpy(type,"tell");
 			if (user->vis || u->level>=user->level) name=user->bw_recap; else name=invisname;
-			sprintf(text,"~FT~OL%s %ss you:~RS %s\n",name,type,inpstr);
+			sprintf(text,"~FT~OL%s %s%ss you:~RS %s\n", name, colors[CTELLUSER], type, inpstr);
 			record_edit(u,text);
 			sprintf(u->ltell, user->name);
 			return;
 			}
-		if (u->ignall && (user->level<WIZ || u->level>user->level)) {
-			if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is using the editor at the moment.\n",u->recap);
+		if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
+			if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS momentalne nieco pise.\n",u->recap);
 			else vwrite_user(user,"%s~RS is ignoring everyone at the moment.\n",u->recap);
 			return;
 			}
@@ -278,12 +266,12 @@ void tell(UR_OBJECT user, char *inpstr)
 	#endif
 		if (inpstr[strlen(inpstr)-1]=='?') strcpy(type,"ask");
 		else strcpy(type,"tell");
-		sprintf(text,"~FTYou %s %s:~RS %s\n",type,u->bw_recap,inpstr);
+		sprintf(text,"%sYou %s %s:~RS %s\n", colors[CTELLUSER], type, u->bw_recap,inpstr);
 		write_user(user,text);
 		record_tell(user,text);
 		if (user->vis || u->level>=user->level) name=user->bw_recap;
 		else name=invisname;
-		sprintf(text,"~OL~FT%s %ss you:~RS %s\n",name,type,inpstr);
+		sprintf(text,"%s %s%ss you:~RS %s\n",name, colors[CTELLUSER], type, inpstr);
 		write_user(u,text);
 		record_tell(u,text);
 		sprintf(u->ltell, user->name);
@@ -296,15 +284,16 @@ void emote(UR_OBJECT user, char *inpstr)
 {
 char *name;
 
+	set_crash();
 name="";
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot emote.\n");  return;
+  vwrite_user(user, muzzled_cannot, "kecat");  return;
   }
 if (word_count<2) {
   write_user(user,"Emote what?\n");  return;
   }
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
+  switch (amsys->ban_swearing) {
     case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
               break;
     case SBMAX: write_user(user,noswearing);
@@ -319,7 +308,8 @@ if (user->type==CLONE_TYPE) {
   plugin_triggers(user, inpstr);
   return;
   }
-if (user->vis) name=user->recap; else name=invisname;
+if (user->vis) name=user->recap;
+else name=invisname;
 if (!user->vis) write_monitor(user,user->room,0);
 if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s~RS%s\n",name,inpstr);
 else sprintf(text,"%s~RS %s\n",name,inpstr);
@@ -334,8 +324,9 @@ void semote(UR_OBJECT user, char *inpstr)
 {
 char *name;
 
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot emote.\n");  return;
+  vwrite_user(user, muzzled_cannot, "kricat");  return;
   }
 if (word_count<2) {
   write_user(user,"Shout emote what?\n");  return;
@@ -366,15 +357,16 @@ void pemote(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	int i, mur=0;
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot emote.\n");
+		vwrite_user(user, muzzled_cannot, "kecat");
 		return;
 		}
 	if ((i=strlen(command_table[PEMOTE].alias))
-	    && strncmp(inpstr, command_table[PEMOTE].alias)
+	    && strncmp(inpstr, command_table[PEMOTE].alias, i)
 	    && word_count<3
 	    ) {
-		write_user(user,"Private emote what?\n");
+		write_user(user,"pemote co ?\n");
 		return;
 		}
 	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
@@ -394,14 +386,14 @@ void pemote(UR_OBJECT user, char *inpstr)
 			return;
 			}
 		if (u==user) {
-			write_user(user,"Talking to yourself is the first sign of madness.\n");
+			write_user(user,"Kecat so sebou je troxu uxylne, nemyslis ?\n");
 			return;
 			}
 		if ((check_igusers(u,user))!=-1 && user->level<GOD) {
 			vwrite_user(user,"%s~RS is ignoring private emotes from you.\n",u->recap);
 			return;
 			}
-		if (u->igntells && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) {
 			vwrite_user(user,"%s~RS is ignoring private emotes at the moment.\n",u->recap);
 			return;
 			}
@@ -412,7 +404,7 @@ void pemote(UR_OBJECT user, char *inpstr)
 			if (user->vis || u->level>=user->level) name=user->recap;
 			else name=invisname;
 			inpstr=remove_first(inpstr);
-			sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+			sprintf(text, "%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 			record_afk(u,text);
 			return;
 			}
@@ -422,11 +414,11 @@ void pemote(UR_OBJECT user, char *inpstr)
 			if (user->vis || u->level>=user->level) name=user->recap;
 			else name=invisname;
 			inpstr=remove_first(inpstr);
-			sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+			sprintf(text, "%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 			record_edit(u,text);
 			return;
 			}
-		if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
 			if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is using the editor at the moment.\n",u->recap);
 			else vwrite_user(user,"%s~RS is ignoring everyone at the moment.\n",u->recap);
 			return;
@@ -440,18 +432,18 @@ void pemote(UR_OBJECT user, char *inpstr)
 		if (user->vis || u->level>=user->level) name=user->recap;
 		else name=invisname;
 		inpstr=remove_first(inpstr);
-		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~FG~OL(%s =>)~RS %s~RS%s\n",u->bw_recap,name,inpstr);
-		else sprintf(text,"~FG~OL(%s =>)~RS %s~RS %s\n",u->bw_recap,name,inpstr);
+		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s(%s =>)~RS %s~RS%s\n", colors[CPEMOTE], u->bw_recap, name, inpstr);
+		else sprintf(text, "%s(%s =>)~RS %s~RS %s\n", colors[CPEMOTE], u->bw_recap, name, inpstr);
 		write_user(user,text);
 		record_tell(user,text);
-		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~FG~OL(=>)~RS %s~RS%s\n",name,inpstr);
-		else sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s(=>)~RS %s~RS%s\n", colors[CPEMOTE], name, inpstr);
+		else sprintf(text,"%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 		write_user(u,text);
 		record_tell(u,text);
 		return;
 		}
 
-	for (i=0; i<mur, user->murlist[i][0]!='\0'; i++) {
+	for (i=0; i<mur; i++) {
 		inpstr=pp;
 		if (!(u=get_user_name(user, user->murlist[i]))) {
 			vwrite_user(user, "~FR~OL%s~RS : %s",
@@ -468,7 +460,7 @@ void pemote(UR_OBJECT user, char *inpstr)
 				user->murlist[i]);
 			continue;
 			}
-		if (u->igntells && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) {
 			vwrite_user(user,"~FR~OL%s~RS : ignoring private emotes at the moment.\n",
 				user->murlist[i]);
 			continue;
@@ -479,7 +471,7 @@ void pemote(UR_OBJECT user, char *inpstr)
 			if (user->vis || u->level>=user->level) name=user->recap;
 			else name=invisname;
 			inpstr=remove_first(inpstr);
-			sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+			sprintf(text,"%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 			record_afk(u,text);
 			continue;
 			}
@@ -488,11 +480,11 @@ void pemote(UR_OBJECT user, char *inpstr)
 			if (user->vis || u->level>=user->level) name=user->recap;
 			else name=invisname;
 			inpstr=remove_first(inpstr);
-			sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+			sprintf(text,"%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 			record_edit(u,text);
 			continue;
 			}
-		if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+		if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
 			if (u->malloc_start!=NULL) vwrite_user(user,"~FR~OL%s~RS : using the editor at the moment.\n",user->murlist[i]);
 			else vwrite_user(user,"~FR~OL%s~RS : ignoring everyone at the moment.\n",user->murlist[i]);
 			continue;
@@ -506,12 +498,12 @@ void pemote(UR_OBJECT user, char *inpstr)
 		if (user->vis || u->level>=user->level) name=user->recap;
 		else name=invisname;
 		inpstr=remove_first(inpstr);
-		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~FG~OL(%s =>)~RS %s~RS%s\n",u->bw_recap,name,inpstr);
-		else sprintf(text,"~FG~OL(%s =>)~RS %s~RS %s\n",u->bw_recap,name,inpstr);
+		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s(%s =>)~RS %s~RS%s\n", colors[CPEMOTE], u->bw_recap, name, inpstr);
+		else sprintf(text,"%s(%s =>)~RS %s~RS %s\n", colors[CPEMOTE], u->bw_recap, name, inpstr);
 		write_user(user,text);
 		record_tell(user,text);
-		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"~FG~OL(=>)~RS %s~RS%s\n",name,inpstr);
-		else sprintf(text,"~FG~OL(=>)~RS %s~RS %s\n",name,inpstr);
+		if (inpstr[0]=='\'' && (inpstr[1]=='s' || inpstr[1]=='S')) sprintf(text,"%s(=>)~RS %s~RS%s\n", colors[CPEMOTE], name,inpstr);
+		else sprintf(text,"%s(=>)~RS %s~RS %s\n", colors[CPEMOTE], name, inpstr);
 		write_user(u,text);
 		record_tell(u,text);
 		}
@@ -519,10 +511,11 @@ void pemote(UR_OBJECT user, char *inpstr)
 
 
 /*** Echo something to screen ***/
-void echo(UR_OBJECT user, char *inpstr)
+void s_echo(UR_OBJECT user, char *inpstr)
 {
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot echo.\n");  return;
+  vwrite_user(user, muzzled_cannot, "echovat");  return;
   }
 if (word_count<2) {
   write_user(user,"Echo what?\n");  return;
@@ -549,6 +542,7 @@ void set_topic(UR_OBJECT user, char *inpstr)
 RM_OBJECT rm;
 char *name;
 
+	set_crash();
 rm=user->room;
 if (word_count<2) {
   if (!strlen(rm->topic)) {
@@ -573,6 +567,7 @@ void bcast(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"%s <message>", command_table[BCAST].name);
 		return;
@@ -605,6 +600,7 @@ void wake(UR_OBJECT user, char *inpstr)
 	char *name,*b="\007",null[1],*bp;
 	char text1[WAKEMSG_LEN+1];
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"%s <user>", command_table[WAKE].name);
 		return;
@@ -612,7 +608,7 @@ void wake(UR_OBJECT user, char *inpstr)
 	strncpy(text1, remove_first(inpstr), WAKEMSG_LEN);
 	text1[WAKEMSG_LEN]='\0';
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot wake anyone.\n");
+		vwrite_user(user, muzzled_cannot, "budit");
 		return;
 		}
 	if (!(u=get_user_name(user,word[1]))) {
@@ -643,11 +639,11 @@ void wake(UR_OBJECT user, char *inpstr)
 		vwrite_user(user, ">>>%s is ignoring you. You must ask him to forgive you first.\n", u->name);
 		return;
 		}
-	if (!u->ignfuns) show_file(u, WAKEFILE);
+	if (!u->ignore.funs) show_file(u, WAKEFILE);
 	if (user->vis) name=user->bw_recap;
 	else name=invisname;
 	null[0]='\0';
-	if (u->ignbeeps) bp=null;
+	if (u->ignore.beeps) bp=null;
 	else bp=b;
 	vwrite_user(u,"\n%s~BR*** %s krici: ~OL~LIZOBUD SA ~RS~BR(~RS%s~RS~BR) !!! ***\n\n",
 		bp, name, text1);
@@ -663,8 +659,9 @@ void wizshout(UR_OBJECT user, char *inpstr)
 {
 int lev;
 
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot wizshout.\n");  return;
+  vwrite_user(user, muzzled_cannot, "kricat");  return;
   }
 if (word_count<2) {
   write_usage(user,"%s [<superuser level>] <text>", command_table[WIZSHOUT].name); 
@@ -712,6 +709,7 @@ void revclr(UR_OBJECT user)
 {
 	char *name;
 
+	set_crash();
 	clear_revbuff(user->room); 
 	write_user(user,"Review buffer cleared.\n");
 	if (user->vis) name=user->name;
@@ -725,6 +723,7 @@ void revtell(UR_OBJECT user)
 {
 	int i,cnt,line;
 
+	set_crash();
 	if (user->restrict[RESTRICT_VIEW]==restrict_string[RESTRICT_VIEW]) {
 		write_user(user,">>>Sorry, you have no right to access the revtell buffer.\n");
 		return;
@@ -749,6 +748,7 @@ void clear_topic(UR_OBJECT user)
 RM_OBJECT rm;
 char *name;
 
+	set_crash();
 strtolower(word[1]);
 if (word_count<2) {
   rm=user->room;
@@ -780,6 +780,7 @@ void mutter(UR_OBJECT user, char *inpstr)
 UR_OBJECT user2;
 char *name;
 
+	set_crash();
 if (word_count<3) {
   write_usage(user,"%s <user> <text>", command_table[MUTTER].name);
   return;
@@ -820,6 +821,7 @@ void plead(UR_OBJECT user, char *inpstr)
 int found=0;
 UR_OBJECT u;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <text>", command_table[SOS].name);
   return;
@@ -844,16 +846,16 @@ record_tell(user,text);
 /* Displays a picture to a person */
 void picture_tell(UR_OBJECT user)
 {
-UR_OBJECT u;
-char filename[500],*name,*c;
-FILE *fp;
+	UR_OBJECT u;
+	char fname[500], *name, *c;
 
+	set_crash();
 if (word_count<3) {
   write_usage(user,"%s <user> <obrazok>", command_table[PTELL].name);
   return;
   }
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot tell anyone anything.\n");
+  vwrite_user(user, muzzled_cannot, "nic posielat");
   return;
   }
 if (!(u=get_user_name(user,word[1]))) {
@@ -867,7 +869,7 @@ if ((check_igusers(u,user))!=-1 && user->level<GOD) {
   vwrite_user(user,"%s~RS is ignoring pictures from you.\n",u->recap);
   return;
   }
-if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
   if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is writing a message at the moment.\n",u->recap);
   else vwrite_user(user,"%s~RS is not listening at the moment.\n",u->recap);
   return;
@@ -878,10 +880,6 @@ if (u->ignall && (user->level<WIZ || u->level>user->level)) {
     return;
     }
 #endif
-if (u->ignpics && (user->level<GOD)) {
-  vwrite_user(user,"%s~RS is ignoring pictures at the moment.\n",u->recap);
-  return;
-  }
 if (u->afk) {
 	if (u->afk_mesg[0])
 		sprintf(text,"~OL~FG%s ~FWje STAND BY, odkaz je:~RS %s\n",u->name,u->afk_mesg);
@@ -897,46 +895,58 @@ while(*c) {
     return;
     }
   }
-sprintf(filename,"%s/%s.pic", PICTFILES, word[2]);
-if (!show_file(u, filename)) {
-  write_user(user,"Sorry, there is no picture with that name.\n");
-  return;
-  }
-if (!user->vis && u->level<user->level) name=invisname; else name=user->bw_recap;
-write_user(u,"\n");
-vwrite_user(user, "~OLobrazok ~FG%s pre %s\n",word[2],u->name);
+if (!user->vis && u->level<user->level) name=invisname;
+else name=user->recap;
+sprintf(fname,"%s/%s.pic", PICTFILES, word[2]);
+if (u->ignore.funs || u->ignore.pics) {
+	if (file_exists(fname))
+		vwrite_user(u, "~OLObrazok ~FG%s~FW ti posiela ~FR%s\n", word[2], name);
+	else {
+		write_user(user, "Taky obrazok neexistuje !\n");
+		return;
+		}
+	}
+else {
+	if (!show_file(u, fname)) {
+		write_user(user,"Taky obrazok neexistuje !\n");
+		return;
+		}
+	vwrite_user(user, "\n%s ti posiela tento obrazok\n", name);
+	}
+vwrite_user(user, "~OLobrazok ~FG%s~FW pre ~FR%s\n",word[2],u->name);
 }
 
 
 /* see list of pictures availiable - file dictated in 'go' script */
 void preview(UR_OBJECT user)
 {
-char filename[500],*c;
-FILE *fp;
+	char fname[500],*c;
 
-if (word_count<2) {
-  write_user(user,"The following pictures can be viewed...\n\n");
-  switch(more(user,user->socket, PICTLIST)) {
-    case 0: write_user(user,"No list of the picture files is availiable.\n");
-            break;
-    case 1: user->misc_op=2;
-    }
-  return;
-  }
-c=word[1];
-while(*c) {
-  if (*c=='.' || *c++=='/') {
-    write_user(user,"Sorry, there is no picture with that name.\n");
-    return;
-    }
-  }
-sprintf(filename,"%s/%s.pic", PICTFILES,word[1]);
-write_user(user, "\n");
-if (!show_file(user, filename)) {
-  write_user(user,"Sorry, there is no picture with that name.\n");
-  return;
-  }
-write_user(user,"\n");
+	set_crash();
+	if (word_count<2) {
+		write_user(user,"The following pictures can be viewed...\n\n");
+		switch (more(user,user->socket, PICTLIST)) {
+			case 0:
+				write_user(user,"No list of the picture files is availiable.\n");
+				break;
+			case 1: user->misc_op=2;
+			}
+		return;
+		}
+	c=word[1];
+	while(*c) {
+		if (*c=='.' || *c++=='/') {
+			write_user(user,"Sorry, there is no picture with that name.\n");
+			return;
+			}
+		}
+	sprintf(fname,"%s/%s.pic", PICTFILES, word[1]);
+	write_user(user, "\n");
+	if (!show_file(user, fname)) {
+		write_user(user,"Sorry, there is no picture with that name.\n");
+		return;
+		}
+	write_user(user,"\n");
 }
 
 
@@ -947,13 +957,14 @@ UR_OBJECT u;
 char filename[500],*name,*c;
 FILE *fp;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user, "%s <obrazok>", command_table[PICTURE].name);
   preview(user); 
   return;
   }
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot tell anyone anything.\n");
+  vwrite_user(user, muzzled_cannot, "nic posielat");
   return;
   }
 c=word[1];
@@ -973,13 +984,13 @@ for (u=user_first;u!=NULL;u=u->next) {
   if (u->login
       || u->room==NULL
       || (u->room!=user->room && user->room!=NULL)
-      || (u->ignall && !force_listen)
-      || u->ignpics
+      || (u->ignore.all && !force_listen)
+      || u->ignore.pics
       || u==user) continue;
   if ((check_igusers(u,user))!=-1 && user->level<GOD) continue;
   if (!user->vis && u->level<=user->level) name=invisname;  else  name=user->bw_recap;
   if (u->type==CLONE_TYPE) {
-    if (u->clone_hear==CLONE_HEAR_NOTHING || u->owner->ignall
+    if (u->clone_hear==CLONE_HEAR_NOTHING || u->owner->ignore.all
 	|| u->clone_hear==CLONE_HEAR_SWEARS) continue;
     /* Ignore anything not in clones room, eg shouts, system messages
        and shemotes since the clones owner will hear them anyway. */
@@ -1014,8 +1025,9 @@ void greet(UR_OBJECT user, char *inpstr)
 	int slen,lc,c,i,j;
 	char *clr[]={"~OL~FR","~OL~FG","~OL~FT","~OL~FM","~OL~FY"};
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot greet.\n");
+		vwrite_user(user, muzzled_cannot, "pouzit tento prikaz");
 		return;
 		}
 	if (word_count<2) {
@@ -1080,27 +1092,28 @@ for (i=0; i<5; ++i) {
 /** put speech in a think bubbles **/
 void think_it(UR_OBJECT user, char *inpstr)
 {
-char *name;
+	char *name;
 
-if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-  switch(amsys->ban_swearing) {
-    case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
-              break;
-    case SBMAX: write_user(user,noswearing);
-              return;
-    default : break; /* do nothing as ban_swearing is off */
-    }
-  }
-if (user->vis) name=user->recap;
-else {
-  name=invisname;
-  write_monitor(user,user->room,0);
-  }
-if (word_count<2) sprintf(text,"%s~RS thinks nothing - now that's just typical!\n",name);
-else sprintf(text,"%s~RS thinks . o O ( %s~RS )\n",name,inpstr);
-write_room(user->room,text);
-record(user->room,text);
-plugin_triggers(user, inpstr);
+	set_crash();
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch(amsys->ban_swearing) {
+			case SBMIN:
+				if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
+				break;
+			case SBMAX: write_user(user,noswearing); return;
+			default : break; /* do nothing as ban_swearing is off */
+			}
+		}
+	if (user->vis) name=user->recap;
+	else {
+		name=invisname;
+		write_monitor(user,user->room,0);
+		}
+	if (word_count<2) sprintf(text,"%s~RS%s si mysli ... aaale nist :)\n", name, colors[CTHINK]);
+	else sprintf(text, "%s~RS%s . o O (~RS %s~RS %s)\n", name, colors[CTHINK], inpstr, colors[CTHINK]);
+	write_room(user->room,text);
+	record(user->room,text);
+	plugin_triggers(user, inpstr);
 }
 
 
@@ -1109,6 +1122,7 @@ void sing_it(UR_OBJECT user, char *inpstr)
 {
 char *name;
 
+	set_crash();
 if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
   switch(amsys->ban_swearing) {
     case SBMIN: if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
@@ -1137,8 +1151,9 @@ void wizemote(UR_OBJECT user, char *inpstr)
 {
 int lev;
 
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot emote to the rest of the Wizzes.\n");  return;
+  vwrite_user(user, muzzled_cannot, "kecat");  return;
   }
 if (word_count<2) {
   write_usage(user,"%s [<Wiz level>] <text>", command_table[WIZEMOTE].name); 
@@ -1182,6 +1197,7 @@ void revshout(UR_OBJECT user)
 {
 	int i,line,cnt;
 
+	set_crash();
 	cnt=0;
 	for(i=0;i<REVIEW_LINES;++i) {
 		line=(amsys->sbuffline+i)%REVIEW_LINES;
@@ -1201,6 +1217,7 @@ void clear_shouts(void)
 {
 	int c;
 
+	set_crash();
 	for(c=0;c<REVIEW_LINES;++c)
 		amsys->shoutbuff[c][0]='\0';
 	amsys->sbuffline=0;
@@ -1212,6 +1229,7 @@ void clear_tells(UR_OBJECT user)
 {
 	int c;
 
+	set_crash();
 	for(c=0;c<REVTELL_LINES;++c)
 		user->revbuff[c][0]='\0';
 	user->revline=0;
@@ -1223,12 +1241,13 @@ void quick_call(UR_OBJECT user)
 {
 UR_OBJECT u;
 
+	set_crash();
 if (word_count<2) {
   if (!user->call[0]) {
     write_user(user,"Quick call nenastaveny.\n");
     return;
     }
-  vwrite_user(user,"Quick call: %s.\n",user->call);
+  vwrite_user(user,"~OLQuick call: ~FG%s~RS\n",user->call);
   return;
   }
 if (!strcmp(word[1], "-cancel")) {
@@ -1237,20 +1256,20 @@ if (!strcmp(word[1], "-cancel")) {
 	return;
 	}
 if (strlen(word[1])>USER_NAME_LEN) {
-  write_user(user,"Name for quick call is too long.\n");
+  write_user(user,"Pridlhe meno\n");
   return;
   }
 if ((u=get_user_name(user,word[1]))==NULL) {
-  write_user(user,"The user you want to call has to be online.\n");
+  write_user(user,"User musi byt zaweseny !\n");
   return;
   }
 if (u==user) {
-  write_user(user,"You cannot set your quick call to yourself.\n");
+  write_user(user,"Qcall si nemozes nastavit na seba !\n");
   return;
   }
 strcpy(user->call,u->name);
 user->call[0]=toupper(user->call[0]);
-vwrite_user(user,"You have set a quick call to: %s.\n",user->call);
+vwrite_user(user,"Qcall nastaveny na: ~OL%s\n", user->call);
 }
 
 
@@ -1258,6 +1277,7 @@ vwrite_user(user,"You have set a quick call to: %s.\n",user->call);
 void revafk(UR_OBJECT user)
 {
 int i,cnt,line;
+	set_crash();
 cnt=0;
 for(i=0;i<REVTELL_LINES;++i) {
   line=(user->afkline+i)%REVTELL_LINES;
@@ -1277,6 +1297,7 @@ void clear_afk(UR_OBJECT user)
 {
 	int c;
 
+	set_crash();
 	for(c=0;c<REVTELL_LINES;++c)
 		user->afkbuff[c][0]='\0';
 	user->afkline=0;
@@ -1287,6 +1308,7 @@ void clear_afk(UR_OBJECT user)
 void revedit(UR_OBJECT user)
 {
 int i,cnt,line;
+	set_crash();
 cnt=0;
 for(i=0;i<REVTELL_LINES;++i) {
   line=(user->editline+i)%REVTELL_LINES;
@@ -1306,6 +1328,7 @@ void clear_edit(UR_OBJECT user)
 {
 	int c;
 
+	set_crash();
 	for(c=0;c<REVTELL_LINES;++c)
 		user->editbuff[c][0]='\0';
 	user->editline=0;
@@ -1319,20 +1342,10 @@ void say_to(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	int mur=0, i;
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot speak.\n");
+		vwrite_user(user, muzzled_cannot, "kecat");
 		return;
-		}
-	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
-		switch(amsys->ban_swearing) {
-			case SBMIN:
-				if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
-				break;
-			case SBMAX:
-				write_user(user,noswearing);
-				return;
-			default : break; /* do nothing as ban_swearing is off */
-			}
 		}
 	if ((i=strlen(command_table[SAYTO].alias))
 	    && strncmp(inpstr, command_table[SAYTO].alias, i)
@@ -1345,6 +1358,17 @@ void say_to(UR_OBJECT user, char *inpstr)
 		if ((u=get_user_name(user,word[1]))==NULL) {
 			write_user(user,notloggedon);
 			return;
+			}
+		}
+	if (amsys->ban_swearing && contains_swearing(inpstr) && user->level<MIN_LEV_NOSWR) {
+		switch (amsys->ban_swearing) {
+			case SBMIN:
+				if (!(in_private_room(user))) inpstr=censor_swear_words(inpstr);
+				break;
+			case SBMAX:
+				write_user(user,noswearing);
+				return;
+			default : break; /* do nothing as ban_swearing is off */
 			}
 		}
 	if (mur==1) {
@@ -1384,7 +1408,7 @@ void say_to(UR_OBJECT user, char *inpstr)
 		plugin_triggers(user, inpstr);
 		return;
 		}
-	for (i=0; i<mur, user->murlist[i][0]!='\0'; i++) {
+	for (i=0; i<mur; i++) {
 		inpstr=pp;
 		u=get_user_name(user, user->murlist[i]);
 		if (!u) {
@@ -1439,6 +1463,7 @@ char filename[500];
 FILE *fp;
 struct user_dir_struct *entry;
 
+	set_crash();
 cnt=0;
 if (word_count<2) {
   for (i=0;i<MAX_FRIENDS;++i) {
@@ -1502,7 +1527,7 @@ SKIP:
 sprintf(filename,"%s/%s.F", USERFRIENDS,user->name);
 if (!(fp=fopen(filename,"w"))) {
   write_user(user,"ERROR: Unable to open to friend list file.\n");
-  write_syslog(SYSLOG,1,"Unable to open %s's friend list in friends().\n",user->name);
+  write_syslog(ERRLOG,1,"Unable to open %s's friend list in friends().\n",user->name);
   return;
   }
 cnt=0;
@@ -1522,8 +1547,9 @@ void friend_say(UR_OBJECT user, char *inpstr)
 char type[15],*name;
 int i,cnt;
 
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot speak to your friends.\n");
+  vwrite_user(user, muzzled_cannot, "kecat");
   return;
   }
 /* check to see if use has friends listed */
@@ -1561,8 +1587,9 @@ void friend_emote(UR_OBJECT user, char *inpstr)
 char *name;
 int i,cnt;
 
+	set_crash();
 if (user->muzzled) {
-  write_user(user,"You are muzzled, you cannot emote to your friends.\n");  return;
+  vwrite_user(user, muzzled_cannot, "kecat");  return;
   }
 if (word_count<2) {
   write_user(user,"Emote what to your friends?\n");
@@ -1595,12 +1622,13 @@ write_friends(user,text,1);
 
 
 /* Beep a user - as tell but with audio warning */
-void beep(UR_OBJECT user, char *inpstr)
+void s_beep(UR_OBJECT user, char *inpstr)
 {
 	UR_OBJECT u;
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot beep.\n");
+		vwrite_user(user, muzzled_cannot, "nikoho prezvanat");
 		return;
 		}
 	if (word_count<2) {
@@ -1615,7 +1643,7 @@ if (u==user) {
   write_user(user,"Beeping yourself is yet another sign of madness!\n");
   return;
   }
-if (u->ignbeeps) {
+if (u->ignore.beeps) {
   vwrite_user(user,"%s~RS is ignoring beeps at the moment.\n",u->recap);
   return;
   }
@@ -1623,7 +1651,7 @@ if ((check_igusers(u,user))!=-1 && user->level<GOD) {
   vwrite_user(user,"%s~RS is ignoring tells from you.\n",u->recap);
   return;
   }
-if (u->ignall && (user->level<GOD || u->level>user->level)) {
+if (u->ignore.all && (user->level<GOD || u->level>user->level)) {
   if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is writing a message at the moment.\n",u->recap);
   else vwrite_user(user,"%s~RS is not listening at the moment.\n",u->recap);
   return;
@@ -1653,18 +1681,19 @@ void hug(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	int mur, i;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user, "%s <user> [<text>]", command_table[HUG].name);
 		return;
 		}
 	if (user->muzzled) {
-		write_user(user, "Si muzzled, nemozes posielat HUG\n");
+		vwrite_user(user, muzzled_cannot, "zdravit");
 		return;
 		}
 	mur=count_musers(user, word[1]);
 	inpstr=remove_first(inpstr);
 	if (mur>1) {
-		for (i=0; i<mur, user->murlist[i][0]!='\0'; i++) {
+		for (i=0; i<mur; i++) {
 			if ((u=get_user_name(user, user->murlist[i]))==NULL) {
 				vwrite_user(user, "~OL~FR%s~RS: %s",
 					user->murlist[i], notloggedon);
@@ -1684,7 +1713,7 @@ void hug(UR_OBJECT user, char *inpstr)
 					user->murlist[i]);
 				continue;
 				}
-			if ((u->ignall || u->igntells) && (user->level<ARCH || u->level>user->level)) {
+			if ((u->ignore.all || u->ignore.tells) && (user->level<ARCH || u->level>user->level)) {
 				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n",
 					user->murlist[i]);
 				continue;
@@ -1695,7 +1724,7 @@ void hug(UR_OBJECT user, char *inpstr)
 				continue;
 				}
 		#endif
-			if (!u->ignfuns) {
+			if (!u->ignore.funs) {
 				show_file(u, HUGFILE);
 				write_user(u, "\n");
 				}
@@ -1732,7 +1761,7 @@ void hug(UR_OBJECT user, char *inpstr)
 			vwrite_user(user,"~FG~OL%s~FW ta momentalne ignoruje.\n", u->name);
 			return;
 			}
-		if (u->ignall && (user->level<ARCH || u->level>user->level)) {
+		if (u->ignore.all && (user->level<ARCH || u->level>user->level)) {
 			if (u->malloc_start)
 				vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
 			else
@@ -1745,7 +1774,7 @@ void hug(UR_OBJECT user, char *inpstr)
 			return;
 			}
 	#endif
-		if (!u->ignfuns && !u->afk) {
+		if (!u->ignore.funs && !u->afk) {
 			show_file(u, HUGFILE);
 			write_user(u, "\n");
 			}
@@ -1772,18 +1801,19 @@ void kiss(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	int mur, i;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user, "%s <user> [<text>]", command_table[KISS].name);
 		return;
 		}
 	if (user->muzzled) {
-		write_user(user, "Si muzzled, nemozes posielat HUG\n");
+		vwrite_user(user, muzzled_cannot, "pusinkovat");
 		return;
 		}
 	mur=count_musers(user, word[1]);
 	inpstr=remove_first(inpstr);
 	if (mur>1) {
-		for (i=0; i<mur, user->murlist[i][0]!='\0'; i++) {
+		for (i=0; i<mur; i++) {
 			if ((u=get_user_name(user, user->murlist[i]))==NULL) {
 				vwrite_user(user, "~OL~FR%s~RS: %s",
 					user->murlist[i], notloggedon);
@@ -1803,7 +1833,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 					user->murlist[i]);
 				continue;
 				}
-			if ((u->ignall || u->igntells) && (user->level<ARCH || u->level>user->level)) {
+			if ((u->ignore.all || u->ignore.tells) && (user->level<ARCH || u->level>user->level)) {
 				vwrite_user(user,"~OL~FR%s~RS : momentalne ignoruje.\n",
 					user->murlist[i]);
 				continue;
@@ -1814,7 +1844,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 				continue;
 				}
 		#endif
-			if (!u->ignfuns) {
+			if (!u->ignore.funs) {
 				show_file(u, KISSFILE);
 				write_user(u, "\n");
 				}
@@ -1851,7 +1881,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 			vwrite_user(user,"~FG~OL%s~FW ta momentalne ignoruje.\n", u->name);
 			return;
 			}
-		if (u->ignall && (user->level<ARCH || u->level>user->level)) {
+		if (u->ignore.all && (user->level<ARCH || u->level>user->level)) {
 			if (u->malloc_start)
 				vwrite_user(user, "~FG~OL%s~FW momentalne nieco pise\n", u->name);
 			else
@@ -1864,7 +1894,7 @@ void kiss(UR_OBJECT user, char *inpstr)
 			return;
 			}
 	#endif
-		if (!u->ignfuns && !u->afk) {
+		if (!u->ignore.funs && !u->afk) {
 			show_file(u, KISSFILE);
 			write_user(u, "\n");
 			}
@@ -1892,16 +1922,17 @@ void reply(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	char type[15],*name;
 
+	set_crash();
 	if (user->ltell[0]=='\0') {
 		write_user(user, "Este ti nikto netelloval\n");
 		return;
 		}
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot tell anyone anything.\n");
+		vwrite_user(user, muzzled_cannot, "kecat");
 		return;
 		}
 	if (word_count<2) {	
-		write_user(user, "tellnut co?\n");
+		vwrite_user(user, "~OLPosledny tell od: ~FG%s~RS\n", user->ltell);
 		return;
 		}
 	u=get_user_name(user,user->ltell);
@@ -1914,7 +1945,7 @@ void reply(UR_OBJECT user, char *inpstr)
 		vwrite_user(user,"%s~RS is ignoring tells from you.\n",u->recap);
 		return;
 		}
-	if (u->igntells && (user->level<ARCH || u->level>user->level)) {
+	if (u->ignore.tells && (user->level<ARCH || u->level>user->level)) {
 		vwrite_user(user,"%s~RS is ignoring tells at the moment.\n",u->recap);
 		return;
 		}
@@ -1956,7 +1987,7 @@ if (u->editing) {
   sprintf(u->ltell, user->name);
   return;
   }
-if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
   if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS is using the editor at the moment.\n",u->recap);
   else vwrite_user(user,"%s~RS is ignoring everyone at the moment.\n",u->recap);
   return;
@@ -1985,8 +2016,9 @@ void shoutto(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	char *name;
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user,"You are muzzled, you cannot shout.\n");
+		vwrite_user(user, muzzled_cannot, "kricat");
 		return;
 		}
 	if (word_count<2) {
@@ -2016,7 +2048,7 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		}
 	if (u==user) {
 		vwrite_user(user,"Salen%s ? Kricat sam%s na seba ?\n",
-			gnd_grm(1, user->gender), gnd_grm(4, user->gender)
+			grm_gnd(1, user->gender), grm_gnd(4, user->gender)
 			);
 		return;
 		}
@@ -2024,7 +2056,7 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		vwrite_user(user,"%s~RS ignoruje hlasky od teba.\n", u->recap);
 		return;
 		}
-	if (u->ignshouts && (user->level<WIZ || u->level>user->level)) {
+	if (u->ignore.shouts && (user->level<WIZ || u->level>user->level)) {
 		vwrite_user(user,"%s~RS momentalne ignoruje vykriky.\n", u->recap);
 		return;
 		}
@@ -2049,7 +2081,7 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		write_user(user,"Sending message to their edit review buffer.\n");
 		return;
 		}
-	if (u->ignall && (user->level<WIZ || u->level>user->level)) {
+	if (u->ignore.all && (user->level<WIZ || u->level>user->level)) {
 		if (u->malloc_start!=NULL) vwrite_user(user,"%s~RS momentalne pracuje v editore.\n", u->recap);
 		else vwrite_user(user,"%s~RS momentalne vsetko ignoruje.\n", u->recap);
 		return;
@@ -2060,12 +2092,12 @@ void shoutto(UR_OBJECT user, char *inpstr)
 		return;
 		}
 #endif
-	vwrite_user(user,"~OLKricis na %s:~RS %s\n", u->nameg, inpstr);
+	vwrite_user(user,"~OL~FYKricis na %s:~RS %s\n", u->nameg, inpstr);
 	if (user->vis) name=user->bw_recap; else name=invisname;
 	if (!user->vis) write_monitor(user,NULL,0);
-	sprintf(text,"~OL%s krici na %s:~RS %s\n", name, u->nameg, inpstr);
+	sprintf(text,"~OL~FY%s krici na %s:~RS %s\n", name, u->nameg, inpstr);
 	write_room_except2(NULL, text, user, u);
-	vwrite_user(u, "~OL%s ti krici:~RS %s\n", name, inpstr);
+	vwrite_user(u, "~OL~FY%s ti krici:~RS %s\n", name, inpstr);
 	record_shout(text);
 }
 
@@ -2075,8 +2107,9 @@ void tellall(UR_OBJECT user, char *inpstr)
 	UR_OBJECT u;
 	char type[15], *name, tmp[200];
 
+	set_crash();
 	if (user->muzzled) {
-		write_user(user, "Si zamuzzlovan%s, nemozes hovorit\n", gnd_grm(1, user->gender));
+		vwrite_user(user, muzzled_cannot, "kecat");
 		return;
 		}
 	if (word_count<2) {
@@ -2098,7 +2131,7 @@ void tellall(UR_OBJECT user, char *inpstr)
 		if (u==user) continue;
 		if (u->type==CLONE_TYPE) continue;
 		if ((check_igusers(u,user))!=-1 && user->level<GOD) continue;
-		if (u->igntells && (user->level<WIZ || u->level>user->level)) continue;
+		if (u->ignore.tells && (user->level<WIZ || u->level>user->level)) continue;
 		if (u->afk) {
 			if (inpstr[strlen(inpstr)-1]=='?')
 				strcpy(type,"sa ta pyta");
@@ -2128,7 +2161,7 @@ void tellall(UR_OBJECT user, char *inpstr)
 			record_edit(u,text);
 			sprintf(u->ltell, user->name);
 			}
-		if (u->ignall && (user->level<WIZ || u->level>user->level)) continue;
+		if (u->ignore.all && (user->level<WIZ || u->level>user->level)) continue;
 		#ifdef NETLINKS
 		if (u->room==NULL) continue;
 		#endif
@@ -2157,8 +2190,9 @@ void kick(UR_OBJECT user)
 {
 	UR_OBJECT ur;
 	RM_OBJECT rm=NULL;
-	int i, out;
+	int i;
 
+	set_crash();
 	for (i=0; i<MAX_LINKS; ++i) {
 		if (user->room->link[i]) {
 			if (user->room->link[i]->access==PUBLIC
@@ -2189,8 +2223,10 @@ void kick(UR_OBJECT user)
 		}
 	move_user(ur, rm, 0);
 	if (user->vis) vwrite_user(ur, "~OL~FG%s~FW ta vykop%s z miestnosti ~FY%s~FW !\n",
-		user->name, gnd_grm(5, user->gender), user->room->name);
+		user->name, grm_gnd(5, user->gender), user->room->name);
 	else vwrite_user(ur, "~OL~FG%s~FW ta vykopol z miestnosti ~FY%s~FW !\n",
 		invisname, user->room->name);
-	vwrite_user(user, "~OLVykop%s si ~FG%s~FW odtialto ...\n", gnd_grm(5, user->gender), ur->name);
+	vwrite_user(user, "~OLVykop%s si ~FG%s~FW odtialto ...\n", grm_gnd(5, user->gender), ur->name);
 }
+
+#endif /* ct_social.c */

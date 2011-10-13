@@ -1,13 +1,15 @@
-~OLPouzitie  :~RS afk [lock] [<odkaz>]
+~OLPouzitie  :~RS afk [lock [-b]] [<odkaz>]
 
 Sluzi na nastavenie stavu AFK (Away From Keyboard) - prec od klavesnice. O
 tomto stave bude informovany kazdy kto ti posle tell, pemote, atd. a tiez
 bude zobrazeny v zozname userov pri .look. Ak sa zada ako prvy parameter
 slovo 'lock', bude pristupova konzola zamknuta. Na jej odomknutie treba
-vediet pristupove heslo. Ak sa zada iny parameter nez 'lock', pripadne to co
-je za nim sa bude userom zobrazovat ako dovod nepritomnosti. Na zrusenie
-stavu staci stlacit 'Enter', pripadne najprv napisat heslo.
-Vsetky telly, pemoty, atd su pocas AFK ukladane do zasobnika a zobrazene pri
-navrate.
+vediet pristupove heslo. Ak sa zada za slovo lock este parameter -b, nebudu sa
+na terminal vypisovat ziadne hlasky - nastavi blind. Ak sa zada iny parameter
+nez 'lock', pripadne to co je za nim sa bude userom zobrazovat ako dovod
+nepritomnosti. Na zrusenie stavu staci stlacit 'Enter', pripadne najprv napisat
+heslo. Vsetky telly, pemoty, atd su pocas AFK ukladane do zasobnika a zobrazene
+pri navrate. V pripade zamknutia konzoly sa po napisani slova who zobrazi zoznam
+aktualne prihlasenych juzrov.
 
 ~OLPozri :~RS cafk

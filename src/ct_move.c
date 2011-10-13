@@ -1,28 +1,30 @@
+/* vi: set ts=4 sw=4 ai: */
 /*****************************************************************************
-                  Funkcie OS Star v1.1.0 suvisiace s pohybom
-            Copyright (C) Pavol Hluchy - posledny update: 15.8.2000
-          osstar@star.sjf.stuba.sk  |  http://star.sjf.stuba.sk/osstar
+                  Funkcie Lotos v1.2.0 suvisiace s pohybom
+            Copyright (C) Pavol Hluchy - posledny update: 23.4.2001
+          lotos@losys.net           |          http://lotos.losys.net
  *****************************************************************************/
 
+#ifndef __CT_MOVE_C__
+#define __CT_MOVE_C__ 1
+
 #include <stdio.h>
+#include <unistd.h>
 #include <time.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "define.h"
-#include "ur_obj.h"
-#include "rm_obj.h"
+#include "prototypes.h"
+#include "obj_ur.h"
+#include "obj_rm.h"
 #ifdef NETLINKS
-	#include "nl_obj.h"
+	#include "obj_nl.h"
 #endif
-#include "sys_obj.h"
-#include "syspp_obj.h"
+#include "obj_sys.h"
+#include "obj_syspp.h"
 #include "ct_move.h"
 #include "comvals.h"
-
-/* prototypy */
-RM_OBJECT get_room_full(char *name);
-RM_OBJECT create_room(void);
-UR_OBJECT get_user_name(UR_OBJECT user, char *i_name);
-RM_OBJECT get_room(char *name);
 
 
 /*** Move to another room ***/
@@ -34,6 +36,7 @@ RM_OBJECT rm;
 #endif
 int i;
 
+	set_crash();
 if (user->lroom==2) {
   write_user(user,"You have been shackled and cannot move.\n");
   return;
@@ -134,8 +137,8 @@ if (rm==user->room) {
   return;
   }
 /* See if link from current room */
-if (rm->tr) {
-	if ((!rm->go) && rm->link[rm->out]==user->room) {
+if (rm->transp!=NULL) {
+	if ((!rm->transp->go) && rm->link[rm->transp->out]==user->room) {
 		move_user(user, rm, 0);
 		follow(user);
 		return;
@@ -164,13 +167,14 @@ follow(user);
 
 
 /*** Wizard moves a user to another room ***/
-void move(UR_OBJECT user)
+void s_move(UR_OBJECT user)
 {
 	UR_OBJECT u;
 	RM_OBJECT rm;
 	char *name;
 	int i, mur=0;
 
+	set_crash();
 	if (word_count<2) {
 		write_usage(user,"%s <user> [<room>]", command_table[MOVE].name);  return;
 		}
@@ -260,6 +264,7 @@ UR_OBJECT u;
 RM_OBJECT rm;
 char *name;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <user>", command_table[JOIN].name);
   return;
@@ -309,6 +314,7 @@ void bring(UR_OBJECT user)
 UR_OBJECT u;
 RM_OBJECT rm;
 
+	set_crash();
 if (word_count<2) {
   write_usage(user,"%s <user>", command_table[BRING].name);
   return;
@@ -390,7 +396,7 @@ if (user->lroom==2) {
 if ((rm=get_room_full(name))==NULL) {
   if ((rm=create_room())==NULL) {
     write_user(user,"Sorry, but your room could not be created at this time.\n");
-    write_syslog(SYSLOG,0,"ERROR: Could not create room for in personal_room()\n");
+    write_syslog(ERRLOG,1,"Could not create room for in personal_room()\n");
     return;
     }
   write_user(user,"\nYour room doesn't exists.  Building it now...\n\n");
@@ -405,7 +411,7 @@ if ((rm=get_room_full(name))==NULL) {
     strcpy(rm->topic,"Welcome to my room!");
     write_syslog(SYSLOG,1,"%s creates their own room.\n",user->name);
     if (!personal_room_store(user->name,1,rm)) {
-      write_syslog(SYSLOG,1,"ERROR: Unable to save personal room status in personal_room_decorate()\n");
+      write_syslog(ERRLOG,1,"Unable to save personal room status in personal_room_decorate()\n");
       }
     }
   }
@@ -456,3 +462,5 @@ if (!has_room_access(user,rm)) {
   }
 move_user(user,rm,1);
 }
+
+#endif /* ct_move.c */
